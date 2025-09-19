@@ -60,7 +60,7 @@ class Book(models.Model):
     title = models.CharField(max_length=500)
     cost = models.DecimalField(max_digits=11, decimal_places=2)
     retail_price = models.DecimalField(max_digits=11, decimal_places=2)
-    publication_date = models.DateField()
+    publication_date = models.DateField(validators=[MinValueValidator(1500), MaxValueValidator(2099)])
     edition = models.CharField(max_length=50, blank=True)
     rating = models.CharField(max_length=10, choices=Rating.choices, default=Rating.UNRATED)
     authors = models.ManyToManyField(Author, related_name='books')
