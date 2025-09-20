@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import Role, Author, Book, Employee, Customer, Order
+from .models import Role, Author, Book, Employee, Customer, Order
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):

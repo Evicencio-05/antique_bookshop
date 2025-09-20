@@ -25,6 +25,7 @@ class Employee(models.Model):
     hire_date = models.DateField(auto_now_add=True, editable=True)
     phone_number = models.CharField(max_length=50)
     position_id = models.ForeignKey(Role, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -36,7 +37,7 @@ class Author(models.Model):
     birth_year = models.DateField(blank=True)
     death_year = models.DateField(blank=True)
     description = models.TextField(max_length=1000, blank=True)
-    
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()
 
@@ -49,14 +50,14 @@ class Book(models.Model):
         POOR = 'poor', _('Poor')
         DAMAGED = 'damaged', _('Damaged')
         UNRATED = 'unrated', _('Unrated')
-        
+
     class Status(models.TextChoices):
         SOLD = 'sold', _('Sold')
         RESERVED = 'reserved', _('Reserved')
         AVAILABLE = 'available', _('Available')
         PROCESSING = 'processing', _('Processing')
-        
-    book_id = models.CharField(max_length=8, Validators=[MinValueValidator(8)], primary_key=True)
+
+    book_id = models.CharField(max_length=8, validators=[MinValueValidator(8)], primary_key=True)
     title = models.CharField(max_length=500)
     cost = models.DecimalField(max_digits=11, decimal_places=2)
     retail_price = models.DecimalField(max_digits=11, decimal_places=2)
@@ -135,4 +136,4 @@ def assign_group_to_employee(sender, instance, created, **kwargs):
         elif instance.position_id.title == 'Assistant Manager':
             group_name = 'ManagerGroup'
         group, _ = Group.objects.get_or_create(name=group_name)
-        instance.employee_id.groups.add(group)
+        instance.User.groups.add(group)
