@@ -111,7 +111,7 @@ class Order(models.Model):
     
     def completed_order(self):
         for book in self.books.all():
-            book.book_stats = 'sold'
+            book.book_status = 'sold'
             book.save()
         self.delivery_pickup_date = date.today()
         if self.status == 'to_be_shipped':

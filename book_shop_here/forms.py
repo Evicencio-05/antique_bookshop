@@ -6,7 +6,7 @@ class BookForm(forms.ModelForm):
         model = Book
         fields = '__all__'
         widgets = {
-            'publication_info': forms.TextInput(attrs={'placeholder': 'e.g., Publisher, 1800'})
+            'authors': forms.SelectMultiple(attrs={'placeholder': 'Select Options'})
         }
 
 class CustomerForm(forms.ModelForm):
