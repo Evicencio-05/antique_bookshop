@@ -1,0 +1,17 @@
+{% extends 'book_shop_here/base.html' %}
+{% block content %}
+    <h2>Available Books</h2>
+    <form method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search title or ID">
+        <button type="submit">Search</button>
+    </form>
+    <ul>
+        {% for book in books %}
+            <li>{{ book.title }} ({{ book.book_id }}) - ${{ book.retail_price }} - {{ book.rating }}
+            </li>
+        {% empty %}
+            <li>No books found.</li>
+        {% endfor %}
+    </ul>
+    {% comment %} {% if user.has_perm 'book_shop_here.add_book' %}<a href="{% url 'add_book' %}">Add Book</a>{% endif %} {% endcomment %}
+{% endblock %}
