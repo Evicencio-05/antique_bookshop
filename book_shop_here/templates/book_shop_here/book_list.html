@@ -8,6 +8,7 @@
     <ul>
         {% for book in books %}
             <li>{{ book.title }} ({{ book.book_id }}) - ${{ book.retail_price }} - {{ book.rating }}
+                {% if perms.book_shop_here.delete_book or user.is_superuser %}<a href="{% url 'delete_book' book_id %}">[X]</a>{% endif %}
             </li>
         {% empty %}
             <li>No books found.</li>

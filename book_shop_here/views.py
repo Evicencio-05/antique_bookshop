@@ -26,6 +26,18 @@ def add_book(request):
     return render(request, 'book_shop_here/book_form.html', {'form': form, 'title': 'Add Book'})
 
 @login_required
+@permission_required('book_shop_here.delete_book')
+def delete_book(request, book_id):
+    book = get_object_or_404(Book, pk=book_id)
+    
+    if request.method == 'POST':
+        book.delete()
+        messages.success(request, 'Book removed.')
+        return redirect('book_list')
+        
+    return render(request, 'book_shop_here/book_list.html', {'book': book})
+
+@login_required
 def role_list(request):
     roles = Role.objects.all()
     return render(request, 'book_shop_here/role_list.html', {'roles': roles})
@@ -49,7 +61,7 @@ def author_list(request):
     return render(request, 'book_shop_here/author_list.html', {'authors': authors})
 
 @login_required
-@permission_required('book_shop_here.add_role')
+@permission_required('book_shop_here.add_author')
 def add_author(request):
     if request.method == 'POST':
         form = AuthorForm(request.POST)
@@ -67,7 +79,7 @@ def order_list(request):
     return render(request, 'book_shop_here/order_list.html', {'orders': orders})
 
 @login_required
-@permission_required('book_shop_here.add_role')
+@permission_required('book_shop_here.add_order')
 def add_order(request):
     if request.method == 'POST':
         form = OrderForm(request.POST)

@@ -34,8 +34,8 @@ class Author(models.Model):
     author_id = models.AutoField(primary_key=True)
     last_name = models.CharField(max_length=100)
     first_name = models.CharField(max_length=100, blank=True, default='')
-    birth_year = models.DateField(blank=True, null=True)
-    death_year = models.DateField(blank=True, null=True)
+    birth_year = models.SmallIntegerField(blank=True, null=True)
+    death_year = models.SmallIntegerField(blank=True, null=True)
     description = models.TextField(max_length=1000, blank=True, null=True)
 
     def __str__(self):
@@ -85,7 +85,7 @@ class Customer(models.Model):
             models.CheckConstraint(check=models.Q(first_name__isnull=False) | models.Q(first_name__isnull=True), 
                                     name='name_required')
         ]
-        
+
 class Order(models.Model):
     class PaymentMethod(models.TextChoices):
         CASH = 'cash', _('Cash')
