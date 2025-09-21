@@ -1,5 +1,5 @@
 from django import forms
-from .models import Book, Customer, Role
+from .models import Book, Customer, Role, Author
 
 class BookForm(forms.ModelForm):
     class Meta:
@@ -25,4 +25,13 @@ class RoleForm(forms.ModelForm):
         fields = ['title', 'description']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Brief job duties (optional)...'}),
+        }
+
+class AuthorForm(forms.ModelForm):
+    
+    class Meta:
+        model = Author
+        fields = '__all__'
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Brief author description (optional)...'}),
         }

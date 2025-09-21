@@ -6,5 +6,5 @@
             <li>{{ role.title }} - {{ role.description|default:"No description" }}</li>
         {% endfor %}
     </ul>
-    {% if user.has_perm 'book_shop_here.add_role' %}<a href="{% url 'add_role' %}">Add New Role</a>{% endif %}
+    {% if user.Group == 'owner_group' or user.is_superuser %}<a href="{% url 'add_role' %}">Add New Role</a>{% endif %}
 {% endblock %}

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from .models import Book, Author, Order, Role
-from .forms import BookForm, CustomerForm, RoleForm
+from .forms import BookForm, CustomerForm, RoleForm, AuthorForm
 
 @login_required
 def book_list(request):
@@ -11,7 +11,7 @@ def book_list(request):
     if query:
         books = books.filter(title__icontains=query) | books.filter(book_id__icontains=query)
     return render(request, 'book_shop_here/book_list.html', {'books': books, 'query': query})
-    
+
 @login_required
 @permission_required('book_shop_here.add_book')
 def add_book(request):
@@ -42,3 +42,21 @@ def add_role(request):
     else:
         form = RoleForm()
     return render(request, 'book_shop_here/role_form.html', {'form': form})
+
+@login_required
+def author_list(request):
+    authors = Author.objects.all()
+    return render(request, 'book_shop_here/author_list.html', {'authors': authors})
+
+@login_required
+@permission_required('book_shop_here.add_role')
+def add_author(request):
+    if request.method == 'POST':
+        form = AuthorForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Author added successfully.')
+            return redirect('author_list')
+    else:
+        form = AuthorForm()
+    return render(request, 'book_shop_here/author_form.html', {'form': form})

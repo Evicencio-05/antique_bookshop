@@ -7,7 +7,7 @@ from datetime import date
 class Role(models.Model):
     role_id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=50)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -33,10 +33,10 @@ class Employee(models.Model):
 class Author(models.Model):
     author_id = models.AutoField(primary_key=True)
     last_name = models.CharField(max_length=100)
-    first_name = models.CharField(max_length=100, blank=True)
-    birth_year = models.DateField(blank=True)
-    death_year = models.DateField(blank=True)
-    description = models.TextField(max_length=1000, blank=True)
+    first_name = models.CharField(max_length=100, blank=True, null=True)
+    birth_year = models.DateField(blank=True, null=True)
+    death_year = models.DateField(blank=True, null=True)
+    description = models.TextField(max_length=1000, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()
@@ -62,7 +62,7 @@ class Book(models.Model):
     cost = models.DecimalField(max_digits=11, decimal_places=2)
     retail_price = models.DecimalField(max_digits=11, decimal_places=2)
     publication_date = models.DateField(validators=[MinValueValidator(1500), MaxValueValidator(2099)])
-    edition = models.CharField(max_length=50, blank=True)
+    edition = models.CharField(max_length=50, blank=True, null=True, default='N/A')
     rating = models.CharField(max_length=10, choices=Rating.choices, default=Rating.UNRATED)
     authors = models.ManyToManyField(Author, related_name='books')
     book_status = models.CharField(max_length=10, choices=Status.choices, default=Status.PROCESSING)
@@ -72,10 +72,10 @@ class Book(models.Model):
 
 class Customer(models.Model):
     customer_id = models.AutoField(primary_key=True)
-    last_name = models.CharField(max_length=100, blank=True)
-    first_name = models.CharField(max_length=100, blank=True)
-    phone_number = models.CharField(max_length=25, blank=True)
-    mailing_address = models.CharField(blank=True)
+    last_name = models.CharField(max_length=100, blank=True, null=True)
+    first_name = models.CharField(max_length=100, blank=True, null=True)
+    phone_number = models.CharField(max_length=25, blank=True, null=True)
+    mailing_address = models.CharField(blank=True, null=True)
     
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()

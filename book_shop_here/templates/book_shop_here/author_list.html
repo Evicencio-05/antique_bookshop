@@ -1,0 +1,17 @@
+{% extends 'book_shop_here/base.html' %}
+{% block content %}
+    <h2>Authors</h2>
+    <form method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search name">
+        <button type="submit">Search</button>
+    </form>
+    <ul>
+        {% for author in Authors %}
+            <li>{{ author.first_name }} ({{ author.last_name }})
+            </li>
+        {% empty %}
+            <li>No authors found.</li>
+        {% endfor %}
+    </ul>
+    {% if user.Group == 'owner_group' or user.is_superuser %}<a href="{% url 'add_author' %}">Add Author</a>{% endif %}
+{% endblock %}
