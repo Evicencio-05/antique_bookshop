@@ -33,7 +33,7 @@ class Employee(models.Model):
 class Author(models.Model):
     author_id = models.AutoField(primary_key=True)
     last_name = models.CharField(max_length=100)
-    first_name = models.CharField(max_length=100, blank=True, null=True)
+    first_name = models.CharField(max_length=100, blank=True, default='')
     birth_year = models.DateField(blank=True, null=True)
     death_year = models.DateField(blank=True, null=True)
     description = models.TextField(max_length=1000, blank=True, null=True)
@@ -64,7 +64,7 @@ class Book(models.Model):
     publication_date = models.DateField(validators=[MinValueValidator(1500), MaxValueValidator(2099)])
     edition = models.CharField(max_length=50, blank=True, null=True, default='N/A')
     rating = models.CharField(max_length=10, choices=Rating.choices, default=Rating.UNRATED)
-    authors = models.ManyToManyField(Author, related_name='books')
+    authors = models.ManyToManyField(Author, related_name='books', default='Unknown')
     book_status = models.CharField(max_length=10, choices=Status.choices, default=Status.PROCESSING)
     
     def __str__(self):

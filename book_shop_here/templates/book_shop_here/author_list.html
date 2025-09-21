@@ -6,8 +6,8 @@
         <button type="submit">Search</button>
     </form>
     <ul>
-        {% for author in Authors %}
-            <li>{{ author.first_name }} ({{ author.last_name }})
+        {% for author in authors %}
+            <li>{{ author.author_id }}: {% if author.first_name != null %} {{author.first_name}} {% endif %} ({{ author.last_name }})
             </li>
         {% empty %}
             <li>No authors found.</li>

@@ -1,0 +1,17 @@
+{% extends 'book_shop_here/base.html' %}
+{% block content %}
+    <h2>Orders</h2>
+    <form method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search title or ID">
+        <button type="submit">Search</button>
+    </form>
+    <ul>
+        {% for order in orders %}
+            <li>{{ order.order_id }} {{ order.status }}
+            </li>
+        {% empty %}
+            <li>No orders found.</li>
+        {% endfor %}
+    </ul>
+    {% if user.Group == 'owner_group' or user.is_superuser %}<a href="{% url 'add_order' %}">Add Order</a>{% endif %}
+{% endblock %}

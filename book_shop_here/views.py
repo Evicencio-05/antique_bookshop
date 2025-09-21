@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from .models import Book, Author, Order, Role
-from .forms import BookForm, CustomerForm, RoleForm, AuthorForm
+from .forms import BookForm, CustomerForm, RoleForm, AuthorForm, OrderForm
 
 @login_required
 def book_list(request):
@@ -60,3 +60,21 @@ def add_author(request):
     else:
         form = AuthorForm()
     return render(request, 'book_shop_here/author_form.html', {'form': form})
+
+@login_required
+def order_list(request):
+    orders = Order.objects.all()
+    return render(request, 'book_shop_here/order_list.html', {'orders': orders})
+
+@login_required
+@permission_required('book_shop_here.add_role')
+def add_order(request):
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Order added successfully.')
+            return redirect('order_list')
+    else:
+        form = OrderForm()
+    return render(request, 'book_shop_here/order_form.html', {'form': form})
