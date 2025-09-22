@@ -5,9 +5,11 @@ class BookForm(forms.ModelForm):
     class Meta:
         model = Book
         fields = '__all__'
-        widgets = {
-            'authors': forms.SelectMultiple(attrs={'placeholder': 'Select Options'})
-        }
+        
+        authors = forms.ModelMultipleChoiceField(
+            queryset=Author.objects.order_by('last_name'),
+            widget=forms.CheckboxSelectMultiple
+        )
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -28,7 +30,6 @@ class RoleForm(forms.ModelForm):
         }
 
 class AuthorForm(forms.ModelForm):
-    
     class Meta:
         model = Author
         fields = '__all__'

@@ -8,11 +8,11 @@
     <ul>
         {% for book in books %}
             <li>{{ book.title }} ({{ book.book_id }}) - ${{ book.retail_price }} - {{ book.rating }}
-                {% if perms.book_shop_here.delete_book or user.is_superuser %}<a href="{% url 'delete_book' book_id %}">[X]</a>{% endif %}
+                {% if perms.book_shop_here.delete_book or user.is_superuser %}<a href="{% url 'delete_book' book_id=book.book_id %}">[X]</a>{% endif %}
             </li>
         {% empty %}
             <li>No books found.</li>
         {% endfor %}
     </ul>
-    {% if user.Group == 'owner_group' or user.is_superuser %}<a href="{% url 'add_book' %}">Add Book</a>{% endif %}
+    {% if perms.book_shop_here.add_book or user.is_superuser %}<a href="{% url 'add_book' %}">Add Book</a>{% endif %}
 {% endblock %}

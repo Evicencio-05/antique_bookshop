@@ -35,7 +35,7 @@ def delete_book(request, book_id):
         messages.success(request, 'Book removed.')
         return redirect('book_list')
         
-    return render(request, 'book_shop_here/book_list.html', {'book': book})
+    return render(request, 'book_shop_here/book_delete_confirm.html', {'book': book})
 
 @login_required
 def role_list(request):

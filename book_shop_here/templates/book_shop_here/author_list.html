@@ -13,5 +13,5 @@
             <li>No authors found.</li>
         {% endfor %}
     </ul>
-    {% if user.Group == 'owner_group' or user.is_superuser %}<a href="{% url 'add_author' %}">Add Author</a>{% endif %}
+    {% if perms.book_shop_here.add_author or user.is_superuser %}<a href="{% url 'add_author' %}">Add Author</a>{% endif %}
 {% endblock %}
