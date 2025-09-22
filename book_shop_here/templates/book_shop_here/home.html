@@ -1,0 +1,10 @@
+{% extends 'book_shop_here/base.html' %}
+{% block content %}
+    <h1>Welcome to the Book Shop!</h1>
+    <p>Browse our collection of antique books.</p>
+    {% if not user.is_authenticated %}
+        <a href="{% url 'login' %}">Login</a> to manage books, authors, and orders.
+    {% else %}
+        <a href="{% url 'book_list' %}">View Books</a>
+    {% endif %}
+{% endblock %}

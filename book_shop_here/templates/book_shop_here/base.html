@@ -1,12 +1,55 @@
+{% load static %}
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Antique Publications</title>
-<style>body { font-family: Arial; max-width: 800px; margin: auto; } form { margin: 20px 0; } input, select { width: 100%; padding: 8px; }</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Book Shop Here{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
-<body>
-    <h1>Bookshop Inventory</h1>
-    <nav><a href="{% url 'book_list' %}">Books</a> | <a href="/admin/">Admin</a></nav>
-    {% if messages %}<ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
-    {% block content %}{% endblock %}
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <nav class="bg-white shadow-lg p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-gray-800 rounded-md p-2 hover:bg-gray-100 transition-colors">
+                {% block nav_brand %}Book Shop Here{% endblock %}
+            </a>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'home' %}" class="text-gray-600 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-100">Home</a>
+                <a href="{% url 'book_list' %}" class="text-gray-600 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-100">Books</a>
+                <a href="{% url 'author_list' %}" class="text-gray-600 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-100">Authors</a>
+                {% if user|is_in_group:"OwnerGroup" or user|is_in_group:"ManagerGroup" or user.is_superuser %}
+                    <a href="{% url 'role_list' %}" class="text-gray-600 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-100">Roles</a>
+                    <a href="{% url 'order_list' %}" class="text-gray-600 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-100">Orders</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+        
+        <main class="container mx-auto p-8 flex-grow">
+            {% if messages %}<ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+            {% block content %}
+            <!-- Default content goes here if a child template doesn't provide its own. -->
+            <p class="text-center text-gray-500 mt-10">Welcome to the site! This is the main content area.</p>
+            {% endblock %}
+        </main>
+        
+        
+        <footer class="bg-white shadow-lg p-4 mt-auto">
+            <a href="/admin/" class="text-gray-600 bg-gray-100 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-300">Admin</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+            {% endif %}
+        </form>
+            <div class="container mx-auto text-center text-gray-500">
+        </div>
+    </footer>
 </body>
 </html>

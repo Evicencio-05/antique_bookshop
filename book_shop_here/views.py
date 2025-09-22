@@ -5,6 +5,12 @@ from .models import Book, Author, Order, Role
 from .forms import BookForm, CustomerForm, RoleForm, AuthorForm, OrderForm
 
 @login_required
+def home(request):
+    if request.user.is_authenticated:
+        return redirect('book_list')
+    return render(request, 'book_shop_here/home.html')
+
+@login_required
 def book_list(request):
     query = request.GET.get('q')
     books = Book.objects.filter(book_status='available')

@@ -1,10 +1,15 @@
+from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.book_list, name='book_list'),
-    path('add_book/', views.add_book, name='add_book'),
-    path('delete_book/<str:book_id>/', views.delete_book, name='delete_book'),
+    path('', views.home, name='home'),
+    path('login/', LoginView.as_view(template_name='book_shop_here/login.html'), name='login'),
+    path('logout/', LogoutView.as_view(template_name='book_shop_here/logout.html'), name='logout'),
+    
+    path('books/', views.book_list, name='book_list'),
+    path('books/add/', views.add_book, name='add_book'),
+    path('books/delete_book/<str:book_id>/', views.delete_book, name='delete_book'),
     
     path('roles/', views.role_list, name='role_list'),
     path('roles/add/', views.add_role, name='add_role'),
