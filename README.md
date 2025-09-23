@@ -12,14 +12,16 @@ This is a Django-based web application for managing an antique bookstore. It inc
 
 ### 1. Clone the Repository
 Clone the project to your local machine:
-git clone <repository-url>
-cd book_shop_here</repository-url>
-
+```bash
+git clone https://github.com/Evicencio-05/antique_bookshop
+cd antique_bookshop
+```
 
 ### 2. Set Up a Virtual Environment
 Create and activate a virtual environment to isolate dependencies:
+```bash
 pip install -r requirements.txt
-
+```
 
 This includes:
 - `Django`: The web framework.
