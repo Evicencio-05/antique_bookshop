@@ -24,7 +24,7 @@ class Employee(models.Model):
     state = models.CharField(max_length=50, verbose_name= _('Employee state'))
     hire_date = models.DateField(auto_now_add=True, verbose_name= _('Employee hire date'))
     phone_number = models.CharField(max_length=50, verbose_name= _('Employee phone number'))
-    role_id = models.ForeignKey(Role, on_delete=models.CASCADE, verbose_name= _('Employee role ID'))
+    position_id = models.ForeignKey(Role, on_delete=models.CASCADE, verbose_name= _('Employee role ID'))
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, verbose_name= _('Employee user'))
 
     def __str__(self):

@@ -20,6 +20,14 @@ cd antique_bookshop
 ### 2. Set Up a Virtual Environment
 Create and activate a virtual environment to isolate dependencies:
 ```bash
+python -m venv venv
+
+# For Windows
+.\venv\Scripts\activate
+
+# For Linux/MacOS
+source venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
@@ -31,10 +39,11 @@ This includes:
 
 ### 4. Configure Environment Variables
 Create a `.env` file in the project root (next to `manage.py`) and add the following:
+```txt
 SECRET_KEY=your-secret-key-here  # Generate a secure key (e.g., using django.core.management.utils.get_random_secret_key())
 DEBUG=True  # Set to False in production
 ALLOWED_HOSTS=localhost,127.0.0.1  # Comma-separated list; add your domain in production
-
+```
 
 For database configuration, see the next section.
 
@@ -83,15 +92,17 @@ volumes:
 ```
 
 3. Start the PostgreSQL container:
- - docker-compose up -d
+    - docker-compose up -d
 
 4. Update your `.env` file with the PostgreSQL credentials:
-    DATABASE_ENGINE=django.db.backends.postgresql
-    DATABASE_NAME=bookshopdb
-    DATABASE_USER=bookshopuser
-    DATABASE_PASSWORD=yoursecurepassword
-    DATABASE_HOST=localhost
-    DATABASE_PORT=5432
+```
+    DATABASE_ENGINE=django.db.backends.postgresql  
+    DATABASE_NAME=bookshopdb  
+    DATABASE_USER=bookshopuser  
+    DATABASE_PASSWORD=yoursecurepassword  
+    DATABASE_HOST=localhost  
+    DATABASE_PORT=5432  
+```
 
 5. In `settings.py`, configure `DATABASES` to load from environment variables (using `dotenv` implicitly via `os.environ`):
 
@@ -117,7 +128,7 @@ DATABASES = {
     }
 }
 ```
- * This allows switching between SQLite and PostgreSQL via .env.
+ * This allows switching between SQLite and PostgreSQL via .env.  
     **Note: Stop the container with `docker-compose down` when done. Data persists via the volume.**
 
 ### 6. Apply Migrations
@@ -142,7 +153,7 @@ Follow the prompts to set username, email, and password.
 
 Start the local server:
 ```
-Start the local server:
+python manage.py runserver
 ```
 
 Visit `http://127.0.0.1:8000/` in your browser. The home page should appear. Log in at `/login/` using your superuser credentials.

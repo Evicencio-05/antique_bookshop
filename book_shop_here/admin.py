@@ -17,7 +17,7 @@ class BookAdmin(admin.ModelAdmin):
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ['last_name', 'first_name', 'role_id', 'hire_date']
+    list_display = ['last_name', 'first_name', 'position_id', 'hire_date']
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
