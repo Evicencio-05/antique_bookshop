@@ -23,10 +23,10 @@ Create and activate a virtual environment to isolate dependencies:
 #### Create
 ```
 # For Linux/macOS
-python3 -m venv <environment_name>
+python3 -m venv .venv
 
 # For Windows
-python -m venv <environment_name>
+python -m venv .venv
 ```
 
 #### Activate
@@ -42,6 +42,7 @@ source venv/Scripts/activate
 
 pip install -r requirements.txt
 ```
+**Note: Deactivate using `deactivate`**
 
 This includes:
 - `Django`: The web framework.
