@@ -11,7 +11,7 @@ class BookForm(forms.ModelForm):
         model = Book
         fields = '__all__'
 
-    def clear_authors(self):
+    def clean_authors(self):
         authors = self.cleaned_data['authors']
         if not authors:
             raise forms.ValidationError('Must select at least one author.')

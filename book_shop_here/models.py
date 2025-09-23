@@ -44,6 +44,7 @@ class Author(models.Model):
 
 import string
 import random
+from django.db import transaction
 
 class Book(models.Model):
     class Rating(models.TextChoices):
@@ -68,7 +69,7 @@ class Book(models.Model):
     publication_date = models.DateField(validators=[MinValueValidator(date(1500,1,1)), MaxValueValidator(date(2099,12,31))], verbose_name= _('Publication Date'))
     edition = models.CharField(max_length=50, blank=True, null=True, default='N/A', verbose_name= _('Book edition'))
     rating = models.CharField(max_length=10, choices=Rating.choices, default=Rating.UNRATED, verbose_name= _('Visible book condition'))
-    authors = models.ManyToManyField(Author, related_name='books', verbose_name= _('Book author(s)'))
+    authors = models.ManyToManyField(Author, related_name='books', verbose_name= _('Book author(s)'), editable=True)
     book_status = models.CharField(max_length=10, choices=BookStatus.choices, default=BookStatus.PROCESSING)
     
     def generate_pk(self):
@@ -85,22 +86,24 @@ class Book(models.Model):
         attempts = 0
         max_attempts = 100
         
-        while Book.objects.filter(id=candidate).exists():
+        while Book.objects.filter(book_id=candidate).exists():
             if attempts >= max_attempts:
                 raise ValueError('Unable to generate a unique primary key.')
-        digits = ''.join(random.choices(string.digits, k=4))
-        candidate = f'{base}{digits}'
-        attempts += 1
+            digits = ''.join(random.choices(string.digits, k=4))
+            candidate = f'{base}{digits}'
+            attempts += 1
+        
+        return candidate
 
     def save(self, *args, **kwargs):
-        if not self.book_id:
-            if not self.pk and not self.authors.exists():
+        with transaction.atomic():
+            if not self.book_id:
+                if not self.pk and not self.authors.exists():
+                    super().save(*args, **kwargs)
+                self.book_id = self.generate_pk()
                 super().save(*args, **kwargs)
-
-            self.book_id = self.generate_pk()
-        
-        super().save()(*args, **kwargs)
-
+            else:
+                super().save()(*args, **kwargs)
                  
     def __str__(self):
         return f"{self.book_id}: {self.title}"
