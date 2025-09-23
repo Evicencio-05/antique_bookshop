@@ -19,14 +19,26 @@ cd antique_bookshop
 
 ### 2. Set Up a Virtual Environment
 Create and activate a virtual environment to isolate dependencies:
-```bash
-python -m venv venv
+
+#### Create
+```
+# For Linux/macOS
+python3 -m venv <environment_name>
 
 # For Windows
-.\venv\Scripts\activate
+python -m venv <environment_name>
+```
 
-# For Linux/MacOS
-source venv/bin/activate
+#### Activate
+```
+# For Command Prompt 
+venv\Scripts\activate.bat
+
+# For PowerShell
+.\venv\Scripts\Activate.ps1
+
+# For Git Bash or WSL 
+source venv/Scripts/activate
 
 pip install -r requirements.txt
 ```
@@ -92,7 +104,7 @@ volumes:
 ```
 
 3. Start the PostgreSQL container:
-    - docker-compose up -d
+``` docker-compose up -d```
 
 4. Update your `.env` file with the PostgreSQL credentials:
 ```
@@ -156,7 +168,7 @@ Start the local server:
 python manage.py runserver
 ```
 
-Visit `http://127.0.0.1:8000/` in your browser. The home page should appear. Log in at `/login/` using your superuser credentials.
+Visit `http://127.0.0.1:8000/` in your browser (A link is also provided in the terminal). The login page should appear and log in using you super user credentials.
 
 ## Additional Notes
 
