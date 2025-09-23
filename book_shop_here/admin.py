@@ -17,7 +17,7 @@ class BookAdmin(admin.ModelAdmin):
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ['last_name', 'first_name', 'position_id', 'hire_date']
+    list_display = ['last_name', 'first_name', 'role_id', 'hire_date']
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
@@ -25,8 +25,8 @@ class CustomerAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['order_id', 'customer_id', 'employee_id', 'sale_amount', 'status', 'order_date']
-    list_filter = ['status', 'payment_method', 'order_date']
+    list_display = ['order_id', 'customer_id', 'employee_id', 'sale_amount', 'order_status', 'order_date']
+    list_filter = ['order_status', 'payment_method', 'order_date']
     filter_horizontal = ['books']
     actions = ['complete_order']
 
