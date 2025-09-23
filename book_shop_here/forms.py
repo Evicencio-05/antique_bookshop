@@ -2,14 +2,20 @@ from django import forms
 from .models import Book, Customer, Role, Author, Order
 
 class BookForm(forms.ModelForm):
+    authors = forms.ModelMultipleChoiceField(
+        queryset=Author.objects.order_by('last_name'),
+        widget=forms.CheckboxSelectMultiple
+    )
+
     class Meta:
         model = Book
         fields = '__all__'
-        
-        authors = forms.ModelMultipleChoiceField(
-            queryset=Author.objects.order_by('last_name'),
-            widget=forms.CheckboxSelectMultiple
-        )
+
+    def clear_authors(self):
+        authors = self.cleaned_data['authors']
+        if not authors:
+            raise forms.ValidationError('Must select at least one author.')
+        return authors        
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -38,7 +44,6 @@ class AuthorForm(forms.ModelForm):
         }
 
 class OrderForm(forms.ModelForm):
-    
     class Meta:
         model = Order
         fields = '__all__'

@@ -23,6 +23,7 @@ class Employee(models.Model):
     zip_code = models.CharField(max_length=50, verbose_name= _('Employee zip code'))
     state = models.CharField(max_length=50, verbose_name= _('Employee state'))
     hire_date = models.DateField(auto_now_add=True, verbose_name= _('Employee hire date'))
+    birth_date = models.DateField(auto_now_add=False, verbose_name= _('Employee date of birth'), default=date(1600,1,1))
     phone_number = models.CharField(max_length=50, verbose_name= _('Employee phone number'))
     position_id = models.ForeignKey(Role, on_delete=models.CASCADE, verbose_name= _('Employee role ID'))
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, verbose_name= _('Employee user'))
@@ -31,7 +32,7 @@ class Employee(models.Model):
         return f"{self.first_name} {self.last_name}"
 
 class Author(models.Model):
-    author_id = models.AutoField(primary_key=True)
+    author_id = models.AutoField(primary_key=True, editable=False)
     last_name = models.CharField(max_length=100, verbose_name= _('Author last name'))
     first_name = models.CharField(max_length=100, blank=True, default='', verbose_name= _('Author first name'))
     birth_year = models.SmallIntegerField(blank=True, null=True, verbose_name= _('Author birth year'))
@@ -40,6 +41,9 @@ class Author(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()
+
+import string
+import random
 
 class Book(models.Model):
     class Rating(models.TextChoices):
@@ -57,16 +61,47 @@ class Book(models.Model):
         AVAILABLE = 'available', _('Available')
         PROCESSING = 'processing', _('Processing')
 
-    book_id = models.CharField(max_length=8, validators=[MinLengthValidator(8)], primary_key=True)
+    book_id = models.CharField(max_length=8, validators=[MinLengthValidator(8)], primary_key=True, editable=False)
     title = models.CharField(max_length=500, verbose_name= _('Book title'))
     cost = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Book cost'))
-    retail_price = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Book suggested retail price'))
-    publication_date = models.DateField(validators=[MinValueValidator(date(1500,1,1)), MaxValueValidator(date(2099,12,31))], verbose_name= _('Book pub date (1500 < date < 2099)'))
-    edition = models.CharField(max_length=50, blank=True, null=True, default='N/A', verbose_name= _('Book edition if applicable'))
+    retail_price = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Suggested retail price'))
+    publication_date = models.DateField(validators=[MinValueValidator(date(1500,1,1)), MaxValueValidator(date(2099,12,31))], verbose_name= _('Publication Date'))
+    edition = models.CharField(max_length=50, blank=True, null=True, default='N/A', verbose_name= _('Book edition'))
     rating = models.CharField(max_length=10, choices=Rating.choices, default=Rating.UNRATED, verbose_name= _('Visible book condition'))
     authors = models.ManyToManyField(Author, related_name='books', verbose_name= _('Book author(s)'))
     book_status = models.CharField(max_length=10, choices=BookStatus.choices, default=BookStatus.PROCESSING)
     
+    def generate_pk(self):
+        try:
+            first_author = self.authors.order_by('last_name').first()
+            base_name = first_author.last_name if first_author else 'unknown'
+        except AttributeError:
+            base_name = 'unkown'
+
+        base = (base_name[:4].lower() + 'xxxx')[:4]
+        digits = ''.join(random.choices(string.digits, k=4))
+        candidate = f'{base}{digits}'
+
+        attempts = 0
+        max_attempts = 100
+        
+        while Book.objects.filter(id=candidate).exists():
+            if attempts >= max_attempts:
+                raise ValueError('Unable to generate a unique primary key.')
+        digits = ''.join(random.choices(string.digits, k=4))
+        candidate = f'{base}{digits}'
+        attempts += 1
+
+    def save(self, *args, **kwargs):
+        if not self.book_id:
+            if not self.pk and not self.authors.exists():
+                super().save(*args, **kwargs)
+
+            self.book_id = self.generate_pk()
+        
+        super().save()(*args, **kwargs)
+
+                 
     def __str__(self):
         return f"{self.book_id}: {self.title}"
 

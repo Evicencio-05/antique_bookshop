@@ -65,7 +65,7 @@ DATABASES = {
 
 No additional setup needed—proceed to migrations.
 
-#### Option 1: Use PostgreSQL Without Installing It Locally (Via Docker)
+#### Option 2: Use PostgreSQL Without Installing It Locally (Via Docker)
 To avoid installing PostgreSQL on your machine, use Docker to run a PostgreSQL container. This is possible and recommended for development/testing.
 
 1. Install Docker if not already (download from [docker.com](https://www.docker.com/)).

@@ -24,7 +24,9 @@ def add_book(request):
     if request.method == 'POST':
         form = BookForm(request.POST)
         if form.is_valid():
-            form.save()
+            book = form.save(commit=False)
+            book.save()
+            form.save_m2m()
             messages.success(request, 'Book added.')
             return redirect('book_list')
     else:
