@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from .models import Book, Author, Order, Role
 from .forms import BookForm, CustomerForm, RoleForm, AuthorForm, OrderForm
+import logging
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def home(request):
@@ -25,7 +28,7 @@ def add_book(request):
         form = BookForm(request.POST)
         if form.is_valid():
             book = form.save(commit=False)
-            book.save()
+            book.save(form.cleaned_data['authors'])
             form.save_m2m()
             messages.success(request, 'Book added.')
             return redirect('book_list')

@@ -7,7 +7,7 @@ class RoleAdmin(admin.ModelAdmin):
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ['last_name', 'first_name', 'birth_year', 'death_year']
+    list_display = ['author_id' ,'last_name', 'first_name', 'birth_year', 'death_year']
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):

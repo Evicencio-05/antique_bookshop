@@ -3,6 +3,9 @@ from django.core.validators import MinValueValidator, MaxValueValidator, MinLeng
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from datetime import date
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Role(models.Model):
     role_id = models.AutoField(primary_key=True)
@@ -46,6 +49,15 @@ import string
 import random
 import re
 from django.db import transaction, DatabaseError
+from django.core.exceptions import ValidationError
+
+def validate_book_id(value):
+    if not value:
+        raise ValidationError('Book ID cannot be empty.')
+    pattern = r"[a-z]{4}[0-9]{4}"
+    if not re.search(pattern, value):
+        raise ValidationError('Book ID must match pattern: four lowercase letters followed by four digits.')
+
 
 class Book(models.Model):
     class Rating(models.TextChoices):
@@ -63,7 +75,7 @@ class Book(models.Model):
         AVAILABLE = 'available', _('Available')
         PROCESSING = 'processing', _('Processing')
 
-    book_id = models.CharField(max_length=8, validators=[MinLengthValidator(8)], primary_key=True, editable=False)
+    book_id = models.CharField(max_length=8, validators=[MinLengthValidator(8), validate_book_id], primary_key=True, editable=False)
     title = models.CharField(max_length=500, verbose_name= _('Book title'))
     cost = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Book cost'))
     retail_price = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Suggested retail price'))
@@ -73,9 +85,12 @@ class Book(models.Model):
     authors = models.ManyToManyField(Author, related_name='books', verbose_name= _('Book author(s)'), editable=True)
     book_status = models.CharField(max_length=10, choices=BookStatus.choices, default=BookStatus.PROCESSING)
     
-    def generate_pk(self):
+    def generate_pk(self, authors=None):
         try:
-            first_author = self.authors.order_by('last_name').first()
+            if authors is None:
+                first_author = self.authors.order_by('last_name').first()
+            else:
+                first_author = authors.order_by('last_name').first()
             base_name = first_author.last_name if first_author and hasattr(first_author, 'last_name') else 'unknown'
         except (AttributeError, DatabaseError):
             base_name = 'unknown'
@@ -96,16 +111,12 @@ class Book(models.Model):
                 if attempts >= max_attempts:
                     raise ValueError('Unable to generate a unique book_id after {} attempts.'.format(max_attempts))
 
-    def save(self, *args, **kwargs):
+    def save(self, authors, *args, **kwargs,):
         with transaction.atomic():
             pattern = r"[a-z]{4}[0-9]{4}"
             if not re.search(pattern, self.book_id):
-                if not self.pk and not self.authors.exists():
-                    super().save(*args, **kwargs)
-                self.book_id = self.generate_pk()
-                super().save(*args, **kwargs)
-            else:
-                super().save(*args, **kwargs)
+                self.book_id = self.generate_pk(authors)
+            super().save(*args, **kwargs)
                 
     def __str__(self):
         return f"{self.book_id}: {self.title}"

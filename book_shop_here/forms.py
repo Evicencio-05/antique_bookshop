@@ -9,13 +9,16 @@ class BookForm(forms.ModelForm):
 
     class Meta:
         model = Book
-        fields = '__all__'
+        fields = ['title', 'cost', 'retail_price', 'publication_date', 'edition', 'rating', 'authors', 'book_status']
 
     def clean_authors(self):
         authors = self.cleaned_data['authors']
         if not authors:
             raise forms.ValidationError('Must select at least one author.')
-        return authors        
+        for author in authors:
+            if not author.pk:
+                raise forms.ValidationError(f'Author "{author}" is not saved to the database.')
+        return authors
 
 class CustomerForm(forms.ModelForm):
     class Meta:
