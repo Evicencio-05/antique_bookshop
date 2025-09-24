@@ -44,7 +44,8 @@ class Author(models.Model):
 
 import string
 import random
-from django.db import transaction
+import re
+from django.db import transaction, DatabaseError
 
 class Book(models.Model):
     class Rating(models.TextChoices):
@@ -75,36 +76,37 @@ class Book(models.Model):
     def generate_pk(self):
         try:
             first_author = self.authors.order_by('last_name').first()
-            base_name = first_author.last_name if first_author else 'unknown'
-        except AttributeError:
-            base_name = 'unkown'
+            base_name = first_author.last_name if first_author and hasattr(first_author, 'last_name') else 'unknown'
+        except (AttributeError, DatabaseError):
+            base_name = 'unknown'
 
+        base_name = ''.join(c for c in base_name if c.isalpha())[:4].lower()
         base = (base_name[:4].lower() + 'xxxx')[:4]
-        digits = ''.join(random.choices(string.digits, k=4))
-        candidate = f'{base}{digits}'
 
         attempts = 0
-        max_attempts = 100
+        max_attempts = 1000
         
-        while Book.objects.filter(book_id=candidate).exists():
-            if attempts >= max_attempts:
-                raise ValueError('Unable to generate a unique primary key.')
-            digits = ''.join(random.choices(string.digits, k=4))
-            candidate = f'{base}{digits}'
-            attempts += 1
-        
-        return candidate
+        with transaction.atomic():
+            while True:
+                digits = ''.join(random.choices(string.digits, k=4))
+                candidate = f'{base}{digits}'
+                if not self.__class__.objects.filter(book_id=candidate).exists():
+                    return candidate
+                attempts += 1
+                if attempts >= max_attempts:
+                    raise ValueError('Unable to generate a unique book_id after {} attempts.'.format(max_attempts))
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
-            if not self.book_id:
+            pattern = r"[a-z]{4}[0-9]{4}"
+            if not re.search(pattern, self.book_id):
                 if not self.pk and not self.authors.exists():
                     super().save(*args, **kwargs)
                 self.book_id = self.generate_pk()
                 super().save(*args, **kwargs)
             else:
-                super().save()(*args, **kwargs)
-                 
+                super().save(*args, **kwargs)
+                
     def __str__(self):
         return f"{self.book_id}: {self.title}"
 
