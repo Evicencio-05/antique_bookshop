@@ -2,8 +2,8 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from book_shop_here.models import Book, Author, Order, Role, Customer, Employee
-from book_shop_here.forms import BookForm, CustomerForm, RoleForm, AuthorForm, OrderForm
+from book_shop_here.models import Book, Author, Order, Customer, Employee, GroupProfile
+from book_shop_here.forms import BookForm, CustomerForm, AuthorForm, OrderForm, GroupForm
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import date
@@ -73,7 +73,7 @@ class CustomerModelTests(TestCase):
 
 class OrderModelTests(TestCase):
     def setUp(self):
-        self.role = Role.objects.create(title="Clerk")
+        self.group = Group.objects.create(title="Full Time Sales Clerk")
         self.user = User.objects.create_user(username="testuser", password="testpass")
         self.employee = Employee.objects.create(
             first_name="Test",
@@ -83,7 +83,7 @@ class OrderModelTests(TestCase):
             state="CA",
             birth_date=date(1990, 1, 1),
             phone_number="1234567890",
-            position_id=self.role,
+            group=self.group,
             user=self.user
         )
         self.customer = Customer.objects.create(first_name="Bob", last_name="Jones")
@@ -162,19 +162,34 @@ class CustomerFormTests(TestCase):
         form = CustomerForm(data=form_data)
         self.assertTrue(form.is_valid())
 
-class RoleFormTests(TestCase):
-    def test_role_form_valid(self):
-        form_data = {
-            "title": "Manager",
-            "description": "Manages store operations"
-        }
-        form = RoleForm(data=form_data)
-        self.assertTrue(form.is_valid())
+class GroupCreationFormTests(TestCase):
+    def setUp(self):
+        ct = ContentType.objects.get_for_model(Book)
+        self.perm = Permission.objects.create(codename='can_sell_book', name='Can Sell Book', content_type=ct)
 
-    def test_role_form_no_description(self):
-        form_data = {"title": "Clerk"}
-        form = RoleForm(data=form_data)
+    def test_group_creation_form_valid(self):
+        form_data = {
+            "name": "Manager",
+            "description": "Manages store operations",
+            "permissions": [self.perm.pk] 
+        }
+        form = GroupForm(data=form_data) 
         self.assertTrue(form.is_valid())
+        
+        group = form.save()
+        self.assertEqual(group.name, "Manager")
+        self.assertTrue(group.permissions.filter(pk=self.perm.pk).exists())
+        self.assertTrue(GroupProfile.objects.filter(group=group, description="Manages store operations").exists())
+
+
+    def test_group_creation_form_no_description_or_permissions(self):
+        form_data = {"name": "Clerk"}
+        form = GroupForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        
+        group = form.save()
+        self.assertEqual(group.name, "Clerk")
+        self.assertEqual(group.permissions.count(), 0)
 
 class AuthorFormTests(TestCase):
     def test_author_form_valid(self):
@@ -194,7 +209,7 @@ class AuthorFormTests(TestCase):
 
 class OrderFormTests(TestCase):
     def setUp(self):
-        self.role = Role.objects.create(title="Clerk")
+        self.group = Group.objects.create(name="Full Time Sales Clerk") 
         self.user = User.objects.create_user(username="testuser", password="testpass")
         self.employee = Employee.objects.create(
             first_name="Test",
@@ -204,7 +219,7 @@ class OrderFormTests(TestCase):
             state="CA",
             birth_date=date(1990, 1, 1),
             phone_number="1234567890",
-            position_id=self.role,
+            group=self.group, 
             user=self.user
         )
         self.customer = Customer.objects.create(first_name="Bob", last_name="Jones")
@@ -233,7 +248,7 @@ class ViewTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username="testuser", password="testpass")
-        self.owner_group = Group.objects.create(name="OwnerGroup")
+        self.owner_group = Group.objects.create(name="Owner")
         self.user.groups.add(self.owner_group)
         self.author = Author.objects.create(first_name="John", last_name="Doe")
         self.book = Book.objects.create(
@@ -246,7 +261,7 @@ class ViewTests(TestCase):
             book_status="available"
         )
         self.book.authors.add(self.author)
-        self.role = Role.objects.create(title="Manager", description="Store manager")
+        self.group = Group.objects.create(title="Manager", description="Store manager")
         self.customer = Customer.objects.create(first_name="Bob", last_name="Jones")
         self.employee = Employee.objects.create(
             first_name="Test",
@@ -256,7 +271,7 @@ class ViewTests(TestCase):
             state="CA",
             birth_date=date(1990, 1, 1),
             phone_number="1234567890",
-            position_id=self.role,
+            group=self.group,
             user=self.user
         )
         self.order = Order.objects.create(
@@ -286,7 +301,7 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/book_list.html")
         self.assertContains(response, "Test Book")
-        self.assertContains(response, "Add Book")  # Visible due to OwnerGroup
+        self.assertContains(response, "Add Book")
 
     def test_book_list_search(self):
         self.client.login(username="testuser", password="testpass")
@@ -300,7 +315,7 @@ class ViewTests(TestCase):
         self.client.login(username="testuser", password="testpass")
         self.user.groups.remove(self.owner_group)
         response = self.client.get(reverse("add_book"))
-        self.assertEqual(response.status_code, 403)  # No add_book permission
+        self.assertEqual(response.status_code, 403)
 
         # Add permission
         content_type = ContentType.objects.get_for_model(Book)
@@ -357,23 +372,24 @@ class ViewTests(TestCase):
         self.assertTemplateUsed(response, "book_shop_here/author_form.html")
         self.assertContains(response, "Add Author")
 
-    def test_role_list_view(self):
+    def test_group_list_view(self):
         self.client.login(username="testuser", password="testpass")
-        response = self.client.get(reverse("role_list"))
+        GroupProfile.objects.update_or_create(group=self.owner_group, defaults={'description': 'The Owner'})
+        response = self.client.get(reverse("group_list"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "book_shop_here/role_list.html")
-        self.assertContains(response, "Manager - Store manager")
-        self.assertContains(response, "Add Role")  # Visible due to OwnerGroup
-
-    def test_add_role_view(self):
+        self.assertTemplateUsed(response, "book_shop_here/group_list.html") 
+        self.assertContains(response, "Owner - The Owner") 
+        self.assertContains(response, "Add Group")
+        
+    def test_add_group_view(self):
         self.client.login(username="testuser", password="testpass")
-        content_type = ContentType.objects.get_for_model(Role)
-        permission = Permission.objects.get(codename="add_role", content_type=content_type)
+        content_type = ContentType.objects.get_for_model(Group)
+        permission = Permission.objects.get(codename="add_group", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.get(reverse("add_role"))
+        response = self.client.get(reverse("add_group"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "book_shop_here/role_form.html")
-        self.assertContains(response, "Add Role")
+        self.assertTemplateUsed(response, "book_shop_here/group_form.html") 
+        self.assertContains(response, "Add Group")
 
     def test_order_list_view(self):
         self.client.login(username="testuser", password="testpass")
@@ -396,19 +412,19 @@ class CustomFilterTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username="testuser", password="testpass")
-        self.owner_group = Group.objects.create(name="OwnerGroup")
-        self.manager_group = Group.objects.create(name="ManagerGroup")
+        self.owner_group = Group.objects.create(name="Owner") 
+        self.manager_group = Group.objects.create(name="Assistant Manager")
 
     def test_is_in_group_filter(self):
         self.client.login(username="testuser", password="testpass")
         self.user.groups.add(self.owner_group)
         response = self.client.get(reverse("book_list"))
-        self.assertContains(response, "Roles")  # Visible due to OwnerGroup
+        self.assertContains(response, "Groups") 
         self.assertContains(response, "Orders")
         self.user.groups.remove(self.owner_group)
         self.user.groups.add(self.manager_group)
         response = self.client.get(reverse("book_list"))
-        self.assertContains(response, "Roles")  # Visible due to ManagerGroup
+        self.assertContains(response, "Groups") 
         self.assertContains(response, "Orders")
 
 class URLTests(TestCase):
@@ -417,8 +433,8 @@ class URLTests(TestCase):
         self.assertEqual(reverse("book_list"), "/books/")
         self.assertEqual(reverse("add_book"), "/books/add/")
         self.assertEqual(reverse("delete_book", args=["test1234"]), "/books/delete_book/test1234/")
-        self.assertEqual(reverse("role_list"), "/roles/")
-        self.assertEqual(reverse("add_role"), "/roles/add/")
+        self.assertEqual(reverse("group_list"), "/groups/") 
+        self.assertEqual(reverse("add_group"), "/groups/add/") 
         self.assertEqual(reverse("author_list"), "/authors/")
         self.assertEqual(reverse("add_author"), "/authors/add")
         self.assertEqual(reverse("order_list"), "/orders/")
