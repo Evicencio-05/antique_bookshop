@@ -75,7 +75,8 @@ Create a `.env` file in the project root (next to `manage.py`) and add the follo
 ```txt
 # --- General Settings ---
 DEBUG=True
-SECRET_KEY='your-secret-key-here'
+SECRET_KEY='your-secret-key-here'  
+DJANGO_SECRET_KEY='your-secret-key-here'
 ALLOWED_HOSTS=localhost,127.0.0.1
 
 # --- Database Configuration ---
@@ -86,7 +87,9 @@ DATABASE_URL=sqlite:///db.sqlite3
 # and uncomment this one, filling in your details:
 # DATABASE_URL=postgres://user:password@host:port/dbname
 ```
-**Note:** A unique `SECRET_KEY` is crucial for security. Generate one with this command: `python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'`
+**Note:** A unique `SECRET_KEY` is crucial for security. Generate one with this command: `python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'`.
+
+`DJANGO_SECRET_KEY` used for Django CI action. **This key should not be the same as your `SECRET_KEY`**.
 
 ### 5. Database Setup
 
