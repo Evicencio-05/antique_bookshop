@@ -17,27 +17,27 @@ class Role(models.Model):
 
     class Meta:
         verbose_name_plural = "Roles"
-    
+
 class Employee(models.Model):
     employee_id = models.AutoField(primary_key=True)
-    last_name = models.CharField(max_length=50, verbose_name= _('Employee last name'))
-    first_name = models.CharField(max_length=50, verbose_name= _('Employee first name'))
-    address = models.CharField(max_length=200, verbose_name= _('Employee address'))
-    zip_code = models.CharField(max_length=50, verbose_name= _('Employee zip code'))
-    state = models.CharField(max_length=50, verbose_name= _('Employee state'))
-    hire_date = models.DateField(auto_now_add=True, verbose_name= _('Employee hire date'))
-    birth_date = models.DateField(auto_now_add=False, verbose_name= _('Employee date of birth'), default=date(1600,1,1))
-    phone_number = models.CharField(max_length=50, verbose_name= _('Employee phone number'))
-    position_id = models.ForeignKey(Role, on_delete=models.CASCADE, verbose_name= _('Employee role ID'))
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, verbose_name= _('Employee user'))
+    first_name = models.CharField(max_length=50, editable=True, verbose_name= _('Employee first name'))
+    last_name = models.CharField(max_length=50, editable=True, verbose_name= _('Employee last name'))
+    phone_number = models.CharField(max_length=50, editable=True, verbose_name= _('Employee phone number'))
+    address = models.CharField(max_length=200, editable=True, verbose_name= _('Employee address'))
+    birth_date = models.DateField(auto_now_add=False, editable=True, verbose_name= _('Employee date of birth'), default=date(1600,1,1))
+    hire_date = models.DateField(auto_now_add=True, editable=True, verbose_name= _('Employee hire date'))
+    position_id = models.ForeignKey(Role, on_delete=models.CASCADE, editable=True, verbose_name= _('Employee role ID'))
+    zip_code = models.CharField(max_length=50, editable=True, verbose_name= _('Employee zip code'))
+    state = models.CharField(max_length=50, editable=True, verbose_name= _('Employee state'))
+    user = models.OneToOneField(User, on_delete=models.CASCADE, editable=True, null=True, verbose_name= _('Employee user'))
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
 class Author(models.Model):
-    author_id = models.AutoField(primary_key=True, editable=False)
+    author_id = models.AutoField(primary_key=True)
     last_name = models.CharField(max_length=100, verbose_name= _('Author last name'))
-    first_name = models.CharField(max_length=100, blank=True, default='', verbose_name= _('Author first name'))
+    first_name = models.CharField(max_length=100, blank=True, null=True, default='', verbose_name= _('Author first name'))
     birth_year = models.SmallIntegerField(blank=True, null=True, verbose_name= _('Author birth year'))
     death_year = models.SmallIntegerField(blank=True, null=True, verbose_name= _('Author death year'))
     description = models.TextField(max_length=1000, blank=True, null=True, verbose_name= _('Author description'))
@@ -78,11 +78,12 @@ class Book(models.Model):
     book_id = models.CharField(max_length=8, validators=[MinLengthValidator(8), validate_book_id], primary_key=True, editable=False)
     title = models.CharField(max_length=500, verbose_name= _('Book title'))
     cost = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Book cost'))
-    retail_price = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Suggested retail price'))
-    publication_date = models.DateField(validators=[MinValueValidator(date(1500,1,1)), MaxValueValidator(date(2099,12,31))], verbose_name= _('Publication Date'))
-    edition = models.CharField(max_length=50, blank=True, null=True, default='N/A', verbose_name= _('Book edition'))
-    rating = models.CharField(max_length=10, choices=Rating.choices, default=Rating.UNRATED, verbose_name= _('Visible book condition'))
     authors = models.ManyToManyField(Author, related_name='books', verbose_name= _('Book author(s)'), editable=True)
+    retail_price = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Suggested retail price'))
+    rating = models.CharField(max_length=10, choices=Rating.choices, default=Rating.UNRATED, verbose_name= _('Visible book condition'))
+    publication_date = models.DateField(blank=True, null=True, validators=[MinValueValidator(date(1600,1,1)), MaxValueValidator(date(2099,12,31))], verbose_name= _('Publication Date'))
+    publisher = models.CharField(max_length=100, blank=True, null=True, verbose_name= _('Book publisher'))
+    edition = models.CharField(max_length=50, blank=True, null=True, default='N/A', verbose_name= _('Book edition'))
     book_status = models.CharField(max_length=10, choices=BookStatus.choices, default=BookStatus.PROCESSING)
     
     def generate_pk(self, authors=None):
