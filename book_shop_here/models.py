@@ -1,9 +1,8 @@
 from django.core.validators import MinValueValidator, MaxValueValidator, MinLengthValidator
 from django.db import models, transaction, DatabaseError
 from django.core.exceptions import ValidationError
-from django_group_model.models import AbstractGroup
 from django.db.models.query import QuerySet
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.utils.translation import gettext_lazy as _
 from datetime import date
 import logging
@@ -13,24 +12,12 @@ import re
 
 logger = logging.getLogger(__name__)
 
-class Role(models.Model):
-    role_id = models.AutoField(primary_key=True)
-    title = models.CharField(max_length=50, verbose_name='Role title')
-    description = models.TextField(blank=True, null=True, verbose_name= _('Role description'))
-
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        verbose_name_plural = "Roles"
-
-class Group(AbstractGroup):
-    title = models.CharField(max_length=50, verbose_name= _('Role title'))
-    description = models.CharField(max_length=500, null=True, blank=True, verbose_name= _('Group description'))
+class GroupProfile(models.Model):
+    group = models.OneToOneField(Group, on_delete=models.CASCADE, primary_key=True, related_name='group')
+    description = models.TextField(verbose_name= _('description'), max_length=500, blank=True, null=True, help_text= _('Role description'))
     
-    class Meta:
-        verbose_name = "Group"
-        verbose_name_plural = "Groups"
+    def __str__(self):
+        return f"Profile: {self.group.name}"
 
 class Employee(models.Model):
     employee_id = models.AutoField(primary_key=True)
@@ -40,7 +27,7 @@ class Employee(models.Model):
     address = models.CharField(max_length=200, editable=True, verbose_name= _('Employee address'))
     birth_date = models.DateField(auto_now_add=False, editable=True, verbose_name= _('Employee date of birth'), default=date(1600,1,1))
     hire_date = models.DateField(auto_now_add=True, editable=True, verbose_name= _('Employee hire date'))
-    position_id = models.ForeignKey(Role, on_delete=models.CASCADE, editable=True, verbose_name= _('Employee role ID'))
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, editable=True, verbose_name= _('Employee role'))
     zip_code = models.CharField(max_length=50, editable=True, verbose_name= _('Employee zip code'))
     state = models.CharField(max_length=50, editable=True, verbose_name= _('Employee state'))
     user = models.OneToOneField(User, on_delete=models.CASCADE, editable=True, null=True, verbose_name= _('Employee user'))

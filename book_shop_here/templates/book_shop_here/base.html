@@ -23,7 +23,7 @@
                 <a href="{% url 'book_list' %}" class="text-gray-600 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-100">Books</a>
                 <a href="{% url 'author_list' %}" class="text-gray-600 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-100">Authors</a>
                 {% if request.user|is_in_group:"OwnerGroup" or request.user|is_in_group:"ManagerGroup" or request.user.is_superuser %}
-                    <a href="{% url 'role_list' %}" class="text-gray-600 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-100">Roles</a>
+                    <a href="{% url 'group_list' %}" class="text-gray-600 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-100">Roles</a>
                     <a href="{% url 'order_list' %}" class="text-gray-600 hover:text-gray-800 transition-colors rounded-md p-2 hover:bg-gray-100">Orders</a>
                     {% endif %}
                 </div>

@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.models import Group
 from django.contrib import messages
-from .models import Book, Author, Order, Role
-from .forms import BookForm, CustomerForm, RoleForm, AuthorForm, OrderForm
+from .models import Book, Author, Order
+from .forms import BookForm, CustomerForm, AuthorForm, OrderForm, GroupForm
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,9 +12,6 @@ def home(request):
     if request.user.is_authenticated:
         return redirect('book_list')
     return render(request, 'book_shop_here/home.html')
-
-def custom_logout_page(request):
-    return render(request, 'custom_logout_page.html')
 
 @login_required
 def book_list(request):
@@ -51,24 +49,6 @@ def delete_book(request, book_id):
     return render(request, 'book_shop_here/book_delete_confirm.html', {'book': book})
 
 @login_required
-def role_list(request):
-    roles = Role.objects.all()
-    return render(request, 'book_shop_here/role_list.html', {'roles': roles})
-
-@login_required
-@permission_required('book_shop_here.add_role')
-def add_role(request):
-    if request.method == 'POST':
-        form = RoleForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Role added successfully.')
-            return redirect('role_list')
-    else:
-        form = RoleForm()
-    return render(request, 'book_shop_here/role_form.html', {'form': form})
-
-@login_required
 def author_list(request):
     authors = Author.objects.all()
     return render(request, 'book_shop_here/author_list.html', {'authors': authors})
@@ -103,3 +83,23 @@ def add_order(request):
     else:
         form = OrderForm()
     return render(request, 'book_shop_here/order_form.html', {'form': form})
+
+@login_required
+def group_list(request):
+    groups = Group.objects.all().select_related('group').order_by('name')
+    
+    context = {'groups': groups}
+    return render(request, 'book_shop_here/group_list.html', context)
+
+@login_required
+@permission_required('book_shop_here.add_group')
+def add_group(request):
+    if request.method == 'POST':
+        form = GroupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('group_list')
+    else:
+        form = GroupForm()
+        
+    return render(request, 'book_shop_here/group_form.html', {'form': form})

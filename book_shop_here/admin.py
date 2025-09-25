@@ -1,13 +1,14 @@
 from django.contrib import admin
-from .models import Role, Author, Book, Employee, Customer, Order
+from .models import Author, Book, Employee, Customer, Order, GroupProfile
 
-@admin.register(Role)
-class RoleAdmin(admin.ModelAdmin):
-    list_display = ['title', 'description']
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
     list_display = ['author_id' ,'last_name', 'first_name', 'birth_year', 'death_year']
+
+@admin.register(GroupProfile)
+class GroupProfileAdmin(admin.ModelAdmin):
+    list_display = ['group', 'description']
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
@@ -17,7 +18,7 @@ class BookAdmin(admin.ModelAdmin):
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ['last_name', 'first_name', 'position_id', 'hire_date']
+    list_display = ['last_name', 'first_name', 'hire_date']
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):

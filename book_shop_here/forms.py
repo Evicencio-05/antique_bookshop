@@ -1,5 +1,6 @@
 from django import forms
-from .models import Book, Customer, Role, Author, Order
+from django.contrib.auth.models import Group, Permission
+from .models import Book, Customer, Author, Order, GroupProfile
 
 class BookForm(forms.ModelForm):
     authors = forms.ModelMultipleChoiceField(
@@ -30,14 +31,6 @@ class CustomerForm(forms.ModelForm):
             raise forms.ValidationError("At least one name is required.")
         return cleaned_data
 
-class RoleForm(forms.ModelForm):
-    class Meta:
-        model = Role
-        fields = ['title', 'description']
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Brief job duties (optional)...'}),
-        }
-
 class AuthorForm(forms.ModelForm):
     class Meta:
         model = Author
@@ -50,3 +43,31 @@ class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
         fields = '__all__'
+        
+class GroupForm(forms.ModelForm):
+    description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'rows': 3}), required=False)
+    permissions = forms.ModelMultipleChoiceField(queryset=Permission.objects.filter(content_type__app_label__in=['book_shop_here', 'auth'])
+                                                , required=False, widget=forms.CheckboxSelectMultiple, label='Permissions')
+    class Meta:
+        model = Group
+        fields = ('name',) 
+
+    def save(self, commit=True):
+        group = super().save(commit=commit)
+        
+        description = self.cleaned_data.get('description', '')
+        
+        # Create and save the associated GroupProfile
+        if group.pk:
+            GroupProfile.objects.update_or_create(
+                group=group,
+                defaults={'description': description}
+            )
+        
+        selected_permissions = self.cleaned_data.get('permissions', [])
+        if selected_permissions:
+            group.permissions.set(selected_permissions)
+        else:
+            group.permissions.clear()
+        
+        return group
