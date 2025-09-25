@@ -27,7 +27,6 @@ class BookModelTests(TestCase):
     def test_generate_pk(self):
         book = Book(title="New Book", cost=5.00, retail_price=10.00, publication_date=date(2020, 1, 1))
         book_id = book.generate_pk(self.author)
-        book.authors.add(self.author)
         self.assertTrue(re.match(r"[a-z]{4}[0-9]{4}", book_id), "Book ID should match pattern: four letters + four digits")
         self.assertTrue(book_id.startswith("doe"), "Book ID should start with author's last name")
 

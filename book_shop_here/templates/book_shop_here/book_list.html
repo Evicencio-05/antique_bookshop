@@ -15,5 +15,5 @@
             <li>No books found.</li>
         {% endfor %}
     </ul>
-    {% if user|is_in_group:"OwnerGroup" or user|is_in_group:"ManagerGroup" or user.is_superuser %}<a href="{% url 'add_book' %}">Add Book</a>{% endif %}
+    {% if request.user|is_in_group:"OwnerGroup" or request.user|is_in_group:"ManagerGroup" or request.user.is_superuser %}<a href="{% url 'add_book' %}">Add Book</a>{% endif %}
 {% endblock %}

@@ -1,9 +1,14 @@
-from django.db import models
+from django.db import models, transaction, DatabaseError
 from django.core.validators import MinValueValidator, MaxValueValidator, MinLengthValidator
+from django.db.models.query import QuerySet
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from datetime import date
 import logging
+import string
+import random
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -45,12 +50,6 @@ class Author(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()
 
-import string
-import random
-import re
-from django.db import transaction, DatabaseError
-from django.core.exceptions import ValidationError
-
 def validate_book_id(value):
     if not value:
         raise ValidationError('Book ID cannot be empty.')
@@ -89,9 +88,12 @@ class Book(models.Model):
     def generate_pk(self, authors=None):
         try:
             if authors is None:
-                first_author = self.authors.order_by('last_name').first()
-            else:
+                first_author = self.authors.all().order_by('last_name').first()
+            elif isinstance(authors, QuerySet) or (hasattr(authors, '__iter__') and not isinstance(authors, (str, bytes))):
                 first_author = authors.order_by('last_name').first()
+            else:
+                first_author = authors
+                
             base_name = first_author.last_name if first_author and hasattr(first_author, 'last_name') else 'unknown'
         except (AttributeError, DatabaseError):
             base_name = 'unknown'

@@ -7,5 +7,5 @@
             <li>{{ role.title }} - {{ role.description|default:"No description" }}</li>
         {% endfor %}
     </ul>
-    {% if user|is_in_group:"OwnerGroup" or user|is_in_group:"ManagerGroup" or user.is_superuser %}<a href="{% url 'add_role' %}">Add Role</a>{% endif %}
+    {% if request.user|is_in_group:"OwnerGroup" or request.user|is_in_group:"ManagerGroup" or request.user.is_superuser %}<a href="{% url 'add_role' %}">Add Role</a>{% endif %}
 {% endblock %}
