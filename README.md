@@ -50,7 +50,7 @@ venv\Scripts\activate.bat
 .\venv\Scripts\Activate.ps1
 
 # For Git Bash or WSL 
-source venv/Scripts/activate
+source .venv/Scripts/activate
 ```
 **Note: Deactivate using `deactivate`**
 
