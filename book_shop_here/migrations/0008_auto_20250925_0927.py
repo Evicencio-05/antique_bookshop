@@ -55,17 +55,18 @@ def create_groups_and_profiles(apps, schema_editor):
     ]
     
     for group_data in GROUPS_TO_CREATE:
-        group, created = Group.objects.get_or_create(name=group_data['name'])
+        created_group, created = Group.objects.get_or_create(name=group_data['name'])
         
         # Create the GroupProfile (description)
         GroupProfile.objects.update_or_create(
-            group=group,
+            group=created_group,
             defaults={'description': group_data['description']}
         )
-
+        
         # Assign permissions to the group
         perms_to_assign = Permission.objects.filter(codename__in=group_data['permissions'])
-        group.permissions.add(*perms_to_assign)
+        created_group.permissions.add(*perms_to_assign)
+        created_group.save()
 
 def remove_groups_and_profiles(apps, schema_editor):
     """Reverses the creation of the groups."""
