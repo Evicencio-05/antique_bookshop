@@ -12,6 +12,9 @@ def home(request):
         return redirect('book_list')
     return render(request, 'book_shop_here/home.html')
 
+def custom_logout_page(request):
+    return render(request, 'custom_logout_page.html')
+
 @login_required
 def book_list(request):
     query = request.GET.get('q')
