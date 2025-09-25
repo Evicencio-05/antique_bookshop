@@ -31,7 +31,61 @@ class Employee(models.Model):
     zip_code = models.CharField(max_length=50, editable=True, verbose_name= _('Employee zip code'))
     state = models.CharField(max_length=50, editable=True, verbose_name= _('Employee state'))
     user = models.OneToOneField(User, on_delete=models.CASCADE, editable=True, null=True, verbose_name= _('Employee user'))
+    email = models.EmailField(max_length=254, editable=True, verbose_name=_('Employee email'), unique=True, null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        
+        if self.user:
+            user = self.user
+            
+        elif not self.user and self.pk is None:
+            try:
+                base_username = f"{self.first_name.lower()}{self.last_name.lower()}".replace(' ', '')
+                username = base_username
+                counter = 1
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}{counter}"
+                    counter += 1
 
+                user = User.objects.create(
+                    username=username,
+                    email=self.email or f"{username}@placeholder.com", 
+                    first_name=self.first_name,
+                    last_name=self.last_name,
+                    is_active=True # Set to False if you want to set password later
+                )
+
+                self.user = user
+                super().save(update_fields=['user'])
+
+            except Exception as e:
+                logger.error(f"Failed to create user for employee {self.pk}: {e}")
+                # Consider raising an error or handling this more gracefully
+                return # Exit save if user creation failed
+
+        if self.user:
+            update_fields = []
+            if self.user.first_name != self.first_name:
+                self.user.first_name = self.first_name
+                update_fields.append('first_name')
+            if self.user.last_name != self.last_name:
+                self.user.last_name = self.last_name
+                update_fields.append('last_name')
+            if self.user.email != self.email:
+                self.user.email = self.email
+                update_fields.append('email')
+                
+            if update_fields:
+                self.user.save(update_fields=update_fields)
+                
+            current_groups = set(self.user.groups.all())
+            employee_group = self.group
+
+            if employee_group not in current_groups or len(current_groups) > 1:
+                with transaction.atomic():
+                    self.user.groups.set([employee_group])
+    
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 

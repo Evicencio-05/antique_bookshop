@@ -415,13 +415,13 @@ class CustomFilterTests(TestCase):
         self.client = Client()
         self.user = User.objects.create_user(username="testuser", password="testpass")
         self.owner_group = Group.objects.create(name="Owner (CustomFilter)") 
-        self.owner_group.permissions.add(Permission.objects.get(codename=['add_group', 'add_order']))
+        self.owner_group.permissions.add(*Permission.objects.filter(codename__in=['add_group', 'add_order']))
         self.manager_group = Group.objects.create(name="Assistant Manager (CustomFilter)")
-        self.manager_group.permissions.add(Permission.objects.get(codename=['add_group', 'add_order']))
+        self.manager_group.permissions.add(*Permission.objects.filter(codename__in=['add_group', 'add_order']))
 
     def test_is_in_group_filter(self):
         self.client.login(username="testuser", password="testpass")
-        self.user.groups.add('Owner')
+        self.user.groups.add(self.owner_group)
         response = self.client.get(reverse("book_list"))
         self.assertContains(response, "Roles") 
         self.assertContains(response, "Orders")

@@ -11,9 +11,9 @@ def add_group_permissions(apps, schema_editor):
     
     perms_to_assign = Permission.objects.filter(codename__in=['add_group', 'change_group', 'delete_group', 'view_group'])
     owner_group.permissions.add(*perms_to_assign)
-    owner_group.save
+    owner_group.save()
     assistant_manager_group.permissions.add(*perms_to_assign)
-    assistant_manager_group.save
+    assistant_manager_group.save()
 
 def remove_added_permissions(apps, schema_editor):
     """Reverses the creation of the groups."""
