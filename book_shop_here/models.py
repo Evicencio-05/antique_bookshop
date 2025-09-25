@@ -172,17 +172,3 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.order_id} -> {self.customer_id}"
     
-from django.db.models.signals import post_save
-from django.contrib.auth.models import Group
-from django.dispatch import receiver
-
-@receiver(post_save, sender=Employee)
-def assign_group_to_employee(sender, instance, created, **kwargs):
-    if created:
-        group_name = 'ClerkGroup'
-        if instance.position_id.title == 'Owner':
-            group_name = 'OwnerGroup'
-        elif instance.position_id.title == 'Assistant Manager':
-            group_name = 'ManagerGroup'
-        group, _ = Group.objects.get_or_create(name=group_name)
-        instance.user.groups.add(group)

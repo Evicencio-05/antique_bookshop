@@ -73,7 +73,8 @@ class CustomerModelTests(TestCase):
 
 class OrderModelTests(TestCase):
     def setUp(self):
-        self.group = Group.objects.create(title="Full Time Sales Clerk")
+        self.group = Group.objects.create(name="Full Time Sales Clerk (OrderModel)")
+        self.group_profile = GroupProfile.objects.create(group=self.group)
         self.user = User.objects.create_user(username="testuser", password="testpass")
         self.employee = Employee.objects.create(
             first_name="Test",
@@ -162,14 +163,14 @@ class CustomerFormTests(TestCase):
         form = CustomerForm(data=form_data)
         self.assertTrue(form.is_valid())
 
-class GroupCreationFormTests(TestCase):
+class GroupFormTests(TestCase):
     def setUp(self):
         ct = ContentType.objects.get_for_model(Book)
         self.perm = Permission.objects.create(codename='can_sell_book', name='Can Sell Book', content_type=ct)
 
     def test_group_creation_form_valid(self):
         form_data = {
-            "name": "Manager",
+            "name": "Manager (GroupForm)",
             "description": "Manages store operations",
             "permissions": [self.perm.pk] 
         }
@@ -177,18 +178,18 @@ class GroupCreationFormTests(TestCase):
         self.assertTrue(form.is_valid())
         
         group = form.save()
-        self.assertEqual(group.name, "Manager")
+        self.assertEqual(group.name, "Manager (GroupForm)")
         self.assertTrue(group.permissions.filter(pk=self.perm.pk).exists())
         self.assertTrue(GroupProfile.objects.filter(group=group, description="Manages store operations").exists())
 
 
     def test_group_creation_form_no_description_or_permissions(self):
-        form_data = {"name": "Clerk"}
+        form_data = {"name": "Clerk (GroupFormNoDescOrPerm)"}
         form = GroupForm(data=form_data)
         self.assertTrue(form.is_valid())
         
         group = form.save()
-        self.assertEqual(group.name, "Clerk")
+        self.assertEqual(group.name, "Clerk (GroupFormNoDescOrPerm)")
         self.assertEqual(group.permissions.count(), 0)
 
 class AuthorFormTests(TestCase):
@@ -209,7 +210,7 @@ class AuthorFormTests(TestCase):
 
 class OrderFormTests(TestCase):
     def setUp(self):
-        self.group = Group.objects.create(name="Full Time Sales Clerk") 
+        self.group = Group.objects.create(name="Full Time Sales Clerk (OrderForm)") 
         self.user = User.objects.create_user(username="testuser", password="testpass")
         self.employee = Employee.objects.create(
             first_name="Test",
@@ -248,7 +249,7 @@ class ViewTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username="testuser", password="testpass")
-        self.owner_group = Group.objects.create(name="Owner")
+        self.owner_group = Group.objects.create(name="Owner (ViewTests)")
         self.user.groups.add(self.owner_group)
         self.author = Author.objects.create(first_name="John", last_name="Doe")
         self.book = Book.objects.create(
@@ -261,7 +262,8 @@ class ViewTests(TestCase):
             book_status="available"
         )
         self.book.authors.add(self.author)
-        self.group = Group.objects.create(title="Manager", description="Store manager")
+        self.group = Group.objects.create(name="Manager (ViewTests)")
+        self.group_profile = GroupProfile.objects.create(group=self.group, description="Store manager")
         self.customer = Customer.objects.create(first_name="Bob", last_name="Jones")
         self.employee = Employee.objects.create(
             first_name="Test",
@@ -313,7 +315,7 @@ class ViewTests(TestCase):
 
     def test_add_book_view_permission(self):
         self.client.login(username="testuser", password="testpass")
-        self.user.groups.remove(self.owner_group)
+        self.user.groups.remove(self.group)
         response = self.client.get(reverse("add_book"))
         self.assertEqual(response.status_code, 403)
 
@@ -412,19 +414,21 @@ class CustomFilterTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username="testuser", password="testpass")
-        self.owner_group = Group.objects.create(name="Owner") 
-        self.manager_group = Group.objects.create(name="Assistant Manager")
+        self.owner_group = Group.objects.create(name="Owner (CustomFilter)") 
+        self.owner_group.permissions.add(Permission.objects.get(codename=['add_group', 'add_order']))
+        self.manager_group = Group.objects.create(name="Assistant Manager (CustomFilter)")
+        self.manager_group.permissions.add(Permission.objects.get(codename=['add_group', 'add_order']))
 
     def test_is_in_group_filter(self):
         self.client.login(username="testuser", password="testpass")
-        self.user.groups.add(self.owner_group)
+        self.user.groups.add('Owner')
         response = self.client.get(reverse("book_list"))
-        self.assertContains(response, "Groups") 
+        self.assertContains(response, "Roles") 
         self.assertContains(response, "Orders")
         self.user.groups.remove(self.owner_group)
         self.user.groups.add(self.manager_group)
         response = self.client.get(reverse("book_list"))
-        self.assertContains(response, "Groups") 
+        self.assertContains(response, "Roles") 
         self.assertContains(response, "Orders")
 
 class URLTests(TestCase):

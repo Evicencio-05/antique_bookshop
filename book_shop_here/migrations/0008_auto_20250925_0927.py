@@ -54,9 +54,6 @@ def create_groups_and_profiles(apps, schema_editor):
         },
     ]
     
-    # Map permission codenames to actual Permission objects
-    all_perms = {p.codename: p for p in Permission.objects.all()}
-
     for group_data in GROUPS_TO_CREATE:
         group, created = Group.objects.get_or_create(name=group_data['name'])
         
@@ -67,14 +64,13 @@ def create_groups_and_profiles(apps, schema_editor):
         )
 
         # Assign permissions to the group
-        perms_to_assign = [all_perms[codename] for codename in group_data['permissions'] if codename in all_perms]
-        group.permissions.set(perms_to_assign)
-
+        perms_to_assign = Permission.objects.filter(codename__in=group_data['permissions'])
+        group.permissions.add(*perms_to_assign)
 
 def remove_groups_and_profiles(apps, schema_editor):
     """Reverses the creation of the groups."""
     Group = apps.get_model('auth', 'Group')
-    GroupProfile = apps.get_model('book_shop_here', 'GroupProfile') # Update with your app's name
+    GroupProfile = apps.get_model('book_shop_here', 'GroupProfile')
     
     group_names = ['Owner', 'Assistant Manager', 'Full Time Sales Clerk', 'Part Time Sales Clerk']
     
