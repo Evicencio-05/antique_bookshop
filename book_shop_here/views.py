@@ -7,7 +7,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-@login_required
 def home(request):
     if request.user.is_authenticated:
         return redirect('book_list')
@@ -22,7 +21,7 @@ def book_list(request):
     return render(request, 'book_shop_here/book_list.html', {'books': books, 'query': query})
 
 @login_required
-@permission_required('book_shop_here.add_book')
+@permission_required('book_shop_here.add_book', raise_exception=True)
 def add_book(request):
     if request.method == 'POST':
         form = BookForm(request.POST)

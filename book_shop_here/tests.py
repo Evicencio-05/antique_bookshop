@@ -278,7 +278,7 @@ class ViewTests(TestCase):
         response = self.client.get(reverse("home"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/home.html")
-        self.assertContains(response, "Login to manage books")
+        self.assertContains(response, "Login</a> to manage books")
 
     def test_book_list_view(self):
         self.client.login(username="testuser", password="testpass")
