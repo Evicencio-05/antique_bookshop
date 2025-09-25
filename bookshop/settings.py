@@ -129,10 +129,19 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Use custom group for django Group model
+
+AUTH_GROUP_MODEL = 'book_shop_here.Group'
+
+
+# Logger settings
 
 LOGGING = {
     'version': 1,

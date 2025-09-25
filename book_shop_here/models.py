@@ -1,7 +1,8 @@
-from django.db import models, transaction, DatabaseError
 from django.core.validators import MinValueValidator, MaxValueValidator, MinLengthValidator
-from django.db.models.query import QuerySet
+from django.db import models, transaction, DatabaseError
 from django.core.exceptions import ValidationError
+from django_group_model.models import AbstractGroup
+from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from datetime import date
@@ -22,6 +23,14 @@ class Role(models.Model):
 
     class Meta:
         verbose_name_plural = "Roles"
+
+class Group(AbstractGroup):
+    title = models.CharField(max_length=50, verbose_name= _('Role title'))
+    description = models.CharField(max_length=500, null=True, blank=True, verbose_name= _('Group description'))
+    
+    class Meta:
+        verbose_name = "Group"
+        verbose_name_plural = "Groups"
 
 class Employee(models.Model):
     employee_id = models.AutoField(primary_key=True)
