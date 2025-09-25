@@ -1,7 +1,18 @@
 {
     "cSpell.words": [
+        "bookshopdb",
+        "bookshopuser",
+        "createsuperuser",
+        "dbname",
+        "doej",
         "dotenv",
         "endfor",
-        "psycopg"
+        "makemigrations",
+        "psycopg",
+        "runserver",
+        "testpass",
+        "venv",
+        "virtualenv",
+        "yoursecurepassword"
     ]
 }

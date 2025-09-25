@@ -2,11 +2,23 @@
 
 This is a Django-based web application for managing an antique bookstore. It includes features for handling books, authors, customers, orders, roles, and employees, with authentication, permissions, and an admin interface.
 
+## Table of Contents
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation and Setup](#installation-and-setup)
+- [Additional Notes](#additional-information)
+
+## Features
+
+- **Book Management:** Add, edit, and delete books and authors.
+- **User Management:** Secure user authentication with different roles (e.g., employee, customer).
+- **Admin Interface:** Full access to all models for authorized users via the Django Admin.
+
 ## Requirements
 
-- Python 3.10+ (recommended)
+- [**Python 3.10+**](https://www.python.org/downloads/) (recommended)
 - Virtual environment tool (e.g., `venv` or `virtualenv`)
-- Docker (optional, for running PostgreSQL without a local installation)
+- [**Docker**](https://www.docker.com/get-started) (optional, for running PostgreSQL)
 
 ## Installation and Setup
 
@@ -39,47 +51,57 @@ venv\Scripts\activate.bat
 
 # For Git Bash or WSL 
 source venv/Scripts/activate
-
-pip install -r requirements.txt
 ```
 **Note: Deactivate using `deactivate`**
+
+### 3. Install Dependencies 
+Install the required packages from the requirements.txt file.
+```
+pip install -r requirements.txt
+```
 
 This includes:
 - `Django`: The web framework.
 - `django-extensions`: For additional management commands (e.g., `shell_plus`).
-- `python-dotenv`: For loading environment variables from a `.env` file.
+- `django-environ`: For loading environment variables from a `.env` file.
 - `psycopg2-binary`: Binary PostgreSQL adapter (for production database support).
+- `dj-database-url`: Simplify the configuration of database connections in Django applications.
 
 ### 4. Configure Environment Variables
-Create a `.env` file in the project root (next to `manage.py`) and add the following:
-```txt
-SECRET_KEY=your-secret-key-here  # Generate a secure key (e.g., using django.core.management.utils.get_random_secret_key())
-DEBUG=True  # Set to False in production
-ALLOWED_HOSTS=localhost,127.0.0.1  # Comma-separated list; add your domain in production
-```
 
-For database configuration, see the next section.
+Create a `.env` file in the project root (next to `manage.py`) and add the following: 
+
+**File:** `.env`
+```txt
+# --- General Settings ---
+DEBUG=True
+SECRET_KEY='your-secret-key-here'
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# --- Database Configuration ---
+# To use SQLite (default for development), use this line:
+DATABASE_URL=sqlite:///db.sqlite3
+
+# To use PostgreSQL (recommended for production), comment out the line above
+# and uncomment this one, filling in your details:
+# DATABASE_URL=postgres://user:password@host:port/dbname
+```
+**Note:** A unique `SECRET_KEY` is crucial for security. Generate one with this command: `python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'`
 
 ### 5. Database Setup
+
 By default, Django uses SQLite (no separate installation needed), which is ideal for local development. For production or advanced use, PostgreSQL is recommended (via `psycopg2-binary`).
 
-#### Option 1: Use SQLite (No Separate Database Installation Required)
+#### For SQLite (Default)
 
-- In your project's `settings.py`, ensure the `DATABASES` setting is configured for SQLite (default behavior if not overridden):
+The `DATABASE_URL` for SQLite is already configured. Simply run the migrations:
 
-```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+```
+python manage.py makemigrations
+python manage.py migrate
 ```
 
-No additional setup needed—proceed to migrations.
-
-#### Option 2: Use PostgreSQL Without Installing It Locally (Via Docker)
-To avoid installing PostgreSQL on your machine, use Docker to run a PostgreSQL container. This is possible and recommended for development/testing.
+#### For PostgreSQL (Via Docker)
 
 1. Install Docker if not already (download from [docker.com](https://www.docker.com/)).
 2. Create a `docker-compose.yml` file in the project root:
@@ -107,52 +129,15 @@ volumes:
 3. Start the PostgreSQL container:
 ``` docker-compose up -d```
 
-4. Update your `.env` file with the PostgreSQL credentials:
-```
-    DATABASE_ENGINE=django.db.backends.postgresql  
-    DATABASE_NAME=bookshopdb  
-    DATABASE_USER=bookshopuser  
-    DATABASE_PASSWORD=yoursecurepassword  
-    DATABASE_HOST=localhost  
-    DATABASE_PORT=5432  
-```
+4. Run the migrations:
 
-5. In `settings.py`, configure `DATABASES` to load from environment variables (using `dotenv` implicitly via `os.environ`):
-
-```python
-import os
-from pathlib import Path
-
-# ... (other settings)
-
-# Load .env if not in production
-if os.environ.get('DEBUG') == 'True':
-    from dotenv import load_dotenv
-    load_dotenv()
-
-DATABASES = {
-    'default': {
-        'ENGINE': os.environ.get('DATABASE_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.environ.get('DATABASE_NAME', BASE_DIR / 'db.sqlite3'),
-        'USER': os.environ.get('DATABASE_USER', ''),
-        'PASSWORD': os.environ.get('DATABASE_PASSWORD', ''),
-        'HOST': os.environ.get('DATABASE_HOST', ''),
-        'PORT': os.environ.get('DATABASE_PORT', ''),
-    }
-}
-```
- * This allows switching between SQLite and PostgreSQL via .env.  
-    **Note: Stop the container with `docker-compose down` when done. Data persists via the volume.**
-
-### 6. Apply Migrations
-
-Run database migrations to create the schema:
 ```
 python manage.py makemigrations
 python manage.py migrate
-```
+``` 
+  **Note: Stop the container with `docker-compose down` when done. Data persists via the volume.**
 
-### 7. Create a Superuser
+### 6. Create a Superuser
 
 Create an admin account to access the Django admin panel:
 
@@ -162,7 +147,7 @@ python manage.py createsuperuser
 
 Follow the prompts to set username, email, and password.
 
-### 8. Run the Development Server
+### 7. Run the Development Server
 
 Start the local server:
 ```
@@ -171,12 +156,11 @@ python manage.py runserver
 
 Visit `http://127.0.0.1:8000/` in your browser (A link is also provided in the terminal). The login page should appear and log in using you super user credentials.
 
-## Additional Notes
+## Additional Information
 
-- **Admin Access**: Go to `/admin/` after logging in to manage models (books, authors, etc.).
-- **Permissions and Employees**: The app links Employees to Users via signals. Create Employees in the admin; they auto-assign to groups based on Role.
-- **Production Deployment**: For production, set `DEBUG=False`, use a WSGI server (e.g., Gunicorn), and host PostgreSQL on a cloud service (e.g., AWS RDS) instead of Docker. Consider adding `whitenoise` for static files.
-- **Troubleshooting**: If migrations fail, check validators/constraints in models.py. Ensure Docker is running for PostgreSQL.
-- **Testing**: Run tests with python manage.py test.
+- **Admin Panel:** Access the admin interface at /admin/ after logging in with your superuser credentials.
 
-If you encounter issues, check Django logs or consult the [Django documentation](https://docs.djangoproject.com/en/5.2/).
+- **Troubleshooting:** If you encounter a SECRET_KEY error, ensure you have correctly set up your .env file and that the SECRET_KEY is not empty.
+
+- **Production Deployment:** For production environments, it is essential to set DEBUG=False and use a production-grade database like PostgreSQL.
+
