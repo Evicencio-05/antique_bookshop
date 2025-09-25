@@ -111,7 +111,7 @@ class Book(models.Model):
                 if attempts >= max_attempts:
                     raise ValueError('Unable to generate a unique book_id after {} attempts.'.format(max_attempts))
 
-    def save(self, authors, *args, **kwargs,):
+    def save(self, authors=None, *args, **kwargs,):
         with transaction.atomic():
             pattern = r"[a-z]{4}[0-9]{4}"
             if not re.search(pattern, self.book_id):
@@ -181,9 +181,9 @@ from django.dispatch import receiver
 def assign_group_to_employee(sender, instance, created, **kwargs):
     if created:
         group_name = 'ClerkGroup'
-        if instance.role_id.title == 'Owner':
+        if instance.position_id.title == 'Owner':
             group_name = 'OwnerGroup'
-        elif instance.role_id.title == 'Assistant Manager':
+        elif instance.position_id.title == 'Assistant Manager':
             group_name = 'ManagerGroup'
         group, _ = Group.objects.get_or_create(name=group_name)
         instance.user.groups.add(group)

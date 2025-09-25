@@ -1,4 +1,5 @@
 {% extends 'book_shop_here/base.html' %}
+{% load custom_filters %}
 {% block content %}
     <h2>Employee Roles</h2>
     <ul>
@@ -6,5 +7,5 @@
             <li>{{ role.title }} - {{ role.description|default:"No description" }}</li>
         {% endfor %}
     </ul>
-    {% if user.Group == 'owner_group' or user.is_superuser %}<a href="{% url 'add_role' %}">Add New Role</a>{% endif %}
+    {% if user|is_in_group:"OwnerGroup" or user|is_in_group:"ManagerGroup" or user.is_superuser %}<a href="{% url 'add_role' %}">Add Role</a>{% endif %}
 {% endblock %}

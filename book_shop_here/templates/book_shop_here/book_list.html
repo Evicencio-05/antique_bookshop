@@ -1,4 +1,5 @@
 {% extends 'book_shop_here/base.html' %}
+{% load custom_filters %}
 {% block content %}
     <h2>Available Books</h2>
     <form method="get">
@@ -8,11 +9,11 @@
     <ul>
         {% for book in books %}
             <li>{{ book.title }} ({{ book.book_id }}) - ${{ book.retail_price }} - {{ book.rating }}
-             
+            
             </li>
         {% empty %}
             <li>No books found.</li>
         {% endfor %}
     </ul>
-    {% if perms.book_shop_here.add_book or user.is_superuser %}<a href="{% url 'add_book' %}">Add Book</a>{% endif %}
+    {% if user|is_in_group:"OwnerGroup" or user|is_in_group:"ManagerGroup" or user.is_superuser %}<a href="{% url 'add_book' %}">Add Book</a>{% endif %}
 {% endblock %}

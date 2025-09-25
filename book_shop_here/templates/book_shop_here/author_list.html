@@ -7,11 +7,11 @@
     </form>
     <ul>
         {% for author in authors %}
-            <li>{{ author.author_id }}: {% if author.first_name != null %} {{author.first_name}} {% endif %} ({{ author.last_name }})
+            <li>{{ author.author_id }}: {% if author.first_name != null %} {{author.first_name}}{% endif %} {{ author.last_name }}
             </li>
         {% empty %}
             <li>No authors found.</li>
         {% endfor %}
     </ul>
-    {% if perms.book_shop_here.add_author or user.is_superuser %}<a href="{% url 'add_author' %}">Add Author</a>{% endif %}
+    {% if user|is_in_group:"OwnerGroup" or user|is_in_group:"ManagerGroup" or user.is_superuser %}<a href="{% url 'add_author' %}">Add Author</a>{% endif %}
 {% endblock %}

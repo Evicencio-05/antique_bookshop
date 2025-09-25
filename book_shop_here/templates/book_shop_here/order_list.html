@@ -1,4 +1,5 @@
 {% extends 'book_shop_here/base.html' %}
+{% load custom_filters %}
 {% block content %}
     <h2>Orders</h2>
     <form method="get">
@@ -13,5 +14,5 @@
             <li>No orders found.</li>
         {% endfor %}
     </ul>
-    {% if user.Group == 'owner_group' or user.is_superuser %}<a href="{% url 'add_order' %}">Add Order</a>{% endif %}
+    {% if user|is_in_group:"OwnerGroup" or user|is_in_group:"ManagerGroup" or user.is_superuser %}<a href="{% url 'add_order' %}">Add Order</a>{% endif %}
 {% endblock %}
