@@ -1,15 +1,41 @@
-{% extends 'book_shop_here/base.html' %}
-{% load custom_filters %}
+{% extends "book_shop_here/base.html" %}
+{% load i18n %}
+
 {% block content %}
-    <h2>Available Roles</h2>
-    {% for group in groups %}
-        <div>
-            <h3>{{ group.name }}</h3>
-            <p>
-                Description: {{ group.profile.description|default:"No description provided." }}
-            </p>
-        </div>
-        <hr>
-    {% endfor %}
-    {% if request.user|is_in_group:"Owner Group" or request.user|is_in_group:"Manager Group" or request.user.is_superuser %}<a href="{% url 'add_group' %}">Add Role</a>{% endif %}
+    <h1>{% trans "Groups" %}</h1>
+    <form method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by group name' %}">
+        <button type="submit">{% trans "Search" %}</button>
+    </form>
+    <p><a href="{% url 'book_shop_here:group-create' %}">{% trans "Add Group" %}</a></p>
+    {% if messages %}
+        <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% if groups %}
+        <table>
+        <tr>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Description" %}</th>
+            <th>{% trans "Permissions" %}</th>
+            <th>{% trans "Actions" %}</th>
+        </tr>
+        {% for group in groups %}
+            <tr>
+            <td>{{ group.name }}</td>
+            <td>{{ group.profile.description|default:"-" }}</td>
+            <td>{{ group.permissions.all|join:", " }}</td>
+            <td>
+                <a href="{% url 'book_shop_here:group-update' pk=group.id %}">{% trans "Edit" %}</a> |
+                <a href="{% url 'book_shop_here:group-delete' pk=group.id %}">{% trans "Delete" %}</a>
+            </td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <p>{% trans "No groups found." %}</p>
+    {% endif %}
 {% endblock %}

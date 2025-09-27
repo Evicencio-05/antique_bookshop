@@ -1,0 +1,12 @@
+{% extends "book_shop_here/base.html" %}
+{% load i18n %}
+
+{% block content %}
+    <h1>{% trans "Delete Group" %}</h1>
+    <p>{% trans "Are you sure you want to delete group" %} "{{ object.name }}"?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">{% trans "Delete" %}</button>
+        <a href="{% url 'book_shop_here:group-list' %}">{% trans "Cancel" %}</a>
+    </form>
+{% endblock %}

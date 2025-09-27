@@ -146,7 +146,8 @@ class Book(models.Model):
         AVAILABLE = 'available', _('Available')
         PROCESSING = 'processing', _('Processing')
 
-    book_id = models.CharField(max_length=8, validators=[MinLengthValidator(8), validate_book_id], primary_key=True, editable=False)
+    book_id = models.AutoField(primary_key=True)
+    legacy_id = models.CharField(max_length=8, blank=True, null=True, verbose_name=_('Legacy book ID'))
     title = models.CharField(max_length=500, verbose_name= _('Book title'), db_index=True)
     cost = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Book cost'))
     authors = models.ManyToManyField(Author, related_name='books', verbose_name= _('Book author(s)'), editable=True)
@@ -157,45 +158,8 @@ class Book(models.Model):
     edition = models.CharField(max_length=50, blank=True, null=True, default='N/A', verbose_name= _('Book edition'))
     book_status = models.CharField(max_length=10, choices=BookStatus.choices, default=BookStatus.PROCESSING)
     
-    def generate_pk(self, authors=None):
-        """Generate a unique primary key based on one of the authors' last name."""
-        try:
-            if authors is None:
-                first_author = self.authors.all().order_by('last_name').first()
-            elif isinstance(authors, QuerySet) or (hasattr(authors, '__iter__') and not isinstance(authors, (str, bytes))):
-                first_author = authors.order_by('last_name').first()
-            else:
-                first_author = authors
-                
-            base_name = first_author.last_name if first_author and hasattr(first_author, 'last_name') else 'book'
-        except (AttributeError, DatabaseError):
-            base_name = 'book'
-
-        base_name = ''.join(c for c in base_name if c.isalpha())[:4].lower()
-        base = (base_name + 'book')[:4].lower()
-
-        attempts = 0
-        max_attempts = 1000
-        
-        with transaction.atomic():
-            while True:
-                digits = ''.join(random.choices(string.digits, k=4))
-                candidate = f'{base}{digits}'
-                if not self.__class__.objects.filter(book_id=candidate).exists():
-                    return candidate
-                attempts += 1
-                if attempts >= max_attempts:
-                    raise ValueError('Unable to generate a unique book_id after {} attempts.'.format(max_attempts))
-
-    def save(self, authors=None, *args, **kwargs,):
-        with transaction.atomic():
-            pattern = r"[a-z]{4}[0-9]{4}"
-            if not re.search(pattern, self.book_id):
-                self.book_id = self.generate_pk(authors)
-            super().save(*args, **kwargs)
-                
     def __str__(self):
-        return f"{self.book_id}: {self.title}"
+        return f"{self.id or self.legacy_id}: {self.title}"
 
 class Customer(models.Model):
     customer_id = models.AutoField(primary_key=True)

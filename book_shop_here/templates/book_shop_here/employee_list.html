@@ -1,19 +1,43 @@
-{% extends 'book_shop_here/base.html' %}
-{% load custom_filters %}
+{% extends "book_shop_here/base.html" %}
+{% load i18n %}
+
 {% block content %}
-    <h2>Available Books</h2>
+    <h1>{% trans "Employees" %}</h1>
     <form method="get">
-        <input type="text" name="q" value="{{ query }}" placeholder="Search title or ID">
-        <button type="submit">Search</button>
+        <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by name or email' %}">
+        <button type="submit">{% trans "Search" %}</button>
     </form>
-    <ul>
-        {% for book in books %}
-            <li>{{ book.title }} ({{ book.book_id }}) - ${{ book.retail_price }} - {{ book.rating }}
-            
-            </li>
-        {% empty %}
-            <li>No books found.</li>
+    <p><a href="{% url 'book_shop_here:employee-create' %}">{% trans "Add Employee" %}</a></p>
+    {% if messages %}
+        <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
         {% endfor %}
-    </ul>
-    {% if request.user|is_in_group:"OwnerGroup" or request.user|is_in_group:"ManagerGroup" or request.user.is_superuser %}<a href="{% url 'add_book' %}">Add Book</a>{% endif %}
+        </ul>
+    {% endif %}
+    {% if employees %}
+        <table>
+        <tr>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Email" %}</th>
+            <th>{% trans "Group" %}</th>
+            <th>{% trans "Phone Number" %}</th>
+            <th>{% trans "Actions" %}</th>
+        </tr>
+        {% for employee in employees %}
+            <tr>
+            <td>{{ employee }}</td>
+            <td>{{ employee.email|default:"-" }}</td>
+            <td>{{ employee.group.name|default:"-" }}</td>
+            <td>{{ employee.phone_number|default:"-" }}</td>
+            <td>
+                <a href="{% url 'book_shop_here:employee-update' pk=employee.employee_id %}">{% trans "Edit" %}</a> |
+                <a href="{% url 'book_shop_here:employee-delete' pk=employee.employee_id %}">{% trans "Delete" %}</a>
+            </td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <p>{% trans "No employees found." %}</p>
+    {% endif %}
 {% endblock %}

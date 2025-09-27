@@ -2,12 +2,12 @@
 {% load i18n %}
 
 {% block content %}
-    <h1>{% trans "Authors" %}</h1>
+    <h1>{% trans "Customers" %}</h1>
     <form method="get">
         <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by name' %}">
         <button type="submit">{% trans "Search" %}</button>
     </form>
-    <p><a href="{% url 'book_shop_here:author-create' %}">{% trans "Add Author" %}</a></p>
+    <p><a href="{% url 'book_shop_here:customer-create' %}">{% trans "Add Customer" %}</a></p>
     {% if messages %}
         <ul class="messages">
         {% for message in messages %}
@@ -15,27 +15,27 @@
         {% endfor %}
         </ul>
     {% endif %}
-    {% if authors %}
+    {% if customers %}
         <table>
         <tr>
             <th>{% trans "Name" %}</th>
-            <th>{% trans "Birth Year" %}</th>
-            <th>{% trans "Description" %}</th>
+            <th>{% trans "Phone Number" %}</th>
+            <th>{% trans "Mailing Address" %}</th>
             <th>{% trans "Actions" %}</th>
         </tr>
-        {% for author in authors %}
+        {% for customer in customers %}
             <tr>
-            <td>{{ author }}</td>
-            <td>{{ author.birth_year|default:"-" }}</td>
-            <td>{{ author.description|default:"-" }}</td>
+            <td>{{ customer }}</td>
+            <td>{{ customer.phone_number|default:"-" }}</td>
+            <td>{{ customer.mailing_address|default:"-" }}</td>
             <td>
-                <a href="{% url 'book_shop_here:author-update' pk=author.author_id %}">{% trans "Edit" %}</a> |
-                <a href="{% url 'book_shop_here:author-delete' pk=author.author_id %}">{% trans "Delete" %}</a>
+                <a href="{% url 'book_shop_here:customer-update' pk=customer.customer_id %}">{% trans "Edit" %}</a> |
+                <a href="{% url 'book_shop_here:customer-delete' pk=customer.customer_id %}">{% trans "Delete" %}</a>
             </td>
             </tr>
         {% endfor %}
         </table>
     {% else %}
-        <p>{% trans "No authors found." %}</p>
+        <p>{% trans "No customers found." %}</p>
     {% endif %}
 {% endblock %}

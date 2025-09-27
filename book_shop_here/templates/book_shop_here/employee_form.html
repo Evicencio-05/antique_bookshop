@@ -1,0 +1,6 @@
+{% extends 'book_shop_here/base.html' %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save Employee</button>
+</form>

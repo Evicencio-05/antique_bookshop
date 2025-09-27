@@ -1,19 +1,43 @@
-{% extends 'book_shop_here/base.html' %}
-{% load custom_filters %}
+{% extends "book_shop_here/base.html" %}
+{% load i18n %}
+
 {% block content %}
-    <h2>Available Books</h2>
+    <h1>{% trans "Books" %}</h1>
     <form method="get">
-        <input type="text" name="q" value="{{ query }}" placeholder="Search title or ID">
-        <button type="submit">Search</button>
+        <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by title or legacy ID' %}">
+        <button type="submit">{% trans "Search" %}</button>
     </form>
-    <ul>
-        {% for book in books %}
-            <li>{{ book.title }} ({{ book.book_id }}) - ${{ book.retail_price }} - {{ book.rating }}
-            
-            </li>
-        {% empty %}
-            <li>No books found.</li>
+    <p><a href="{% url 'book_shop_here:book-create' %}">{% trans "Add Book" %}</a></p>
+    {% if messages %}
+        <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
         {% endfor %}
-    </ul>
-    {% if request.user|is_in_group:"OwnerGroup" or request.user|is_in_group:"ManagerGroup" or request.user.is_superuser %}<a href="{% url 'add_book' %}">Add Book</a>{% endif %}
+        </ul>
+    {% endif %}
+    {% if books %}
+        <table>
+        <tr>
+            <th>{% trans "Legacy ID" %}</th>
+            <th>{% trans "Title" %}</th>
+            <th>{% trans "Authors" %}</th>
+            <th>{% trans "Retail Price" %}</th>
+            <th>{% trans "Actions" %}</th>
+        </tr>
+        {% for book in books %}
+            <tr>
+            <td>{{ book.legacy_id|default:"-" }}</td>
+            <td>{{ book.title }}</td>
+            <td>{{ book.authors.all|join:", " }}</td>
+            <td>{{ book.retail_price }}</td>
+            <td>
+                <a href="{% url 'book_shop_here:book-update' pk=book.book_id %}">{% trans "Edit" %}</a> |
+                <a href="{% url 'book_shop_here:book-delete' pk=book.book_id %}">{% trans "Delete" %}</a>
+            </td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <p>{% trans "No books found." %}</p>
+    {% endif %}
 {% endblock %}

@@ -1,18 +1,47 @@
-{% extends 'book_shop_here/base.html' %}
-{% load custom_filters %}
+{% extends "book_shop_here/base.html" %}
+{% load i18n %}
+
 {% block content %}
-    <h2>Orders</h2>
+    <h1>{% trans "Orders" %}</h1>
     <form method="get">
-        <input type="text" name="q" value="{{ query }}" placeholder="Search title or ID">
-        <button type="submit">Search</button>
+        <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by order ID or customer name' %}">
+        <button type="submit">{% trans "Search" %}</button>
     </form>
-    <ul>
-        {% for order in orders %}
-            <li>{{ order.order_id }} {{ order.status }}
-            </li>
-        {% empty %}
-            <li>No orders found.</li>
+    <p><a href="{% url 'book_shop_here:order-create' %}">{% trans "Add Order" %}</a></p>
+    {% if messages %}
+        <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
         {% endfor %}
-    </ul>
-    {% if request.user|is_in_group:"OwnerGroup" or request.user|is_in_group:"ManagerGroup" or request.user.is_superuser %}<a href="{% url 'add_order' %}">Add Order</a>{% endif %}
+        </ul>
+    {% endif %}
+    {% if orders %}
+        <table>
+        <tr>
+            <th>{% trans "Order ID" %}</th>
+            <th>{% trans "Customer" %}</th>
+            <th>{% trans "Employee" %}</th>
+            <th>{% trans "Sale Amount" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Books" %}</th>
+            <th>{% trans "Actions" %}</th>
+        </tr>
+        {% for order in orders %}
+            <tr>
+            <td>{{ order.order_id }}</td>
+            <td>{{ order.customer_id }}</td>
+            <td>{{ order.employee_id }}</td>
+            <td>{{ order.sale_amount }}</td>
+            <td>{{ order.order_status }}</td>
+            <td>{{ order.books.all|join:", " }}</td>
+            <td>
+                <a href="{% url 'book_shop_here:order-update' pk=order.order_id %}">{% trans "Edit" %}</a> |
+                <a href="{% url 'book_shop_here:order-delete' pk=order.order_id %}">{% trans "Delete" %}</a>
+            </td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <p>{% trans "No orders found." %}</p>
+    {% endif %}
 {% endblock %}

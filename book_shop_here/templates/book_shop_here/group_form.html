@@ -1,16 +1,19 @@
-{% extends 'book_shop_here/base.html' %}
+{% extends "book_shop_here/base.html" %}
+{% load i18n %}
+
 {% block content %}
-    <h2>{{ title }}</h2>
+    <h1>{{ title|default:"Add Group" }}</h1>
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
     <form method="post">
         {% csrf_token %}
-        {{ form.name.label_tag }}
-        {{ form.name }}
-        <hr>
-        {{ form.description.label_tag }}
-        {{ form.description }}
-        <hr>
-        {{ form.permissions.label_tag }}
-        {{ form.permissions }}
-        <button type="submit">Save</button>
+        {{ form.as_p }}
+        <button type="submit">{% trans "Save" %}</button>
+        <a href="{% url 'book_shop_here:group-list' %}">{% trans "Cancel" %}</a>
     </form>
 {% endblock %}

@@ -11,7 +11,7 @@ class BookForm(forms.ModelForm):
 
     class Meta:
         model = Book
-        fields = ['title', 'cost', 'retail_price', 'publication_date', 'publisher', 'edition', 'rating', 'authors', 'book_status']
+        fields = ['title', 'cost', 'retail_price', 'publication_date', 'publisher', 'edition', 'rating', 'authors', 'book_status', 'legacy_id']
 
     def clean_authors(self):
         authors = self.cleaned_data['authors']
