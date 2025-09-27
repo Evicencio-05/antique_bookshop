@@ -1,6 +1,7 @@
 from django import forms
-from django.contrib.auth.models import Group, Permission
-from .models import Book, Customer, Author, Order, GroupProfile
+from django.contrib.auth.models import Group, Permission, User
+from .models import Book, Customer, Author, Order, GroupProfile, Employee
+from django.core.exceptions import ValidationError
 
 class BookForm(forms.ModelForm):
     authors = forms.ModelMultipleChoiceField(
@@ -44,6 +45,7 @@ class OrderForm(forms.ModelForm):
         model = Order
         fields = '__all__'
         
+
 class GroupForm(forms.ModelForm):
     description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'rows': 3}), required=False)
     permissions = forms.ModelMultipleChoiceField(queryset=Permission.objects.filter(content_type__app_label__in=['book_shop_here', 'auth'])
@@ -71,3 +73,63 @@ class GroupForm(forms.ModelForm):
             group.permissions.clear()
         
         return group
+    
+class EmployeeForm(forms.ModelForm):
+    password1 = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput,
+        required=False,
+        help_text="Required for new employees. Leave blank to keep current on updates."
+    )
+    password2 = forms.CharField(
+        label="Password confirmation",
+        widget=forms.PasswordInput,
+        required=False,
+    )
+
+    class Meta:
+        model = Employee
+        fields = [
+            'first_name', 'last_name', 'phone_number', 'address',
+            'birth_date', 'hire_date', 'group', 'zip_code',
+            'state', 'email'
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+        is_creation = self.instance.pk is None
+
+        if is_creation:
+            if not password1 or not password2:
+                raise ValidationError("Password and confirmation are required for new employees.")
+
+        if password1 or password2:
+            if password1 != password2:
+                raise ValidationError("Passwords don't match.")
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        employee = super().save(commit=False)
+        password1 = self.cleaned_data.get('password1')
+        is_creation = employee.pk is None
+
+        if is_creation:
+            # Creation: Use model's classmethod for consistency
+            # Extract kwargs from cleaned_data (plus instance fields)
+            kwargs = self.cleaned_data.copy()
+            kwargs['first_name'] = employee.first_name
+            kwargs['last_name'] = employee.last_name
+            kwargs['email'] = employee.email
+            kwargs['group'] = employee.group
+            employee = Employee.create_with_user(password=password1, **kwargs)
+        else:
+            # Update: Save employee (which auto-syncs via model save), then handle password if provided
+            if commit:
+                employee.save()
+            if password1:
+                employee.set_password(password1)
+
+        return employee

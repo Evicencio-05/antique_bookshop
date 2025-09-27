@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Author, Book, Employee, Customer, Order, GroupProfile
+from .forms import EmployeeForm
 
 
 @admin.register(Author)
@@ -19,6 +20,7 @@ class BookAdmin(admin.ModelAdmin):
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
     list_display = ['last_name', 'first_name', 'hire_date']
+    form = EmployeeForm
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):

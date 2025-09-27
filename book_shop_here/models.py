@@ -13,7 +13,7 @@ import re
 logger = logging.getLogger(__name__)
 
 class GroupProfile(models.Model):
-    group = models.OneToOneField(Group, on_delete=models.CASCADE, primary_key=True, related_name='group')
+    group = models.OneToOneField(Group, on_delete=models.CASCADE, primary_key=True, related_name='profile')
     description = models.TextField(verbose_name= _('description'), max_length=500, blank=True, null=True, help_text= _('Role description'))
     
     def __str__(self):
@@ -30,61 +30,81 @@ class Employee(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, editable=True, verbose_name= _('Employee role'))
     zip_code = models.CharField(max_length=50, editable=True, verbose_name= _('Employee zip code'))
     state = models.CharField(max_length=50, editable=True, verbose_name= _('Employee state'))
-    user = models.OneToOneField(User, on_delete=models.CASCADE, editable=True, null=True, verbose_name= _('Employee user'))
+    user = models.OneToOneField(User, on_delete=models.CASCADE, editable=True, blank=True, verbose_name= _('Employee user'))
     email = models.EmailField(max_length=254, editable=True, verbose_name=_('Employee email'), unique=True, null=True, blank=True)
     
+    def _generate_username(self):
+        """Generate a unique username based on first and last name."""
+        base_username = f"{self.first_name.lower()}.{self.last_name.lower()}"
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+        return username
+    
+    def sync_user(self, commit=True):
+        """Sync non-password fields from Employee to linked User."""
+        if not self.user:
+            raise ValueError("No linked User to sync.")
+        self.user.first_name = self.first_name
+        self.user.last_name = self.last_name
+        self.user.email = self.email or ''
+        
+        expected_username = self._generate_username()
+        if self.user.username != expected_username:
+            self.user.username = expected_username
+        
+        self.user.groups.clear()
+        self.user.groups.add(self.group)
+        
+        if commit:
+            self.user.save()
+            
+    def set_password(self, password):
+        """Set password on linked User (for updates)."""
+        if not self.user:
+            raise ValueError("No linked User to set password.")
+        self.user.set_password(password)
+        self.user.save()
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+        if self.user:  # Auto-sync on save if User exists (e.g., for updates)
+            self.sync_user()
+    
+    @classmethod
+    def create_with_user(cls, password, **kwargs):
+        """
+        Classmethod for creating Employee with a new User (non-form use).
+        Usage: Employee.create_with_user(password='secret', first_name='John', last_name='Doe', ...)
+        Note: This is for scripts/shell; forms are preferred for web apps due to validation.
+        """
+        if not password:
+            raise ValueError("Password is required for creation.")
+        first_name = kwargs.get('first_name')
+        last_name = kwargs.get('last_name')
+        email = kwargs.get('email')
+        group = kwargs.get('group')
         
-        if self.user:
-            user = self.user
-            
-        elif not self.user and self.pk is None:
-            try:
-                base_username = f"{self.first_name.lower()}{self.last_name.lower()}".replace(' ', '')
-                username = base_username
-                counter = 1
-                while User.objects.filter(username=username).exists():
-                    username = f"{base_username}{counter}"
-                    counter += 1
-
-                user = User.objects.create(
-                    username=username,
-                    email=self.email or f"{username}@placeholder.com", 
-                    first_name=self.first_name,
-                    last_name=self.last_name,
-                    is_active=True # Set to False if you want to set password later
-                )
-
-                self.user = user
-                super().save(update_fields=['user'])
-
-            except Exception as e:
-                logger.error(f"Failed to create user for employee {self.pk}: {e}")
-                # Consider raising an error or handling this more gracefully
-                return # Exit save if user creation failed
-
-        if self.user:
-            update_fields = []
-            if self.user.first_name != self.first_name:
-                self.user.first_name = self.first_name
-                update_fields.append('first_name')
-            if self.user.last_name != self.last_name:
-                self.user.last_name = self.last_name
-                update_fields.append('last_name')
-            if self.user.email != self.email:
-                self.user.email = self.email
-                update_fields.append('email')
-                
-            if update_fields:
-                self.user.save(update_fields=update_fields)
-                
-            current_groups = set(self.user.groups.all())
-            employee_group = self.group
-
-            if employee_group not in current_groups or len(current_groups) > 1:
-                with transaction.atomic():
-                    self.user.groups.set([employee_group])
+        if not (first_name and last_name):
+            raise ValueError("First and last name are required.")
+        
+        temp_employee = cls(first_name=first_name, last_name=last_name)
+        username = temp_employee._generate_username()
+        
+        user = User.objects.create_user(
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            email=email or '',
+            password=password
+        )
+        if group:
+            user.groups.add(group)
+        
+        employee = cls.objects.create(user=user, **kwargs)
+        return employee
     
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -136,6 +156,7 @@ class Book(models.Model):
     book_status = models.CharField(max_length=10, choices=BookStatus.choices, default=BookStatus.PROCESSING)
     
     def generate_pk(self, authors=None):
+        """Generate a unique primary key based on one of the authors' last name."""
         try:
             if authors is None:
                 first_author = self.authors.all().order_by('last_name').first()
