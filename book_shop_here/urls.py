@@ -1,4 +1,3 @@
-from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 from . import views
 
@@ -13,8 +12,11 @@ urlpatterns = [
     path('groups/add/', views.add_group, name='add_group'),
     
     path('authors/', views.author_list, name='author_list'),
-    path('authors/add', views.add_author, name='add_author'),
+    path('authors/add/', views.add_author, name='add_author'),
     
     path('orders/', views.order_list, name='order_list'),
-    path('orders/add', views.add_order, name='add_order'),
+    path('orders/add/', views.add_order, name='add_order'),
+    
+    path('employees/', views.EmployeeListView.as_view(), name='employee_list'),
+    path('employees/add/', views.EmployeeCreateView.as_view(), name='add_employee'),
 ]
