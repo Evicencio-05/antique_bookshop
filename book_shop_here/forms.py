@@ -11,7 +11,7 @@ class BookForm(forms.ModelForm):
 
     class Meta:
         model = Book
-        fields = ['title', 'cost', 'retail_price', 'publication_date', 'edition', 'rating', 'authors', 'book_status']
+        fields = ['title', 'cost', 'retail_price', 'publication_date', 'publisher', 'edition', 'rating', 'authors', 'book_status']
 
     def clean_authors(self):
         authors = self.cleaned_data['authors']
@@ -22,15 +22,24 @@ class BookForm(forms.ModelForm):
                 raise forms.ValidationError(f'Author "{author}" is not saved to the database.')
         return authors
 
+import re
+
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = '__all__'
+        
     def clean(self):
         cleaned_data = super().clean()
         if not cleaned_data.get('first_name') and not cleaned_data.get('last_name'):
             raise forms.ValidationError("At least one name is required.")
         return cleaned_data
+    
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        if phone_number and not re.match(r'^\+?1?\d{10,15}$', phone_number):
+            raise forms.ValidationError("Enter a valid phone number (10-15 digits, optional +).")
+        return phone_number
 
 class AuthorForm(forms.ModelForm):
     class Meta:
@@ -41,9 +50,15 @@ class AuthorForm(forms.ModelForm):
         }
 
 class OrderForm(forms.ModelForm):
+    books = forms.ModelMultipleChoiceField(
+        queryset=Book.objects.filter(book_status__in=['available', 'reserved']),
+        widget=forms.CheckboxSelectMultiple,
+        required=True
+    )
+
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = ['customer_id', 'employee_id', 'sale_amount', 'payment_method', 'order_status', 'books', 'delivery_pickup_date']
         
 
 class GroupForm(forms.ModelForm):
@@ -94,6 +109,10 @@ class EmployeeForm(forms.ModelForm):
             'birth_date', 'hire_date', 'group', 'zip_code',
             'state', 'email'
         ]
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'type': 'date'}),
+            'hire_date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -110,6 +129,12 @@ class EmployeeForm(forms.ModelForm):
                 raise ValidationError("Passwords don't match.")
 
         return cleaned_data
+    
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        if phone_number and not re.match(r'^\+?1?\d{10,15}$', phone_number):
+            raise forms.ValidationError("Enter a valid phone number (10-15 digits, optional +).")
+        return phone_number
 
     def save(self, commit=True):
         employee = super().save(commit=False)

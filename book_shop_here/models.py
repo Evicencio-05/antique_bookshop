@@ -89,6 +89,8 @@ class Employee(models.Model):
         
         if not (first_name and last_name):
             raise ValueError("First and last name are required.")
+        if not group:
+            raise ValueError("Group is required for employee creation.")
         
         temp_employee = cls(first_name=first_name, last_name=last_name)
         username = temp_employee._generate_username()
@@ -145,7 +147,7 @@ class Book(models.Model):
         PROCESSING = 'processing', _('Processing')
 
     book_id = models.CharField(max_length=8, validators=[MinLengthValidator(8), validate_book_id], primary_key=True, editable=False)
-    title = models.CharField(max_length=500, verbose_name= _('Book title'))
+    title = models.CharField(max_length=500, verbose_name= _('Book title'), db_index=True)
     cost = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Book cost'))
     authors = models.ManyToManyField(Author, related_name='books', verbose_name= _('Book author(s)'), editable=True)
     retail_price = models.DecimalField(max_digits=11, decimal_places=2, verbose_name= _('Suggested retail price'))
@@ -165,12 +167,12 @@ class Book(models.Model):
             else:
                 first_author = authors
                 
-            base_name = first_author.last_name if first_author and hasattr(first_author, 'last_name') else 'unknown'
+            base_name = first_author.last_name if first_author and hasattr(first_author, 'last_name') else 'book'
         except (AttributeError, DatabaseError):
-            base_name = 'unknown'
+            base_name = 'book'
 
         base_name = ''.join(c for c in base_name if c.isalpha())[:4].lower()
-        base = (base_name[:4].lower() + 'xxxx')[:4]
+        base = (base_name + 'book')[:4].lower()
 
         attempts = 0
         max_attempts = 1000
@@ -232,6 +234,11 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=10, choices=PaymentMethod.choices)
     order_status = models.CharField(max_length=30, choices=OrderStatus.choices, default=OrderStatus.PICKUP)
     books = models.ManyToManyField(Book, related_name='orders')
+    
+    def save(self, *args, **kwargs):
+        if self.books.exists():
+            self.sale_amount = sum(book.retail_price for book in self.books.all())
+        super().save(*args, **kwargs)
     
     def completed_order(self):
         for book in self.books.all():
