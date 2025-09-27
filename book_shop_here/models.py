@@ -1,14 +1,11 @@
-from django.core.validators import MinValueValidator, MaxValueValidator, MinLengthValidator
-from django.db import models, transaction, DatabaseError
-from django.core.exceptions import ValidationError
-from django.db.models.query import QuerySet
-from django.contrib.auth.models import User, Group
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User, Group
+from django.utils import timezone
+from django.db import models
 from datetime import date
-import logging
-import string
-import random
-import re
+import logging, re
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +23,7 @@ class Employee(models.Model):
     phone_number = models.CharField(max_length=50, editable=True, verbose_name= _('Employee phone number'))
     address = models.CharField(max_length=200, editable=True, verbose_name= _('Employee address'))
     birth_date = models.DateField(auto_now_add=False, editable=True, verbose_name= _('Employee date of birth'), default=date(1600,1,1))
-    hire_date = models.DateField(auto_now_add=True, editable=True, verbose_name= _('Employee hire date'))
+    hire_date = models.DateField(default=timezone.now, editable=True, verbose_name= _('Employee hire date'))
     group = models.ForeignKey(Group, on_delete=models.CASCADE, editable=True, verbose_name= _('Employee role'))
     zip_code = models.CharField(max_length=50, editable=True, verbose_name= _('Employee zip code'))
     state = models.CharField(max_length=50, editable=True, verbose_name= _('Employee state'))

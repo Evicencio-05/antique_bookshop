@@ -1,3 +1,4 @@
+from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 from . import views
 
@@ -5,6 +6,8 @@ app_name = 'book_shop_here'
 
 urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
+    path('login/', LoginView.as_view(template_name='book_shop_here/login.html'), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     
     path('books/', views.BookListView.as_view(), name='book-list'),
     path('books/add/', views.BookCreateView.as_view(), name='book-create'),

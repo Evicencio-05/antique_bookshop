@@ -69,6 +69,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -77,9 +78,8 @@ TEMPLATES = [
     },
 ]
 
-LOGOUT_REDIRECT_URL = 'home'
-LOGIN_REDIRECT_URL = 'book_list'
-LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'book_shop_here:home'
+LOGOUT_REDIRECT_URL = 'book_shop_here:home'
 
 WSGI_APPLICATION = 'bookshop.wsgi.application'
 
