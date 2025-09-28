@@ -1,11 +1,10 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
-from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
 from django.utils import timezone
 from django.db import models
 from datetime import date
-import logging, re
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -119,14 +118,6 @@ class Author(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()
 
-def validate_book_id(value):
-    if not value:
-        raise ValidationError('Book ID cannot be empty.')
-    pattern = r"[a-z]{4}[0-9]{4}"
-    if not re.search(pattern, value):
-        raise ValidationError('Book ID must match pattern: four lowercase letters followed by four digits.')
-
-
 class Book(models.Model):
     class Rating(models.TextChoices):
         SUPERB = 'superb', _('Superb')
@@ -156,7 +147,7 @@ class Book(models.Model):
     book_status = models.CharField(max_length=10, choices=BookStatus.choices, default=BookStatus.PROCESSING)
     
     def __str__(self):
-        return f"{self.id or self.legacy_id}: {self.title}"
+        return f"{self.legacy_id or self.book_id}: {self.title}"
 
 class Customer(models.Model):
     customer_id = models.AutoField(primary_key=True)

@@ -78,7 +78,7 @@ TEMPLATES = [
     },
 ]
 
-LOGIN_REDIRECT_URL = 'book_shop_here:home'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'book_shop_here:home'
 
 WSGI_APPLICATION = 'bookshop.wsgi.application'
@@ -96,7 +96,6 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
-PASSWORD_HASHERS = ['django.contrib.auth.hashers.Argon2PasswordHasher', ...]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -113,7 +112,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-SECURE_SSL_REDIRECT = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

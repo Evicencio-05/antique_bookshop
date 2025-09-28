@@ -5,9 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from book_shop_here.models import Book, Author, Order, Customer, Employee, GroupProfile
 from book_shop_here.forms import BookForm, CustomerForm, AuthorForm, OrderForm, GroupForm, EmployeeForm
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from datetime import date
-import re
 
 class BookModelTests(TestCase):
     def setUp(self):
@@ -27,7 +25,7 @@ class BookModelTests(TestCase):
     def test_book_str(self):
         self.assertEqual(str(self.book), "doej1234: Test Book")
         book_no_legacy = Book.objects.create(title="No Legacy", cost=5.00, retail_price=10.00)
-        self.assertEqual(str(book_no_legacy), f"{book_no_legacy.id}: No Legacy")
+        self.assertEqual(str(book_no_legacy), f"{book_no_legacy.book_id}: No Legacy")
 
 class AuthorModelTests(TestCase):
     def setUp(self):
@@ -82,12 +80,12 @@ class OrderModelTests(TestCase):
             book_status="available"
         )
         self.order = Order.objects.create(
-            customer_id=self.customer,
-            employee_id=self.employee,
             sale_amount=15.00,
             payment_method="cash",
             order_status="to_ship"
         )
+        self.order.customer_id.add(self.customer)
+        self.order.employee_id.add(self.employee)
         self.order.books.add(self.book)
 
     def test_completed_order(self):

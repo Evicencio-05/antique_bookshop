@@ -6,7 +6,7 @@ app_name = 'book_shop_here'
 
 urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
-    path('login/', LoginView.as_view(template_name='book_shop_here/login.html'), name='login'),
+    path('login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     
     path('books/', views.BookListView.as_view(), name='book-list'),
