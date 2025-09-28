@@ -204,5 +204,5 @@ class Order(models.Model):
         self.save()
     
     def __str__(self):
-        return f"Order {self.order_id} -> {self.customer_id}"
+        return f"Order {self.order_id}: {self.order_status}"
     
