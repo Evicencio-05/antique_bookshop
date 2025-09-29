@@ -43,14 +43,11 @@ class Employee(models.Model):
         """Sync non-password fields from Employee to linked User."""
         if not self.user:
             raise ValueError("No linked User to sync.")
+        if self.first_name != self.user.first_name or self.last_name != self.user.last_name:
+            self.user.username = self._generate_username()
         self.user.first_name = self.first_name
         self.user.last_name = self.last_name
         self.user.email = self.email or ''
-        
-        expected_username = self._generate_username()
-        if self.user.username != expected_username:
-            self.user.username = expected_username
-        
         self.user.groups.clear()
         self.user.groups.add(self.group)
         
@@ -90,7 +87,6 @@ class Employee(models.Model):
         
         temp_employee = cls(first_name=first_name, last_name=last_name)
         username = temp_employee._generate_username()
-        
         user = User.objects.create_user(
             username=username,
             first_name=first_name,
@@ -188,8 +184,9 @@ class Order(models.Model):
     books = models.ManyToManyField(Book, related_name='orders')
     
     def save(self, *args, **kwargs):
-        if self.books.exists():
-            self.sale_amount = sum(book.retail_price for book in self.books.all())
+        if self.order_id:
+            if self.books.exists():
+                self.sale_amount = sum(book.cost for book in self.books.all())
         super().save(*args, **kwargs)
     
     def completed_order(self):

@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.urls import reverse
 from django.contrib.auth.models import User, Group
 from book_shop_here.models import Book, Author, Order, Customer, Employee, GroupProfile
 from django.core.exceptions import ValidationError
@@ -79,12 +78,12 @@ class OrderModelTests(TestCase):
             book_status="available"
         )
         self.order = Order.objects.create(
-            sale_amount=15.00,
+            customer_id=self.customer,
+            employee_id=self.employee,
+            sale_amount=10.00,
             payment_method="cash",
             order_status="to_ship"
         )
-        self.order.customer_id.add(self.customer)
-        self.order.employee_id.add(self.employee)
         self.order.books.add(self.book)
 
     def test_completed_order(self):
@@ -99,7 +98,7 @@ class OrderModelTests(TestCase):
         self.order.books.add(self.book)
         self.order.save()
         self.order.refresh_from_db()
-        self.assertEqual(self.order.sale_amount, self.book.retail_price)
+        self.assertEqual(self.order.sale_amount, self.book.cost)
 
 class EmployeeModelTests(TestCase):
     def setUp(self):
