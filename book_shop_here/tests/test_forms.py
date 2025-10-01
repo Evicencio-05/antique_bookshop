@@ -4,6 +4,10 @@ from django.contrib.contenttypes.models import ContentType
 from book_shop_here.models import Book, Author, Order, Customer, Employee, GroupProfile
 from book_shop_here.forms import BookForm, CustomerForm, AuthorForm, OrderForm, GroupForm, EmployeeForm
 from datetime import date
+import html
+import logging
+
+logger = logging.getLogger(__name__)
 
 class BookFormTests(TestCase):
     def setUp(self):
@@ -132,19 +136,20 @@ class OrderFormTests(TestCase):
         form_data = {
             "customer_id": self.customer.customer_id,
             "employee_id": self.employee.employee_id,
-            "sale_amount": 15.00,
+            "sale_amount": 10.00,
             "payment_method": "cash",
             "order_status": "to_ship",
-            "books": [self.book.legacy_id]
+            "books": [self.book.book_id]
         }
         form = OrderForm(data=form_data)
+        logger.info(f"Form errors: {form.errors}")
         self.assertTrue(form.is_valid())
 
     def test_order_form_no_books(self):
         form_data = {
             "customer_id": self.customer.customer_id,
             "employee_id": self.employee.employee_id,
-            "sale_amount": 15.00,
+            "sale_amount": 10.00,
             "payment_method": "cash",
             "order_status": "to_ship",
             "books": []
@@ -181,9 +186,9 @@ class EmployeeFormTests(TestCase):
 
     def test_form_creation_no_password(self):
         data = self.form_data.copy()
-        del data['password1']
-        del data['password2']
         form = EmployeeForm(data=data)
+        del data['password2']
+        del data['password1']
         self.assertFalse(form.is_valid())
         self.assertIn("Password and confirmation are required for new employees.", str(form.errors))
 
@@ -192,7 +197,7 @@ class EmployeeFormTests(TestCase):
         data['password2'] = 'wrongpass'
         form = EmployeeForm(data=data)
         self.assertFalse(form.is_valid())
-        self.assertIn("Passwords don't match.", str(form.errors))
+        self.assertIn(html.escape("Passwords don't match."), str(form.errors))
 
     def test_form_update(self):
         employee = Employee.create_with_user(password='oldpass', first_name='John', last_name='Doe', group=self.group, email='john@example.com')

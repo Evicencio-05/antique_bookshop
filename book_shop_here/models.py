@@ -96,7 +96,9 @@ class Employee(models.Model):
         )
         if group:
             user.groups.add(group)
-        
+        if 'password1' in kwargs and 'password2' in kwargs:
+            del kwargs['password1']
+            del kwargs['password2']
         employee = cls.objects.create(user=user, **kwargs)
         return employee
     

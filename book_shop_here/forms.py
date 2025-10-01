@@ -2,6 +2,10 @@ from django import forms
 from django.contrib.auth.models import Group, Permission, User
 from .models import Book, Customer, Author, Order, GroupProfile, Employee
 from django.core.exceptions import ValidationError
+import logging
+import re
+
+logger = logging.getLogger(__name__)
 
 class BookForm(forms.ModelForm):
     authors = forms.ModelMultipleChoiceField(
@@ -22,7 +26,6 @@ class BookForm(forms.ModelForm):
                 raise forms.ValidationError(f'Author "{author}" is not saved to the database.')
         return authors
 
-import re
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -88,7 +91,7 @@ class GroupForm(forms.ModelForm):
             group.permissions.clear()
         
         return group
-    
+
 class EmployeeForm(forms.ModelForm):
     password1 = forms.CharField(
         label="Password",
@@ -96,6 +99,7 @@ class EmployeeForm(forms.ModelForm):
         required=False,
         help_text="Required for new employees. Leave blank to keep current on updates."
     )
+    
     password2 = forms.CharField(
         label="Password confirmation",
         widget=forms.PasswordInput,
