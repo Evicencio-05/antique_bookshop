@@ -80,6 +80,7 @@ TEMPLATES = [
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'book_shop_here:home'
+LOGIN_URL = '/'
 
 WSGI_APPLICATION = 'bookshop.wsgi.application'
 

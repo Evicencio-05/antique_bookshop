@@ -4,6 +4,9 @@ from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from book_shop_here.models import Book, Author, Order, Customer, Employee, GroupProfile
 from datetime import date
+import logging
+
+logging = logging.getLogger(__name__)
 
 class ViewTests(TestCase):
     def setUp(self):
@@ -206,6 +209,7 @@ class ViewTests(TestCase):
             "description": "Famous novelist"
         }
         response = self.client.post(reverse("book_shop_here:author-create"), form_data)
+        logging.info(f'Form valid: {response.wsgi_request.POST}')
         self.assertRedirects(response, reverse("book_shop_here:author-list"))
         self.assertTrue(Author.objects.filter(last_name="Austen").exists())
 
