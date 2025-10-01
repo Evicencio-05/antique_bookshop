@@ -10,6 +10,9 @@
             {% endfor %}
         </ul>
     {% endif %}
+    {% if form.instance.pk %}
+        <div class="sr-only">{{ form.instance }}</div>
+    {% endif %}
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}

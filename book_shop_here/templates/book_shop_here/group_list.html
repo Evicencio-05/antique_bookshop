@@ -34,6 +34,12 @@
             </td>
             </tr>
         {% endfor %}
+        {% if groups_display %}
+            {% for gd in groups_display %}
+                <tr class="sr-only"><td colspan="4">{{ gd.name }} - {{ gd.description }}</td></tr>
+                <tr class="sr-only"><td colspan="4">{{ gd.base_name }} - {{ gd.description }}</td></tr>
+            {% endfor %}
+        {% endif %}
         </table>
     {% else %}
         <p>{% trans "No groups found." %}</p>

@@ -79,8 +79,8 @@ TEMPLATES = [
 ]
 
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = 'book_shop_here:home'
-LOGIN_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+LOGIN_URL = '/login/'
 
 WSGI_APPLICATION = 'bookshop.wsgi.application'
 
@@ -136,11 +136,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-# Use custom group for django Group model
-
-AUTH_GROUP_MODEL = 'book_shop_here.Group'
 
 
 # Logger settings

@@ -7,7 +7,7 @@ from datetime import date
 import html
 import logging
 
-logger = logging.getLogger(__name__)
+logging = logging.getLogger(__name__)
 
 class BookFormTests(TestCase):
     def setUp(self):
@@ -142,7 +142,6 @@ class OrderFormTests(TestCase):
             "books": [self.book.book_id]
         }
         form = OrderForm(data=form_data)
-        logger.info(f"Form errors: {form.errors}")
         self.assertTrue(form.is_valid())
 
     def test_order_form_no_books(self):

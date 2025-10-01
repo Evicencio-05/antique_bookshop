@@ -80,7 +80,7 @@ class OrderModelTests(TestCase):
         self.order = Order.objects.create(
             customer_id=self.customer,
             employee_id=self.employee,
-            sale_amount=10.00,
+            sale_amount=15.00,
             payment_method="cash",
             order_status="to_ship"
         )

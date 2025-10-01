@@ -209,7 +209,6 @@ class ViewTests(TestCase):
             "description": "Famous novelist"
         }
         response = self.client.post(reverse("book_shop_here:author-create"), form_data)
-        logging.info(f'Form valid: {response.wsgi_request.POST}')
         self.assertRedirects(response, reverse("book_shop_here:author-list"))
         self.assertTrue(Author.objects.filter(last_name="Austen").exists())
 

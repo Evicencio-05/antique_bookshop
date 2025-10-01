@@ -28,7 +28,7 @@ class Employee(models.Model):
     state = models.CharField(max_length=50, editable=True, verbose_name= _('Employee state'))
     user = models.OneToOneField(User, on_delete=models.CASCADE, editable=True, blank=True, verbose_name= _('Employee user'))
     email = models.EmailField(max_length=254, editable=True, verbose_name=_('Employee email'), unique=True, null=True, blank=True)
-    
+
     def _generate_username(self):
         """Generate a unique username based on first and last name."""
         base_username = f"{self.first_name.lower()}.{self.last_name.lower()}"
@@ -38,22 +38,38 @@ class Employee(models.Model):
             username = f"{base_username}{counter}"
             counter += 1
         return username
-    
+
     def sync_user(self, commit=True):
-        """Sync non-password fields from Employee to linked User."""
+        """Sync non-password fields from Employee to linked User.
+        Username policy:
+        - Preserve custom usernames that don't contain a dot (e.g., "testuser").
+        - If the current username contains a dot (pattern-like), update it to the new base pattern (first.last) while ensuring uniqueness, excluding the current user from collision checks.
+        """
         if not self.user:
             raise ValueError("No linked User to sync.")
-        if self.first_name != self.user.first_name or self.last_name != self.user.last_name:
-            self.user.username = self._generate_username()
         self.user.first_name = self.first_name
         self.user.last_name = self.last_name
         self.user.email = self.email or ''
+
+        base_username = f"{self.first_name.lower()}.{self.last_name.lower()}"
+        current_username = self.user.username or ''
+        if '.' in current_username:
+            # Recompute expected unique username, excluding current user
+            expected = base_username
+            counter = 1
+            while User.objects.filter(username=expected).exclude(pk=self.user.pk).exists():
+                expected = f"{base_username}{counter}"
+                counter += 1
+            if current_username != expected:
+                self.user.username = expected
+        # else: keep custom username without dot
+
         self.user.groups.clear()
         self.user.groups.add(self.group)
-        
+
         if commit:
             self.user.save()
-            
+
     def set_password(self, password):
         """Set password on linked User (for updates)."""
         if not self.user:
@@ -65,7 +81,7 @@ class Employee(models.Model):
         super().save(*args, **kwargs)
         if self.user:  # Auto-sync on save if User exists (e.g., for updates)
             self.sync_user()
-    
+
     @classmethod
     def create_with_user(cls, password, **kwargs):
         """
@@ -79,14 +95,15 @@ class Employee(models.Model):
         last_name = kwargs.get('last_name')
         email = kwargs.get('email')
         group = kwargs.get('group')
-        
+
         if not (first_name and last_name):
             raise ValueError("First and last name are required.")
         if not group:
             raise ValueError("Group is required for employee creation.")
-        
+
         temp_employee = cls(first_name=first_name, last_name=last_name)
         username = temp_employee._generate_username()
+
         user = User.objects.create_user(
             username=username,
             first_name=first_name,
@@ -96,12 +113,15 @@ class Employee(models.Model):
         )
         if group:
             user.groups.add(group)
-        if 'password1' in kwargs and 'password2' in kwargs:
-            del kwargs['password1']
-            del kwargs['password2']
+
+        # Drop form-only fields if present
+        for k in ('password1', 'password2'):
+            if k in kwargs:
+                kwargs.pop(k)
+
         employee = cls.objects.create(user=user, **kwargs)
         return employee
-    
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
@@ -186,8 +206,9 @@ class Order(models.Model):
     books = models.ManyToManyField(Book, related_name='orders')
     
     def save(self, *args, **kwargs):
-        if self.order_id:
-            if self.books.exists():
+        # Auto-calculate sale_amount from book cost unless explicitly skipped (e.g., from a form that sets it manually)
+        if not getattr(self, '_skip_recalc', False):
+            if self.pk and self.books.exists():
                 self.sale_amount = sum(book.cost for book in self.books.all())
         super().save(*args, **kwargs)
     

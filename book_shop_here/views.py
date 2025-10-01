@@ -42,14 +42,13 @@ class BookCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     template_name = 'book_shop_here/book_form.html'
     success_url = reverse_lazy('book_shop_here:book-list')
     permission_required = 'book_shop_here.add_book'
+    raise_exception = True
 
     def form_valid(self, form):
         try:
-            book = form.save(commit=False)
-            book.save(form.cleaned_data['authors'])
-            form.save_m2m()
+            response = super().form_valid(form)
             messages.success(self.request, 'Book added.')
-            return super().form_valid(form)
+            return response
         except Exception as e:
             logger.error(f"Error adding book: {e}")
             messages.error(self.request, 'Failed to add book.')
@@ -66,14 +65,13 @@ class BookUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     template_name = 'book_shop_here/book_form.html'
     success_url = reverse_lazy('book_shop_here:book-list')
     permission_required = 'book_shop_here.change_book'
+    raise_exception = True
 
     def form_valid(self, form):
         try:
-            book = form.save(commit=False)
-            book.save(form.cleaned_data['authors'])
-            form.save_m2m()
+            response = super().form_valid(form)
             messages.success(self.request, 'Book updated.')
-            return super().form_valid(form)
+            return response
         except Exception as e:
             logger.error(f"Error updating book: {e}")
             messages.error(self.request, 'Failed to update book.')
@@ -89,6 +87,20 @@ class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     template_name = 'book_shop_here/book_delete_confirm.html'
     success_url = reverse_lazy('book_shop_here:book-list')
     permission_required = 'book_shop_here.delete_book'
+    raise_exception = True
+
+    # Resolve object by legacy_id passed as 'pk' in URL
+    def get_object(self, queryset=None):
+        return get_object_or_404(Book, legacy_id=self.kwargs['pk'])
+
+    def post(self, request, *args, **kwargs):
+        # If the legacy_id doesn't exist, treat as no-op and redirect
+        try:
+            self.object = self.get_object()
+        except Exception:
+            messages.warning(request, 'Book not found; nothing to delete.')
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
         try:
@@ -110,6 +122,12 @@ class AuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     template_name = 'book_shop_here/author_form.html'
     success_url = reverse_lazy('book_shop_here:author-list')
     permission_required = 'book_shop_here.add_author'
+    raise_exception = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Add Author'
+        return context
 
     def form_valid(self, form):
         try:
@@ -127,6 +145,12 @@ class AuthorUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     template_name = 'book_shop_here/author_form.html'
     success_url = reverse_lazy('book_shop_here:author-list')
     permission_required = 'book_shop_here.change_author'
+    raise_exception = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Author'
+        return context
 
     def form_valid(self, form):
         try:
@@ -143,6 +167,7 @@ class AuthorDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     template_name = 'book_shop_here/author_delete_confirm.html'
     success_url = reverse_lazy('book_shop_here:author-list')
     permission_required = 'book_shop_here.delete_author'
+    raise_exception = True
 
     def form_valid(self, form):
         try:
@@ -164,12 +189,39 @@ class OrderCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     template_name = 'book_shop_here/order_form.html'
     success_url = reverse_lazy('book_shop_here:order-list')
     permission_required = 'book_shop_here.add_order'
+    raise_exception = True
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.request.method in ('POST', 'PUT'):
+            data = self.request.POST.copy()
+            if 'books' in data:
+                values = data.getlist('books')
+                mapped = []
+                for v in values:
+                    if v.isdigit():
+                        mapped.append(v)
+                    else:
+                        try:
+                            from .models import Book
+                            b = Book.objects.get(legacy_id=v)
+                            mapped.append(str(b.pk))
+                        except Book.DoesNotExist:
+                            mapped.append(v)
+                data.setlist('books', mapped)
+            kwargs['data'] = data
+        return kwargs
 
     def form_valid(self, form):
         try:
-            response = super().form_valid(form)
+            # Save without triggering auto-recalc (respect posted sale_amount)
+            obj = form.save(commit=False)
+            setattr(obj, '_skip_recalc', True)
+            obj.save()
+            form.save_m2m()
+            self.object = obj
             messages.success(self.request, 'Order added successfully.')
-            return response
+            return redirect(self.success_url)
         except Exception as e:
             logger.error(f"Error adding order: {e}")
             messages.error(self.request, 'Failed to add order.')
@@ -181,12 +233,22 @@ class OrderUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     template_name = 'book_shop_here/order_form.html'
     success_url = reverse_lazy('book_shop_here:order-list')
     permission_required = 'book_shop_here.change_order'
+    raise_exception = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Order'
+        return context
 
     def form_valid(self, form):
         try:
-            response = super().form_valid(form)
+            obj = form.save(commit=False)
+            setattr(obj, '_skip_recalc', True)
+            obj.save()
+            form.save_m2m()
+            self.object = obj
             messages.success(self.request, 'Order updated successfully.')
-            return response
+            return redirect(self.success_url)
         except Exception as e:
             logger.error(f"Error updating order: {e}")
             messages.error(self.request, 'Failed to update order.')
@@ -197,6 +259,7 @@ class OrderDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     template_name = 'book_shop_here/order_delete_confirm.html'
     success_url = reverse_lazy('book_shop_here:order-list')
     permission_required = 'book_shop_here.delete_order'
+    raise_exception = True
 
     def form_valid(self, form):
         try:
@@ -215,12 +278,26 @@ class GroupListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return Group.objects.all().select_related('profile').order_by('name')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        # Provide helper display data with base names (strip anything after first ' (')
+        display = []
+        for g in context['groups']:
+            name = g.name
+            base = name.split(' (')[0]
+            desc = getattr(getattr(g, 'profile', None), 'description', '') or '-'
+            display.append({'name': name, 'base_name': base, 'description': desc, 'id': g.id})
+        context['groups_display'] = display
+        return context
+
 class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Group
     form_class = GroupForm
     template_name = 'book_shop_here/group_form.html'
     success_url = reverse_lazy('book_shop_here:group-list')
-    permission_required = 'book_shop_here.add_group'
+    permission_required = 'auth.add_group'
+    raise_exception = True
 
     def form_valid(self, form):
         try:
@@ -237,7 +314,8 @@ class GroupUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     form_class = GroupForm
     template_name = 'book_shop_here/group_form.html'
     success_url = reverse_lazy('book_shop_here:group-list')
-    permission_required = 'book_shop_here.change_group'
+    permission_required = 'auth.change_group'
+    raise_exception = True
 
     def form_valid(self, form):
         try:
@@ -253,7 +331,8 @@ class GroupDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Group
     template_name = 'book_shop_here/group_delete_confirm.html'
     success_url = reverse_lazy('book_shop_here:group-list')
-    permission_required = 'book_shop_here.delete_group'
+    permission_required = 'auth.delete_group'
+    raise_exception = True
 
     def form_valid(self, form):
         try:
@@ -275,6 +354,12 @@ class EmployeeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView
     template_name = 'book_shop_here/employee_form.html'
     success_url = reverse_lazy('book_shop_here:employee-list')
     permission_required = 'book_shop_here.add_employee'
+    raise_exception = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Add Employee'
+        return context
 
     def form_valid(self, form):
         try:
@@ -292,6 +377,12 @@ class EmployeeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
     template_name = 'book_shop_here/employee_form.html'
     success_url = reverse_lazy('book_shop_here:employee-list')
     permission_required = 'book_shop_here.change_employee'
+    raise_exception = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Employee'
+        return context
 
     def form_valid(self, form):
         try:
@@ -308,6 +399,7 @@ class EmployeeDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView
     template_name = 'book_shop_here/employee_delete_confirm.html'
     success_url = reverse_lazy('book_shop_here:employee-list')
     permission_required = 'book_shop_here.delete_employee'
+    raise_exception = True
 
     def form_valid(self, form):
         try:
@@ -330,6 +422,11 @@ class CustomerCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView
     success_url = reverse_lazy('book_shop_here:customer-list')
     permission_required = 'book_shop_here.add_customer'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Add Customer'
+        return context
+
     def form_valid(self, form):
         try:
             response = super().form_valid(form)
@@ -346,6 +443,11 @@ class CustomerUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
     template_name = 'book_shop_here/customer_form.html'
     success_url = reverse_lazy('book_shop_here:customer-list')
     permission_required = 'book_shop_here.change_customer'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Customer'
+        return context
 
     def form_valid(self, form):
         try:
