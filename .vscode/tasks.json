@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Dev: Tailwind + Django",
+      "type": "npm",
+      "script": "dev",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "detail": "Runs Tailwind in watch mode and Django dev server via npm run dev"
+    },
+    {
+      "label": "Build: Tailwind",
+      "type": "npm",
+      "script": "build",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "detail": "Builds minified CSS to book_shop_here/static/book_shop_here/site.css"
+    }
+  ]
+}
