@@ -6,6 +6,8 @@ This is a Django-based web application for managing an antique bookstore. It inc
 - [Features](#features)
 - [Requirements](#requirements)
 - [Installation and Setup](#installation-and-setup)
+- [Tailwind CSS](#tailwind-css)
+  - [VS Code integration](#vs-code-integration)
 - [Additional Notes](#additional-information)
 
 ## Features
@@ -66,6 +68,7 @@ This includes:
 - `django-environ`: For loading environment variables from a `.env` file.
 - `psycopg2-binary`: Binary PostgreSQL adapter (for production database support).
 - `dj-database-url`: Simplify the configuration of database connections in Django applications.
+- `django-group-model`: Customize the default Group model provided by Django's authentication system.
 
 ### 4. Configure Environment Variables
 
@@ -185,8 +188,8 @@ Configuration:
 - `postcss.config.js` runs Tailwind and Autoprefixer.
 
 Notes:
-- Tailwind is managed via npm devDependencies (package.json). You do NOT add Tailwind to `requirements.txt`.
-- Use `python -m venv .venv && source .venv/Scripts/activate` (Git Bash on Windows) before `npm run dev` so Django runs from your venv.
+- Tailwind is managed via npm devDependencies (package.json).
+- Activate virtual environment before `npm run dev` so Django runs from your venv.
 - If you prefer not to activate the venv, you can run Django explicitly: `./.venv/Scripts/python manage.py runserver`.
 - PowerShell users: if you see an execution policy error when running `npm` directly, prefix the command with `cmd /c` as shown above.
 
