@@ -29,7 +29,6 @@ class BookListView(LoginRequiredMixin, ListView):
         if query:
             queryset = queryset.filter(title__icontains=query) | queryset.filter(legacy_id__icontains=query)
         return queryset
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['query'] = self.request.GET.get('q', '')
@@ -88,12 +87,18 @@ class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = 'book_shop_here.delete_book'
     raise_exception = True
 
-    # Resolve object by legacy_id passed as 'pk' in URL
     def get_object(self, queryset=None):
-        return get_object_or_404(Book, legacy_id=self.kwargs['pk'])
+        '''Find the Book by book_id (passed as 'pk' in URL)'''
+        return get_object_or_404(Book, book_id=self.kwargs['pk'])
 
     def post(self, request, *args, **kwargs):
-        # If the legacy_id doesn't exist, treat as no-op and redirect
+        '''
+        Override post to handle non-existent book_id gracefully.
+        
+        Note: This should not be necessary due to get_object_or_404 in get_object, 
+                but added for extra safety.
+        '''
+        # If the book_id doesn't exist, treat as no-op and redirect
         try:
             self.object = self.get_object()
         except Exception:
