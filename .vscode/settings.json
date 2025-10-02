@@ -2,17 +2,30 @@
     "cSpell.words": [
         "bookshopdb",
         "bookshopuser",
+        "capfirst",
         "createsuperuser",
         "dbname",
         "doej",
         "dotenv",
         "endfor",
+        "endwith",
         "makemigrations",
         "psycopg",
+        "recalc",
         "runserver",
+        "stylesheet",
         "testpass",
         "venv",
         "virtualenv",
         "yoursecurepassword"
-    ]
+    ],
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./book_shop_here",
+        "-p",
+        "test_*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true
 }

@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from book_shop_here.models import Book, Author, Order, Customer, Employee, GroupProfile
+from book_shop_here.models import Book, Author, Customer, Employee, GroupProfile
 from book_shop_here.forms import BookForm, CustomerForm, AuthorForm, OrderForm, GroupForm, EmployeeForm
 from datetime import date
 import html

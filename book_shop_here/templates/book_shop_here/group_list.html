@@ -16,7 +16,7 @@
         </ul>
     {% endif %}
     {% if groups %}
-        <table>
+        <table style="width: 100%; border=2px solid black; border-collapse: collapse;">
         <tr>
             <th>{% trans "Name" %}</th>
             <th>{% trans "Description" %}</th>
@@ -27,7 +27,30 @@
             <tr>
             <td>{{ group.name }}</td>
             <td>{{ group.profile.description|default:"-" }}</td>
-            <td>{{ group.permissions.all|join:", " }}</td>
+            <td>
+                <table style="border: none; width: 100%;">
+                {% for perm in group.permissions.all %}
+                    <tr style="border: none;">
+                        <td style="border: none;">
+                            {{ perm.content_type.model }}
+                        {% comment %} {% with trimmed_permission=perm.content_type.model.name|slice:"4:" %}
+                            {{ trimmed_permission|capfirst }}
+                        {% endwith %} {% endcomment %}
+                    </td></tr>
+                {% empty %}
+                    <tr style="border: none;"><td style="border: none;">
+                {% endfor %}
+                {% comment %} {% for perm in group.permissions.all %}
+                    <tr style="border: none;">
+                        <td style="border: none;">
+                        {% with trimmed_permission=perm.name|slice:"4:" %}
+                            {{ trimmed_permission|capfirst }}
+                        {% endwith %}
+                    </td></tr>
+                {% empty %}
+                    <tr style="border: none;"><td style="border: none;">
+                {% endfor %} {% endcomment %}
+                </table> 
             <td>
                 <a href="{% url 'book_shop_here:group-update' pk=group.id %}">{% trans "Edit" %}</a> |
                 <a href="{% url 'book_shop_here:group-delete' pk=group.id %}">{% trans "Delete" %}</a>

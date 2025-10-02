@@ -159,6 +159,71 @@ python manage.py runserver
 
 Visit `http://127.0.0.1:8000/` in your browser (A link is also provided in the terminal). The login page should appear and log in using you super user credentials.
 
+## Tailwind CSS
+
+This project uses Tailwind CSS without the CDN. The styles are compiled to the Django app static directory and referenced from templates.
+
+Commands:
+
+- Build once (production/minified):
+  - Git Bash / macOS / Linux: `npm run build`
+  - PowerShell (if execution policy blocks): `cmd /c npm run build`
+- Watch during development:
+  - Git Bash / macOS / Linux: `npm run watch`
+  - PowerShell (if execution policy blocks): `cmd /c npm run watch`
+- Run Tailwind and Django together (recommended during development):
+  - Ensure your virtualenv is activated (so `python` points to your venv), then run:
+  - Git Bash / macOS / Linux: `npm run dev`
+  - PowerShell (if needed): `cmd /c npm run dev`
+
+Output CSS: `book_shop_here/static/book_shop_here/site.css`
+
+Source CSS: `assets/css/tailwind.css`
+
+Configuration:
+- `tailwind.config.js` scans Django templates under `book_shop_here/templates/**/*.html` and `templates/**/*.html` and any JS/TS in `assets`.
+- `postcss.config.js` runs Tailwind and Autoprefixer.
+
+Notes:
+- Tailwind is managed via npm devDependencies (package.json). You do NOT add Tailwind to `requirements.txt`.
+- Use `python -m venv .venv && source .venv/Scripts/activate` (Git Bash on Windows) before `npm run dev` so Django runs from your venv.
+- If you prefer not to activate the venv, you can run Django explicitly: `./.venv/Scripts/python manage.py runserver`.
+- PowerShell users: if you see an execution policy error when running `npm` directly, prefix the command with `cmd /c` as shown above.
+
+## Git pre-commit hook (Tailwind build)
+
+A local Git hook has been installed at `.git/hooks/pre-commit`.
+- It detects when Tailwind-related files are staged (templates, assets, Tailwind configs) and runs `npm run build`.
+- It stages the compiled CSS: `book_shop_here/static/book_shop_here/site.css`.
+- If `npm` is not available, it skips the build.
+
+Bypass if needed:
+- In an emergency, you can bypass hooks with `git commit --no-verify` (not recommended for normal use).
+
+Note: Git hooks live outside version control. If collaborators need the same behavior, consider adopting a shared hook manager like Husky.
+
+## VS Code integration
+
+Two tasks are available under Terminal > Run Task:
+- Dev: Tailwind + Django — runs `npm run dev` (both Tailwind watch and Django server). Make sure your virtualenv is activated first so `python` uses your venv.
+- Build: Tailwind — runs `npm run build` to compile a minified CSS bundle.
+
+You can also run them from the command palette (Ctrl/Cmd+Shift+P) by typing "Run Task" and selecting the task.
+
+### VS Code debugging (Django)
+
+A debug configuration is provided to run Django under the VS Code debugger.
+
+Steps:
+1. Select your Python interpreter to the project venv: use the VS Code status bar (bottom-right) to pick `.venv`.
+2. Start Tailwind in watch mode (terminal):
+   - Git Bash:
+     - `source .venv/Scripts/activate`
+     - `npm run watch`
+3. Press F5 and choose the "Django" configuration to start the debugger.
+
+This lets you set breakpoints in views, forms, models, etc., and inspect variables while Tailwind rebuilds styles on changes.
+
 ## Additional Information
 
 - **Admin Panel:** Access the admin interface at /admin/ after logging in with your superuser credentials.

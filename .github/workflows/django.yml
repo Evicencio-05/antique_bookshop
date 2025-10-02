@@ -31,4 +31,4 @@ jobs:
         DATABASE_URL: ${{ secrets.DJANGO_DATABASE_URL }}
         DEBUG: False
       run: |
-        python manage.py test
+        python manage.py test book_shop_here.tests
