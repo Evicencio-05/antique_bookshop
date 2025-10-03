@@ -1,5 +1,6 @@
 {% extends "book_shop_here/base.html" %}
 {% load i18n %}
+{% load crispy_forms_tags %}
 
 {% block content %}
     <h1>{{ title|default:"Add Author" }}</h1>
@@ -15,7 +16,7 @@
     {% endif %}
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form|crispy }}
         <button type="submit">{% trans "Save" %}</button>
         <a href="{% url 'book_shop_here:author-list' %}">{% trans "Cancel" %}</a>
     </form>
