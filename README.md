@@ -1,237 +1,249 @@
-# Book Shop Here
+# Antique Bookshop
 
-This is a Django-based web application for managing an antique bookstore. It includes features for handling books, authors, customers, orders, roles, and employees, with authentication, permissions, and an admin interface.
+A Django-based web application for managing an antique bookstore. It includes models and views for books, authors, customers, orders, and roles, with Django Admin, authentication, and a Tailwind CSS pipeline for styling.
+
+---
 
 ## Table of Contents
-- [Features](#features)
-- [Requirements](#requirements)
-- [Installation and Setup](#installation-and-setup)
-- [Tailwind CSS](#tailwind-css)
-  - [VS Code integration](#vs-code-integration)
-- [Additional Notes](#additional-information)
 
-## Features
+- [Overview](#overview)
+- [Quickstart](#quickstart)
+  - [Prerequisites](#prerequisites)
+  - [Setup](#setup)
+  - [Run](#run)
+- [Project Structure](#project-structure)
+- [Configuration](#configuration)
+- [Common Tasks](#common-tasks)
+- [Development](#development)
+  - [Linting & Formatting (Ruff)](#linting--formatting-ruff)
+  - [Type Checking (mypy)](#type-checking-mypy)
+  - [Testing](#testing)
+  - [Frontend (Tailwind CSS)](#frontend-tailwind-css)
+- [Git Hooks](#git-hooks)
+- [Continuous Integration](#continuous-integration)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
-- **Book Management:** Add, edit, and delete books and authors.
-- **User Management:** Secure user authentication with different roles (e.g., employee, customer).
-- **Admin Interface:** Full access to all models for authorized users via the Django Admin.
+---
 
-## Requirements
+## Overview
 
-- [**Python 3.10+**](https://www.python.org/downloads/) (recommended)
-- Virtual environment tool (e.g., `venv` or `virtualenv`)
-- [**Docker**](https://www.docker.com/get-started) (optional, for running PostgreSQL)
+- Backend: Django 5
+- App: `book_shop_here`
+- Project: `bookshop`
+- Frontend tooling: Tailwind CSS (via npm)
+- Tooling: `uv` for Python env and commands, Ruff for lint/format, mypy for types, pre-commit + Husky for hooks
 
-## Installation and Setup
+This repo follows a modern Python project layout with a single source of truth for dependencies in `pyproject.toml`, fast environment setup via `uv`, and opinionated linting/typing for code quality.
 
-### 1. Clone the Repository
-Clone the project to your local machine:
-```bash
-git clone https://github.com/Evicencio-05/antique_bookshop
-cd antique_bookshop
-```
+---
 
-### 2. Set Up a Virtual Environment
-Create and activate a virtual environment to isolate dependencies:
+## Quickstart
 
-#### Create
-```
-# For Linux/macOS
-python3 -m venv .venv
+### Prerequisites
 
-# For Windows
-python -m venv .venv
-```
+- Python 3.10+
+- Node.js (recommended to install via NVM)
+- Git
 
-#### Activate
-```
-# For Command Prompt 
-venv\Scripts\activate.bat
+Install `uv`:
 
-# For PowerShell
-.\venv\Scripts\Activate.ps1
+- Git Bash/macOS/Linux:
+  ```
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  ```
+- PowerShell:
+  ```
+  iwr https://astral.sh/uv/install.ps1 -UseBasicParsing | iex
+  ```
 
-# For Git Bash or WSL 
-source .venv/Scripts/activate
-```
-**Note: Deactivate using `deactivate`**
+Install Node (optional, for Tailwind):
 
-### 3. Install Dependencies 
-Install the required packages from the requirements.txt file.
-```
-pip install -r requirements.txt
-```
+- Git Bash:
+  ```
+  nvm install --lts && nvm use --lts
+  ```
+- PowerShell (nvm-windows):
+  ```
+  nvm install lts
+  nvm use lts
+  ```
 
-This includes:
-- `Django`: The web framework.
-- `django-extensions`: For additional management commands (e.g., `shell_plus`).
-- `django-environ`: For loading environment variables from a `.env` file.
-- `psycopg2-binary`: Binary PostgreSQL adapter (for production database support).
-- `dj-database-url`: Simplify the configuration of database connections in Django applications.
-- `django-group-model`: Customize the default Group model provided by Django's authentication system.
+### Setup
 
-### 4. Configure Environment Variables
+Clone and enter the project directory, then create your environment file and install dependencies:
 
-Create a `.env` file in the project root (next to `manage.py`) and add the following: 
+- Git Bash:
+  ```
+  cp .env.template .env
+  uv sync --all-extras
+  ```
+- PowerShell:
+  ```
+  just env-copy
+  just sync
+  ```
 
-**File:** `.env`
-```txt
-# --- General Settings ---
-DEBUG=True
-SECRET_KEY='your-secret-key-here'  
-DJANGO_SECRET_KEY='your-secret-key-here'
-ALLOWED_HOSTS=localhost,127.0.0.1
+### Run
 
-# --- Database Configuration ---
-# To use SQLite (default for development), use this line:
-DATABASE_URL=sqlite:///db.sqlite3
+Apply migrations and start the server:
 
-# To use PostgreSQL (recommended for production), comment out the line above
-# and uncomment this one, filling in your details:
-# DATABASE_URL=postgres://user:password@host:port/dbname
-```
-**Note:** A unique `SECRET_KEY` is crucial for security. Generate one with this command: `python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'`.
+- Either shell:
+  ```
+  just migrate
+  just run
+  ```
 
-`DJANGO_SECRET_KEY` used for Django CI action. **This key should not be the same as your `SECRET_KEY`**.
+Visit http://127.0.0.1:8000/ and log in with your superuser once created.
 
-### 5. Database Setup
+---
 
-By default, Django uses SQLite (no separate installation needed), which is ideal for local development. For production or advanced use, PostgreSQL is recommended (via `psycopg2-binary`).
-
-#### For SQLite (Default)
-
-The `DATABASE_URL` for SQLite is already configured. Simply run the migrations:
+## Project Structure
 
 ```
-python manage.py makemigrations
-python manage.py migrate
+.
+├─ .github/workflows/django.yml       # CI: uv + Ruff + mypy + tests
+├─ .husky/pre-commit                  # Husky hook (runs Python pre-commit)
+├─ .pre-commit-config.yaml            # Python pre-commit hooks (Ruff etc.)
+├─ .env.template                      # Example env file
+├─ justfile                           # Common developer commands
+├─ pyproject.toml                     # Project metadata & dependencies
+├─ ruff.toml                          # Ruff linter/formatter configuration
+├─ package.json                       # Tailwind & dev scripts
+├─ assets/                            # Tailwind input assets
+├─ bookshop/                          # Django project (settings, urls, wsgi, asgi)
+├─ book_shop_here/                    # Django app (models, views, templates, static)
+│  ├─ templates/book_shop_here/
+│  ├─ static/book_shop_here/
+│  └─ migrations/
+├─ manage.py
+└─ ...
 ```
 
-#### For PostgreSQL (Via Docker)
+---
 
-1. Install Docker if not already (download from [docker.com](https://www.docker.com/)).
-2. Create a `docker-compose.yml` file in the project root:
+## Configuration
 
-```yml
-version: '3.8'
+Create a `.env` at the repository root. Use `.env.template` as a starting point.
 
-services:
-  db:
-    image: postgres:16  # Latest stable PostgreSQL version
-    restart: always
-    environment:
-      POSTGRES_DB: bookshopdb
-      POSTGRES_USER: bookshopuser
-      POSTGRES_PASSWORD: yoursecurepassword
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+Required for local dev (safe defaults provided in the template):
 
-volumes:
-  postgres_data:
-```
+- `DEBUG=True`
+- `SECRET_KEY=...` (use a unique, random value locally)
+- `ALLOWED_HOSTS=localhost,127.0.0.1`
+- `DATABASE_URL=sqlite:///db.sqlite3` (default local DB)
 
-3. Start the PostgreSQL container:
-``` docker-compose up -d```
+Optional:
 
-4. Run the migrations:
+- `DJANGO_SECRET_KEY` — used by CI only; do not reuse your local `SECRET_KEY`
+- `CSRF_TRUSTED_ORIGINS` — if using custom hostnames during local dev
+- `EMAIL_BACKEND` — e.g., console backend for local testing
+
+For PostgreSQL, set:
 
 ```
-python manage.py makemigrations
-python manage.py migrate
-``` 
-  **Note: Stop the container with `docker-compose down` when done. Data persists via the volume.**
-
-### 6. Create a Superuser
-
-Create an admin account to access the Django admin panel:
-
-```
-python manage.py createsuperuser
+DATABASE_URL=postgres://user:password@host:5432/dbname
 ```
 
-Follow the prompts to set username, email, and password.
+---
 
-### 7. Run the Development Server
+## Common Tasks
 
-Start the local server:
-```
-python manage.py runserver
-```
+This project uses a `justfile` for reliable, concise commands (works well in PowerShell and Git Bash):
 
-Visit `http://127.0.0.1:8000/` in your browser (A link is also provided in the terminal). The login page should appear and log in using you super user credentials.
+- Environment & dependencies
+  - `just uv-install` — install `uv` (PowerShell)
+  - `just sync` — create/update `.venv` and install dependencies (incl. dev extras)
+  - `just env-copy` — copy `.env.template` to `.env` (PowerShell)
+- Django
+  - `just migrate` — apply migrations
+  - `just run` — start the dev server
+  - `just manage <command>` — run any `manage.py` command
+- Quality
+  - `just lint` — Ruff lint (errors, imports, Django, bugbear, simplify, security, pyupgrade)
+  - `just format` — Ruff format
+  - `just typecheck` — mypy with Django stubs
+- Tests
+  - `just test` — run Django tests
+- Frontend
+  - `just tailwind-watch` — rebuild CSS on changes
+  - `just tailwind-build` — one-time minified build
+- Hooks
+  - `just pre-commit-install` — enable Python pre-commit hooks
+  - `just husky-install` — install Node hooks (Husky)
 
-## Tailwind CSS
+---
 
-This project uses Tailwind CSS without the CDN. The styles are compiled to the Django app static directory and referenced from templates.
+## Development
 
-Commands:
+### Linting & Formatting (Ruff)
 
-- Build once (production/minified):
-  - Git Bash / macOS / Linux: `npm run build`
-  - PowerShell (if execution policy blocks): `cmd /c npm run build`
-- Watch during development:
-  - Git Bash / macOS / Linux: `npm run watch`
-  - PowerShell (if execution policy blocks): `cmd /c npm run watch`
-- Run Tailwind and Django together (recommended during development):
-  - Ensure your virtualenv is activated (so `python` points to your venv), then run:
-  - Git Bash / macOS / Linux: `npm run dev`
-  - PowerShell (if needed): `cmd /c npm run dev`
+- Config: `ruff.toml` (targets `py310`, line-length 100)
+- Rules enabled: `E`, `F`, `I`, `DJ`, `B`, `C4`, `UP`, `SIM`, `S`
+- Run:
+  - `just lint`
+  - `just format`
 
-Output CSS: `book_shop_here/static/book_shop_here/site.css`
+### Type Checking (mypy)
 
-Source CSS: `assets/css/tailwind.css`
+- Config: `pyproject.toml` ([tool.mypy], [tool.django-stubs])
+- Django plugin enabled with `bookshop.settings`
+- Run:
+  - `just typecheck`
 
-Configuration:
-- `tailwind.config.js` scans Django templates under `book_shop_here/templates/**/*.html` and `templates/**/*.html` and any JS/TS in `assets`.
-- `postcss.config.js` runs Tailwind and Autoprefixer.
+### Testing
 
-Notes:
-- Tailwind is managed via npm devDependencies (package.json).
-- Activate virtual environment before `npm run dev` so Django runs from your venv.
-- If you prefer not to activate the venv, you can run Django explicitly: `./.venv/Scripts/python manage.py runserver`.
-- PowerShell users: if you see an execution policy error when running `npm` directly, prefix the command with `cmd /c` as shown above.
+- Run unit tests:
+  - `just test`
 
-## Git pre-commit hook (Tailwind build)
+### Frontend (Tailwind CSS)
 
-A local Git hook has been installed at `.git/hooks/pre-commit`.
-- It detects when Tailwind-related files are staged (templates, assets, Tailwind configs) and runs `npm run build`.
-- It stages the compiled CSS: `book_shop_here/static/book_shop_here/site.css`.
-- If `npm` is not available, it skips the build.
+- Dev watch:
+  - `just tailwind-watch`
+- Production build:
+  - `just tailwind-build`
 
-Bypass if needed:
-- In an emergency, you can bypass hooks with `git commit --no-verify` (not recommended for normal use).
+---
 
-Note: Git hooks live outside version control. If collaborators need the same behavior, consider adopting a shared hook manager like Husky.
+## Git Hooks
 
-## VS Code integration
+- Python hooks (pre-commit):
+  - Install: `just pre-commit-install`
+  - Hooks run Ruff and basic hygiene checks before commits.
+- Husky (Node-based hooks):
+  - Install Node via NVM, then run: `just husky-install` (executes `npm install` and activates Husky via `prepare` script)
+  - The `.husky/pre-commit` hook calls `uv run pre-commit` so Python checks run consistently.
 
-Two tasks are available under Terminal > Run Task:
-- Dev: Tailwind + Django — runs `npm run dev` (both Tailwind watch and Django server). Make sure your virtualenv is activated first so `python` uses your venv.
-- Build: Tailwind — runs `npm run build` to compile a minified CSS bundle.
+---
 
-You can also run them from the command palette (Ctrl/Cmd+Shift+P) by typing "Run Task" and selecting the task.
+## Continuous Integration
 
-### VS Code debugging (Django)
+- Workflow: `.github/workflows/django.yml`
+  - Installs `uv`
+  - `uv sync` to install from `pyproject.toml`
+  - Lints with Ruff
+  - Type-checks with mypy (auto-installs types)
+  - Runs Django tests
+- Required secrets (configure in repository settings):
+  - `DJANGO_SECRET_KEY`
+  - Optional: `DJANGO_DATABASE_URL` if you need a non-default DB in CI
 
-A debug configuration is provided to run Django under the VS Code debugger.
+---
 
-Steps:
-1. Select your Python interpreter to the project venv: use the VS Code status bar (bottom-right) to pick `.venv`.
-2. Start Tailwind in watch mode (terminal):
-   - Git Bash:
-     - `source .venv/Scripts/activate`
-     - `npm run watch`
-3. Press F5 and choose the "Django" configuration to start the debugger.
+## Troubleshooting
 
-This lets you set breakpoints in views, forms, models, etc., and inspect variables while Tailwind rebuilds styles on changes.
+- `uv: command not found`
+  - Install `uv` (see Quickstart) and ensure your shell picks up the installed path.
+- Windows execution policy blocks scripts
+  - Use PowerShell: start it as Administrator and adjust policy if needed, or prefer running via `just` which wraps commands appropriately.
+- `SECRET_KEY` errors on startup
+  - Ensure `.env` exists with a non-empty `SECRET_KEY`.
+- Migrations or DB issues
+  - For local SQLite: delete `db.sqlite3` (if acceptable) and rerun `just migrate`.
+  - For Postgres: verify `DATABASE_URL` is correct and the DB is reachable.
 
-## Additional Information
+---
 
-- **Admin Panel:** Access the admin interface at /admin/ after logging in with your superuser credentials.
+## License
 
-- **Troubleshooting:** If you encounter a SECRET_KEY error, ensure you have correctly set up your .env file and that the SECRET_KEY is not empty.
-
-- **Production Deployment:** For production environments, it is essential to set DEBUG=False and use a production-grade database like PostgreSQL.
-
+Proprietary (see `pyproject.toml`).

@@ -1,12 +1,15 @@
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth.models import User, Group, Permission
-from django.contrib.contenttypes.models import ContentType
-from book_shop_here.models import Book, Author, Order, Customer, Employee, GroupProfile
-from datetime import date
 import logging
+from datetime import date
 
-logging = logging.getLogger(__name__)
+from django.contrib.auth.models import Group, Permission, User
+from django.contrib.contenttypes.models import ContentType
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from book_shop_here.models import Author, Book, Customer, Employee, GroupProfile, Order
+
+Logger = logging.getLogger(__name__)
+
 
 class ViewTests(TestCase):
     def setUp(self):
@@ -24,11 +27,13 @@ class ViewTests(TestCase):
             publisher="Test Publisher",
             edition="1st",
             rating="excellent",
-            book_status="available"
+            book_status="available",
         )
         self.book.authors.add(self.author)
         self.group = Group.objects.create(name="Manager (ViewTests)")
-        self.group_profile = GroupProfile.objects.create(group=self.group, description="Store manager")
+        self.group_profile = GroupProfile.objects.create(
+            group=self.group, description="Store manager"
+        )
         self.customer = Customer.objects.create(first_name="Bob", last_name="Jones")
         self.employee = Employee.objects.create(
             first_name="Test",
@@ -40,14 +45,14 @@ class ViewTests(TestCase):
             phone_number="1234567890",
             group=self.group,
             user=self.user,
-            email="test.employee@example.com"
+            email="test.employee@example.com",
         )
         self.order = Order.objects.create(
             customer_id=self.customer,
             employee_id=self.employee,
             sale_amount=15.00,
             payment_method="cash",
-            order_status="to_ship"
+            order_status="to_ship",
         )
         self.order.books.add(self.book)
 
@@ -109,7 +114,7 @@ class ViewTests(TestCase):
             "rating": "excellent",
             "book_status": "available",
             "legacy_id": "newb1234",
-            "authors": [self.author.author_id]
+            "authors": [self.author.author_id],
         }
         response = self.client.post(reverse("book_shop_here:book-create"), form_data)
         self.assertRedirects(response, reverse("book_shop_here:book-list"))
@@ -130,7 +135,7 @@ class ViewTests(TestCase):
             "rating": "excellent",
             "book_status": "available",
             "legacy_id": "invalid",
-            "authors": []
+            "authors": [],
         }
         response = self.client.post(reverse("book_shop_here:book-create"), form_data)
         self.assertEqual(response.status_code, 200)
@@ -142,7 +147,9 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Book)
         permission = Permission.objects.get(codename="change_book", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.get(reverse("book_shop_here:book-update", kwargs={"pk": self.book.book_id}))
+        response = self.client.get(
+            reverse("book_shop_here:book-update", kwargs={"pk": self.book.book_id})
+        )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/book_form.html")
         self.assertContains(response, "Edit Book")
@@ -162,9 +169,11 @@ class ViewTests(TestCase):
             "rating": "excellent",
             "book_status": "available",
             "legacy_id": "doej1234",
-            "authors": [self.author.author_id]
+            "authors": [self.author.author_id],
         }
-        response = self.client.post(reverse("book_shop_here:book-update", kwargs={"pk": self.book.book_id}), form_data)
+        response = self.client.post(
+            reverse("book_shop_here:book-update", kwargs={"pk": self.book.book_id}), form_data
+        )
         self.assertRedirects(response, reverse("book_shop_here:book-list"))
         self.book.refresh_from_db()
         self.assertEqual(self.book.title, "Updated Book")
@@ -175,7 +184,9 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Book)
         permission = Permission.objects.get(codename="delete_book", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.post(reverse("book_shop_here:book-delete", kwargs={"pk": "doej1234"}))
+        response = self.client.post(
+            reverse("book_shop_here:book-delete", kwargs={"pk": "doej1234"})
+        )
         self.assertRedirects(response, reverse("book_shop_here:book-list"))
         self.assertFalse(Book.objects.filter(legacy_id="doej1234").exists())
 
@@ -206,7 +217,7 @@ class ViewTests(TestCase):
             "first_name": "Jane",
             "last_name": "Austen",
             "birth_year": 1775,
-            "description": "Famous novelist"
+            "description": "Famous novelist",
         }
         response = self.client.post(reverse("book_shop_here:author-create"), form_data)
         self.assertRedirects(response, reverse("book_shop_here:author-list"))
@@ -217,7 +228,9 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Author)
         permission = Permission.objects.get(codename="change_author", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.get(reverse("book_shop_here:author-update", kwargs={"pk": self.author.author_id}))
+        response = self.client.get(
+            reverse("book_shop_here:author-update", kwargs={"pk": self.author.author_id})
+        )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/author_form.html")
         self.assertContains(response, "John Doe")
@@ -231,9 +244,11 @@ class ViewTests(TestCase):
             "first_name": "Jane",
             "last_name": "Austen",
             "birth_year": 1775,
-            "description": "Updated description"
+            "description": "Updated description",
         }
-        response = self.client.post(reverse("book_shop_here:author-update", kwargs={"pk": self.author.author_id}), form_data)
+        response = self.client.post(
+            reverse("book_shop_here:author-update", kwargs={"pk": self.author.author_id}), form_data
+        )
         self.assertRedirects(response, reverse("book_shop_here:author-list"))
         self.author.refresh_from_db()
         self.assertEqual(self.author.first_name, "Jane")
@@ -244,13 +259,17 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Author)
         permission = Permission.objects.get(codename="delete_author", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.post(reverse("book_shop_here:author-delete", kwargs={"pk": self.author.author_id}))
+        response = self.client.post(
+            reverse("book_shop_here:author-delete", kwargs={"pk": self.author.author_id})
+        )
         self.assertRedirects(response, reverse("book_shop_here:author-list"))
         self.assertFalse(Author.objects.filter(author_id=self.author.author_id).exists())
 
     def test_group_list_view(self):
         self.client.login(username="testuser", password="testpass")
-        GroupProfile.objects.update_or_create(group=self.owner_group, defaults={'description': 'The Owner'})
+        GroupProfile.objects.update_or_create(
+            group=self.owner_group, defaults={"description": "The Owner"}
+        )
         response = self.client.get(reverse("book_shop_here:group-list"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/group_list.html")
@@ -272,11 +291,7 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Group)
         permission = Permission.objects.get(codename="add_group", content_type=content_type)
         self.user.user_permissions.add(permission)
-        form_data = {
-            "name": "New Group",
-            "description": "New group description",
-            "permissions": []
-        }
+        form_data = {"name": "New Group", "description": "New group description", "permissions": []}
         response = self.client.post(reverse("book_shop_here:group-create"), form_data)
         self.assertRedirects(response, reverse("book_shop_here:group-list"))
         self.assertTrue(Group.objects.filter(name="New Group").exists())
@@ -286,7 +301,9 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Group)
         permission = Permission.objects.get(codename="change_group", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.get(reverse("book_shop_here:group-update", kwargs={"pk": self.group.id}))
+        response = self.client.get(
+            reverse("book_shop_here:group-update", kwargs={"pk": self.group.id})
+        )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/group_form.html")
         self.assertContains(response, "Manager (ViewTests)")
@@ -299,9 +316,11 @@ class ViewTests(TestCase):
         form_data = {
             "name": "Updated Manager",
             "description": "Updated description",
-            "permissions": []
+            "permissions": [],
         }
-        response = self.client.post(reverse("book_shop_here:group-update", kwargs={"pk": self.group.id}), form_data)
+        response = self.client.post(
+            reverse("book_shop_here:group-update", kwargs={"pk": self.group.id}), form_data
+        )
         self.assertRedirects(response, reverse("book_shop_here:group-list"))
         self.group.refresh_from_db()
         self.assertEqual(self.group.name, "Updated Manager")
@@ -312,7 +331,9 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Group)
         permission = Permission.objects.get(codename="delete_group", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.post(reverse("book_shop_here:group-delete", kwargs={"pk": self.group.id}))
+        response = self.client.post(
+            reverse("book_shop_here:group-delete", kwargs={"pk": self.group.id})
+        )
         self.assertRedirects(response, reverse("book_shop_here:group-list"))
         self.assertFalse(Group.objects.filter(id=self.group.id).exists())
 
@@ -344,7 +365,7 @@ class ViewTests(TestCase):
             "sale_amount": 15.00,
             "payment_method": "cash",
             "order_status": "to_ship",
-            "books": [self.book.legacy_id]
+            "books": [self.book.legacy_id],
         }
         response = self.client.post(reverse("book_shop_here:order-create"), form_data)
         self.assertRedirects(response, reverse("book_shop_here:order-list"))
@@ -355,7 +376,9 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Order)
         permission = Permission.objects.get(codename="change_order", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.get(reverse("book_shop_here:order-update", kwargs={"pk": self.order.order_id}))
+        response = self.client.get(
+            reverse("book_shop_here:order-update", kwargs={"pk": self.order.order_id})
+        )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/order_form.html")
         self.assertContains(response, "Edit Order")
@@ -371,9 +394,11 @@ class ViewTests(TestCase):
             "sale_amount": 20.00,
             "payment_method": "credit",
             "order_status": "pickup",
-            "books": [self.book.book_id]
+            "books": [self.book.book_id],
         }
-        response = self.client.post(reverse("book_shop_here:order-update", kwargs={"pk": self.order.order_id}), form_data)
+        response = self.client.post(
+            reverse("book_shop_here:order-update", kwargs={"pk": self.order.order_id}), form_data
+        )
         self.assertRedirects(response, reverse("book_shop_here:order-list"))
         self.order.refresh_from_db()
         self.assertEqual(self.order.sale_amount, 20.00)
@@ -385,10 +410,11 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Order)
         permission = Permission.objects.get(codename="delete_order", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.post(reverse("book_shop_here:order-delete", kwargs={"pk": self.order.order_id}))
+        response = self.client.post(
+            reverse("book_shop_here:order-delete", kwargs={"pk": self.order.order_id})
+        )
         self.assertRedirects(response, reverse("book_shop_here:order-list"))
         self.assertFalse(Order.objects.filter(order_id=self.order.order_id).exists())
-
 
     def test_employee_list_view(self):
         self.client.login(username="testuser", password="testpass")
@@ -414,18 +440,18 @@ class ViewTests(TestCase):
         permission = Permission.objects.get(codename="add_employee", content_type=content_type)
         self.user.user_permissions.add(permission)
         form_data = {
-            'first_name': 'Jane',
-            'last_name': 'Smith',
-            'phone_number': '1234567890',
-            'address': '123 Main St',
-            'birth_date': '1990-01-01',
-            'hire_date': date.today(),
-            'group': self.group.id,
-            'zip_code': '12345',
-            'state': 'CA',
-            'email': 'jane.smith@example.com',
-            'password1': 'testpass123',
-            'password2': 'testpass123'
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "phone_number": "1234567890",
+            "address": "123 Main St",
+            "birth_date": "1990-01-01",
+            "hire_date": date.today(),
+            "group": self.group.id,
+            "zip_code": "12345",
+            "state": "CA",
+            "email": "jane.smith@example.com",
+            "password1": "testpass123",
+            "password2": "testpass123",
         }
         response = self.client.post(reverse("book_shop_here:employee-create"), form_data)
         self.assertRedirects(response, reverse("book_shop_here:employee-list"))
@@ -436,7 +462,9 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Employee)
         permission = Permission.objects.get(codename="change_employee", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.get(reverse("book_shop_here:employee-update", kwargs={"pk": self.employee.employee_id}))
+        response = self.client.get(
+            reverse("book_shop_here:employee-update", kwargs={"pk": self.employee.employee_id})
+        )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/employee_form.html")
         self.assertContains(response, "Edit Employee")
@@ -447,20 +475,23 @@ class ViewTests(TestCase):
         permission = Permission.objects.get(codename="change_employee", content_type=content_type)
         self.user.user_permissions.add(permission)
         form_data = {
-            'first_name': 'Jane',
-            'last_name': 'Employee',
-            'phone_number': '1234567890',
-            'address': '123 Main St',
-            'birth_date': '1990-01-01',
-            'hire_date': date.today(),
-            'group': self.group.id,
-            'zip_code': '12345',
-            'state': 'CA',
-            'email': 'jane.employee@example.com',
-            'password1': '',
-            'password2': ''
+            "first_name": "Jane",
+            "last_name": "Employee",
+            "phone_number": "1234567890",
+            "address": "123 Main St",
+            "birth_date": "1990-01-01",
+            "hire_date": date.today(),
+            "group": self.group.id,
+            "zip_code": "12345",
+            "state": "CA",
+            "email": "jane.employee@example.com",
+            "password1": "",
+            "password2": "",
         }
-        response = self.client.post(reverse("book_shop_here:employee-update", kwargs={"pk": self.employee.employee_id}), form_data)
+        response = self.client.post(
+            reverse("book_shop_here:employee-update", kwargs={"pk": self.employee.employee_id}),
+            form_data,
+        )
         self.assertRedirects(response, reverse("book_shop_here:employee-list"))
         self.employee.refresh_from_db()
         self.assertEqual(self.employee.first_name, "Jane")
@@ -470,7 +501,9 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Employee)
         permission = Permission.objects.get(codename="delete_employee", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.post(reverse("book_shop_here:employee-delete", kwargs={"pk": self.employee.employee_id}))
+        response = self.client.post(
+            reverse("book_shop_here:employee-delete", kwargs={"pk": self.employee.employee_id})
+        )
         self.assertRedirects(response, reverse("book_shop_here:employee-list"))
         self.assertFalse(Employee.objects.filter(employee_id=self.employee.employee_id).exists())
 
@@ -501,7 +534,7 @@ class ViewTests(TestCase):
             "first_name": "Alice",
             "last_name": "Smith",
             "phone_number": "1234567890",
-            "mailing_address": "123 St"
+            "mailing_address": "123 St",
         }
         response = self.client.post(reverse("book_shop_here:customer-create"), form_data)
         self.assertRedirects(response, reverse("book_shop_here:customer-list"))
@@ -512,7 +545,9 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Customer)
         permission = Permission.objects.get(codename="change_customer", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.get(reverse("book_shop_here:customer-update", kwargs={"pk": self.customer.customer_id}))
+        response = self.client.get(
+            reverse("book_shop_here:customer-update", kwargs={"pk": self.customer.customer_id})
+        )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/customer_form.html")
         self.assertContains(response, "Edit Customer")
@@ -526,9 +561,12 @@ class ViewTests(TestCase):
             "first_name": "Alice",
             "last_name": "Smith",
             "phone_number": "9876543210",
-            "mailing_address": "456 St"
+            "mailing_address": "456 St",
         }
-        response = self.client.post(reverse("book_shop_here:customer-update", kwargs={"pk": self.customer.customer_id}), form_data)
+        response = self.client.post(
+            reverse("book_shop_here:customer-update", kwargs={"pk": self.customer.customer_id}),
+            form_data,
+        )
         self.assertRedirects(response, reverse("book_shop_here:customer-list"))
         self.customer.refresh_from_db()
         self.assertEqual(self.customer.first_name, "Alice")
@@ -539,6 +577,8 @@ class ViewTests(TestCase):
         content_type = ContentType.objects.get_for_model(Customer)
         permission = Permission.objects.get(codename="delete_customer", content_type=content_type)
         self.user.user_permissions.add(permission)
-        response = self.client.post(reverse("book_shop_here:customer-delete", kwargs={"pk": self.customer.customer_id}))
+        response = self.client.post(
+            reverse("book_shop_here:customer-delete", kwargs={"pk": self.customer.customer_id})
+        )
         self.assertRedirects(response, reverse("book_shop_here:customer-list"))
         self.assertFalse(Customer.objects.filter(customer_id=self.customer.customer_id).exists())

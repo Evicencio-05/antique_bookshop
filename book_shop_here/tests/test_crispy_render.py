@@ -1,5 +1,5 @@
+from django.template import Context, Template
 from django.test import TestCase
-from django.template import Template, Context
 
 from book_shop_here.forms import (
     AuthorForm,

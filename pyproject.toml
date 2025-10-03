@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling>=1.24.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "antique-bookshop"
+version = "0.1.0"
+description = "Django Antique Bookshop application"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Your Name", email = "you@example.com" }
+]
+license = { text = "Proprietary" }
+
+# Dependencies migrated from requirements.txt
+# Make changes here going forward; CI is configured to install from this file.
+dependencies = [
+  "Django>=5.2.6",
+  "django-extensions>=4.1.0",
+  "django-environ>=0.12.0",
+  "psycopg2-binary>=2.9.10",
+  "dj-database-url>=3.0.1",
+  "django-group-model>=1.0.1",
+  "django-crispy-forms>=2.1",
+  "crispy-tailwind>=1.0.3",
+]
+
+[project.optional-dependencies]
+# Development tools
+dev = [
+  "ruff>=0.6.0",
+  "pre-commit>=3.7.0",
+  "mypy>=1.11.0",
+  "django-stubs>=5.0.0",
+  "types-psycopg2>=2.9.21.20240819",
+  "build>=1.2.1",
+]
+
+[tool.mypy]
+python_version = "3.10"
+plugins = ["mypy_django_plugin.main"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+strict_optional = true
+# Be pragmatic initially; we can tighten later.
+ignore_missing_imports = true
+exclude = [
+  "book_shop_here/migrations/.*",
+]
+
+[tool.django-stubs]
+django_settings_module = "bookshop.settings"
+
+[tool.hatch.build.targets.wheel]
+# Explicitly include the Django project and app packages in the wheel.
+# This resolves Hatch's default file-selection error since the project name
+# doesn't match a package directory.
+only-include = [
+  "bookshop",
+  "book_shop_here",
+]
