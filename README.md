@@ -43,8 +43,9 @@ This repo follows a modern Python project layout with a single source of truth f
 ### Prerequisites
 
 - Python 3.10+
-- Node.js (recommended to install via NVM)
-- Git
+- [nvm](https://github.com/coreybutler/nvm-windows#readme) (for Node.js and npm)
+  - [Install guide (freecodecamp.org)](https://www.freecodecamp.org/news/node-version-manager-nvm-install-guide/)
+- [Git](https://git-scm.com/downloads)
 
 Install `uv`:
 
