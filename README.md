@@ -2,6 +2,7 @@
 
 A Django-based web inventory management system for a bookstore to centralize and digitize records for books, employees, authors, customers, and orders. The system utilizes a relational database to store all data, allowing for efficient tracking of both current and historical inventory. CRUD operations for books, authors, customers, and employee information will be restricted to the Owner and Assistant Manager. All employees will have read-only access to books, authors, and customers, with full CRUD access to orders for streamlined sales processing. 
 
+**Note: This is a school project and not meant to be used for real-world use.**
 
 ---
 
