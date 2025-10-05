@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from book_shop_here.models import Author, Book, Customer, Employee, Order, GroupProfile
+from book_shop_here.models import Author, Book, Customer, Employee, GroupProfile, Order
 
 
 class FormActionsStylesTests(TestCase):

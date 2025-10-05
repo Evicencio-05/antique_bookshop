@@ -30,6 +30,18 @@ jobs:
       run: |
         "$UV_BIN" --version
         "$UV_BIN" sync --all-extras
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install frontend deps and build Tailwind CSS
+      run: |
+        npm ci
+        npm run build
+        test -s book_shop_here/static/book_shop_here/site.css
+
     - name: Lint with Ruff
       run: |
         "$UV_BIN" run ruff --version
