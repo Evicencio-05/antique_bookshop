@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_extensions",
-    # Crispy forms + Tailwind
     "crispy_forms",
     "crispy_tailwind",
     "book_shop_here",

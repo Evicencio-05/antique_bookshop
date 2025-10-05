@@ -166,7 +166,7 @@ class EmployeeForm(forms.ModelForm):
         if is_creation and (not password1 or not password2):
             raise ValidationError("Password and confirmation are required for new employees.")
 
-        if password1 or password2 and password1 != password2:
+        if (password1 or password2) and (password1 != password2):
             raise ValidationError("Passwords don't match.")
 
         return cleaned_data
