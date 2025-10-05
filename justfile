@@ -1,5 +1,7 @@
-# Use bash for Windows users by default
-set windows-shell := ["bash.exe", "-lc"]
+# Use Git Bash for Windows users explicitly to avoid invoking WSL's bash.exe
+# If your Git is installed in a non-default location, set GIT_BASH env var
+# to the full path of bash.exe before running `just`.
+set windows-shell := [env_var("GIT_BASH", "C:/Program Files/Git/bin/bash.exe"), "-lc"]
 # set shell := ["powershell.exe", "-NoProfile", "-Command"]
 
 # Default task shows available recipes
@@ -66,6 +68,21 @@ dev:
 # Hooks
 pre-commit-install:
     uv run pre-commit install
+
+# Virtualenv utilities
+# Print environment info and which activation script exists.
+venv-doctor:
+    UV_PY=$((uv run python - <<'PY'
+    import sys, platform; print(sys.executable); print(platform.system())
+PY
+    )); echo "Python: $(echo "$UV_PY" | sed -n '1p')"; echo "Platform: $(echo "$UV_PY" | sed -n '2p')"; \
+    if [ -f .venv/Scripts/activate ]; then echo "Activate: source .venv/Scripts/activate"; elif [ -f .venv/bin/activate ]; then echo "Activate: source .venv/bin/activate"; else echo "Activate: (not created yet) run 'just sync'"; fi
+
+# Remove and recreate the virtualenv using the Windows/Git Bash context.
+venv-reset:
+    rm -rf .venv
+    uv sync --all-extras
+    just venv-doctor
 
 husky-install:
     npm install
