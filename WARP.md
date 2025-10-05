@@ -80,6 +80,14 @@ Notes for future agents
 - Tests rely on Django’s built-in test runner; pytest is not present in requirements
 - Permissions are enforced in views; when extending or adding views, ensure appropriate permission codenames are used
 
+Global testing rule (always-on)
+- For every change to production code, templates, or styles that affect rendering or behavior, always:
+  1) Add or update tests that cover the new or changed behavior, and remove or rewrite any tests whose assertions are no longer valid.
+  2) Prefer focused, fast tests first (unit-level where possible), then integration/view-level assertions as needed. For template changes, assert on stable, semantic markers (IDs, roles, or intentionally public classes) rather than brittle HTML fragments.
+  3) Run the full test suite before and after changes and do not leave the repository in a failing state.
+  4) If removing an existing feature or path, either remove the corresponding tests or replace them with tests that assert the new intended behavior; never leave orphaned tests.
+  5) When test flakiness is detected, prioritize stabilizing the test (improve selectors, use deterministic data) over relaxing assertions.
+
 Tooling defaults (standardized)
 - Shell: bash first. On Windows, use Git Bash. PowerShell is supported only where explicitly noted.
 - CI (GitHub Actions): ubuntu-latest uses bash by default; uv is installed via curl | sh; commands run with uv run ...
