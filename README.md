@@ -1,6 +1,8 @@
 # Antique Bookshop
 
-A Django-based web application for managing an antique bookstore. It includes models and views for books, authors, customers, orders, and roles, with Django Admin, authentication, and a Tailwind CSS pipeline for styling.
+A Django-based web inventory management system for a bookstore to centralize and digitize records for books, employees, authors, customers, and orders. The system utilizes a relational database to store all data, allowing for efficient tracking of both current and historical inventory. CRUD operations for books, authors, customers, and employee information will be restricted to the Owner and Assistant Manager. All employees will have read-only access to books, authors, and customers, with full CRUD access to orders for streamlined sales processing. 
+
+**Note: This is a school project and not meant to be used for real-world use.**
 
 ---
 
@@ -43,8 +45,9 @@ This repo follows a modern Python project layout with a single source of truth f
 ### Prerequisites
 
 - Python 3.10+
-- Node.js (recommended to install via NVM)
-- Git
+- [nvm](https://github.com/coreybutler/nvm-windows#readme) (for Node.js and npm)
+  - [Install guide (freecodecamp.org)](https://www.freecodecamp.org/news/node-version-manager-nvm-install-guide/)
+- [Git](https://git-scm.com/downloads)
 
 Install `uv`:
 
