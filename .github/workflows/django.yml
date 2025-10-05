@@ -35,6 +35,10 @@ jobs:
         "$UV_BIN" run ruff --version
         "$UV_BIN" run ruff check .
     - name: Type check with mypy
+      env:
+        SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+        DATABASE_URL: ${{ secrets.DJANGO_DATABASE_URL }}
+        DEBUG: False
       run: |
         "$UV_BIN" run mypy --install-types --non-interactive .
     - name: Run Tests
