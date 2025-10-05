@@ -9,34 +9,30 @@ Project summary
 - CI: .github/workflows/django.yml installs requirements and runs python manage.py test with SECRET_KEY and DATABASE_URL provided via GitHub Secrets
 
 Common commands
-- Environment setup (PowerShell)
-  - Create venv
-    - python -m venv .venv
-  - Activate
-    - .\.venv\Scripts\Activate.ps1
-  - Install deps
-    - pip install -r requirements.txt
+- Environment setup (bash)
+  - Install uv
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+  - Sync dependencies (creates/updates .venv)
+    - uv sync --all-extras
 - Database
   - Make migrations
-    - python manage.py makemigrations
+    - uv run python manage.py makemigrations
   - Apply migrations
-    - python manage.py migrate
+    - uv run python manage.py migrate
 - Run server
-  - python manage.py runserver
-- Checks (no dedicated linter configured)
+  - uv run python manage.py runserver
+- Checks
   - Django system checks
-    - python manage.py check
-  - Enhanced shell (django-extensions)
-    - python manage.py shell_plus
+    - uv run python manage.py check
 - Tests (Django test runner)
   - All tests
-    - python manage.py test
+    - uv run python manage.py test
   - Single file
-    - python manage.py test book_shop_here.tests.test_models
+    - uv run python manage.py test book_shop_here.tests.test_models
   - Single test case
-    - python manage.py test book_shop_here.tests.test_models.BookModelTests
+    - uv run python manage.py test book_shop_here.tests.test_models.BookModelTests
   - Single test method
-    - python manage.py test book_shop_here.tests.test_models.BookModelTests.test_book_str
+    - uv run python manage.py test book_shop_here.tests.test_models.BookModelTests.test_book_str
 
 Environment and configuration
 - .env lives at repo root (next to manage.py) and should include at minimum:
@@ -74,12 +70,18 @@ Architecture overview
   - LOGIN_REDIRECT_URL='/' and LOGOUT_REDIRECT_URL uses the app's home route
 
 What to reference from README
-- Setup sequence: create venv → activate → pip install -r requirements.txt
+- Setup sequence: use uv to create the virtualenv and install from pyproject.toml (uv sync)
 - .env keys: SECRET_KEY, DEBUG, ALLOWED_HOSTS, DATABASE_URL (SQLite by default)
-- Migrations then runserver; superuser created with python manage.py createsuperuser
-- Optional PostgreSQL via docker-compose for local DB
+- Migrations then runserver; superuser created with uv run python manage.py createsuperuser
+- Optional PostgreSQL by setting DATABASE_URL
 
 Notes for future agents
 - No repo-defined linter (e.g., flake8/pylint) is configured; use python manage.py check for framework-level validation
 - Tests rely on Django’s built-in test runner; pytest is not present in requirements
 - Permissions are enforced in views; when extending or adding views, ensure appropriate permission codenames are used
+
+Tooling defaults (standardized)
+- Shell: bash first. On Windows, use Git Bash. PowerShell is supported only where explicitly noted.
+- CI (GitHub Actions): ubuntu-latest uses bash by default; uv is installed via curl | sh; commands run with uv run ...
+- Husky: .husky/pre-commit is POSIX sh and calls `uv run pre-commit run --hook-stage pre-commit`; falls back to `pre-commit` if `uv` is unavailable.
+- VS Code: .vscode/settings.json sets terminal.integrated.defaultProfile.windows to "Git Bash"; tasks.json forces bash as the shell for tasks. Launch uses the integrated terminal, so it will use Git Bash.

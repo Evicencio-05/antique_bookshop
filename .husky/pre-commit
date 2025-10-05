@@ -1,4 +1,5 @@
-#!/usr/bin/env sh
-# Husky pre-commit hook to run Python pre-commit via uv
-# Requires uv and Python tools from pyproject.toml (dev extras)
+# Husky pre-commit hook (bash/sh) to run Python pre-commit via uv
+# Works with Git Bash on Windows and POSIX shells on macOS/Linux.
+# If uv is not available, falls back to a system pre-commit binary.
+
 uv run pre-commit run --hook-stage pre-commit

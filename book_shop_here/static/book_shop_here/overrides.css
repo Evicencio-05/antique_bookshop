@@ -1,0 +1,38 @@
+/* Override unintended arrows added after select elements */
+select::after,
+select:after,
+select::before,
+select:before,
+.custom-select::after,
+.form-select::after {
+  content: none !important;
+}
+
+/* Hide IE/Edge legacy expand arrow if present */
+select::-ms-expand {
+  display: none;
+}
+
+/* Keep native appearance (avoid custom arrow injections) */
+select {
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
+  appearance: auto;
+}
+
+.relative > .pointer-events-none {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  pointer-events: none;
+}
+
+button,
+input:where([type="submit"])
+{
+  background-color: green;
+}

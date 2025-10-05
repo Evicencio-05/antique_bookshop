@@ -14,7 +14,7 @@
     <form method="post">
         {% csrf_token %}
         {{ form|crispy }}
-        <button type="submit">{% trans "Save" %}</button>
-        <a href="{% url 'book_shop_here:order-list' %}">{% trans "Cancel" %}</a>
+        {% url 'book_shop_here:order-list' as cancel_link %}
+        {% include 'book_shop_here/partials/form_actions.html' with cancel_url=cancel_link %}
     </form>
 {% endblock %}

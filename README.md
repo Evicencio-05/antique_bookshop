@@ -1,6 +1,6 @@
 # Antique Bookshop
 
-A Django-based web inventory management system for a bookstore to centralize and digitize records for books, employees, authors, customers, and orders. The system utilizes a relational database to store all data, allowing for efficient tracking of both current and historical inventory. CRUD operations for books, authors, customers, and employee information will be restricted to the Owner and Assistant Manager. All employees will have read-only access to books, authors, and customers, with full CRUD access to orders for streamlined sales processing. 
+A Django-based web inventory management system for a bookstore to centralize and digitize records for books, employees, authors, customers, and orders. The system utilizes a relational database to store all data, allowing for efficient tracking of both current and historical inventory. CRUD operations for books, authors, customers, and employee information will be restricted to the Owner and Assistant Manager. All employees will have read-only access to books, authors, and customers, with full CRUD access to orders for streamlined sales processing.
 
 **Note: This is a school project and not meant to be used for real-world use.**
 
@@ -51,22 +51,22 @@ This repo follows a modern Python project layout with a single source of truth f
 
 Install `uv`:
 
-- Git Bash/macOS/Linux:
+- Bash (Git Bash/macOS/Linux):
   ```
   curl -LsSf https://astral.sh/uv/install.sh | sh
   ```
-- PowerShell:
+- PowerShell (alternative; only if you must use PowerShell):
   ```
   iwr https://astral.sh/uv/install.ps1 -UseBasicParsing | iex
   ```
 
 Install Node (optional, for Tailwind):
 
-- Git Bash:
+- macOS/Linux (nvm):
   ```
   nvm install --lts && nvm use --lts
   ```
-- PowerShell (nvm-windows):
+- Windows (nvm-windows; works from Git Bash too):
   ```
   nvm install lts
   nvm use lts
@@ -76,12 +76,12 @@ Install Node (optional, for Tailwind):
 
 Clone and enter the project directory, then create your environment file and install dependencies:
 
-- Git Bash:
+- Bash (recommended):
   ```
   cp .env.template .env
   uv sync --all-extras
   ```
-- PowerShell:
+- PowerShell (alternative):
   ```
   just env-copy
   just sync
@@ -152,12 +152,12 @@ DATABASE_URL=postgres://user:password@host:5432/dbname
 
 ## Common Tasks
 
-This project uses a `justfile` for reliable, concise commands (works well in PowerShell and Git Bash):
+This project uses a `justfile` with bash (Git Bash on Windows is recommended). PowerShell-only alternatives are explicitly marked:
 
 - Environment & dependencies
-  - `just uv-install` — install `uv` (PowerShell)
+  - `just uv-install-bash` — install `uv` (bash)
   - `just sync` — create/update `.venv` and install dependencies (incl. dev extras)
-  - `just env-copy` — copy `.env.template` to `.env` (PowerShell)
+  - `just env-copy` — copy `.env.template` to `.env`
 - Django
   - `just migrate` — apply migrations
   - `just run` — start the dev server
@@ -238,7 +238,7 @@ This project uses a `justfile` for reliable, concise commands (works well in Pow
 - `uv: command not found`
   - Install `uv` (see Quickstart) and ensure your shell picks up the installed path.
 - Windows execution policy blocks scripts
-  - Use PowerShell: start it as Administrator and adjust policy if needed, or prefer running via `just` which wraps commands appropriately.
+  - If you use PowerShell: start it as Administrator and adjust policy if needed. Prefer Git Bash to avoid execution policy issues.
 - `SECRET_KEY` errors on startup
   - Ensure `.env` exists with a non-empty `SECRET_KEY`.
 - Migrations or DB issues
