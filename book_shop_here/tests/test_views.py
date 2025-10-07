@@ -59,15 +59,15 @@ class ViewTests(TestCase):
     def test_home_view_authenticated(self):
         self.client.login(username="testuser", password="testpass")
         response = self.client.get(reverse("book_shop_here:home"))
-        self.assertRedirects(response, reverse("book_shop_here:book-list"))
-        self.assertTemplateNotUsed(response, "book_shop_here/home.html")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "book_shop_here/home.html")
 
     def test_home_view_unauthenticated(self):
         response = self.client.get(reverse("book_shop_here:home"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "book_shop_here/home.html")
-        # Updated home page shows a Log In button when unauthenticated
-        self.assertContains(response, "Log In")
+        # Now unauthenticated users are redirected to the login page
+        self.assertRedirects(
+            response, reverse("book_shop_here:login"), fetch_redirect_response=False
+        )
 
     def test_book_list_view(self):
         self.client.login(username="testuser", password="testpass")

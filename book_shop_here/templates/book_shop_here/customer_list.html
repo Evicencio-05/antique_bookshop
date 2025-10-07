@@ -15,6 +15,15 @@
             </div>
         </form>
 
+        <details class="mb-4 text-sm text-gray-700">
+            <summary class="cursor-pointer text-blue-600 hover:underline">{% trans "Search tips" %}</summary>
+            <div class="mt-2 space-y-1">
+                <p><strong>{% trans "Examples" %}:</strong></p>
+                <p><code>name:"Bob Jones"</code>, <code>phone:1234567890</code>, <code>address:"Main St"</code></p>
+                <p><a href="{% url 'book_shop_here:docs' %}#search" class="text-blue-600 hover:underline">{% trans "Full search documentation" %}</a></p>
+            </div>
+        </details>
+
         {% if customers %}
             <table class="w-full border border-gray-300 border-collapse">
                 <thead>

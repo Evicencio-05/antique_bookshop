@@ -8,7 +8,7 @@ from django.db.models.functions import Replace
 try:
     from django.contrib.postgres.functions import Unaccent  # type: ignore
 except Exception:  # pragma: no cover
-    Unaccent = None  # type: ignore
+    Unaccent = None
 
 
 def _safe_annot_name(field: str, suffix: str) -> str:
@@ -67,7 +67,7 @@ def build_advanced_search(
             expr = Replace(expr, Value(" "), Value(""))
             suffix_parts.append("ns")
         if use_unaccent:
-            expr = Unaccent(expr)  # type: ignore
+            expr = Unaccent(expr)
             suffix_parts.append("ua")
         if suffix_parts:
             annot_name = _safe_annot_name(field, "".join(suffix_parts))
