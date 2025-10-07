@@ -274,7 +274,88 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/group_list.html")
         self.assertContains(response, "Owner - The Owner")
-        self.assertContains(response, "Add Group")
+        self.assertContains(response, "Add Role")
+
+    def test_group_list_search_filters_by_name_and_description(self):
+        self.client.login(username="testuser", password="testpass")
+        # Ensure owner has a profile matching 'Owner'
+        GroupProfile.objects.update_or_create(
+            group=self.owner_group, defaults={"description": "The Owner"}
+        )
+        # Search by name
+        response = self.client.get(reverse("book_shop_here:group-list"), {"q": "Owner"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.owner_group.name)
+        # Manager group should not appear when filtering by 'Owner'
+        self.assertNotContains(response, self.group.name)
+
+    def test_group_list_search_multiple_tokens_and_phrase(self):
+        self.client.login(username="testuser", password="testpass")
+        GroupProfile.objects.update_or_create(
+            group=self.owner_group, defaults={"description": "The Owner"}
+        )
+        # Multiple tokens should be ANDed across fields
+        response = self.client.get(reverse("book_shop_here:group-list"), {"q": "Owner ViewTests"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.owner_group.name)
+        self.assertNotContains(response, self.group.name)
+        # Quoted phrase should be treated as one token
+        response = self.client.get(reverse("book_shop_here:group-list"), {"q": '"The Owner"'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.owner_group.name)
+
+    def test_group_list_search_spaceless_normalization(self):
+        self.client.login(username="testuser", password="testpass")
+        # Owner name contains "ViewTests" without a space; quoted phrase with a space should still match
+        response = self.client.get(reverse("book_shop_here:group-list"), {"q": '"View Tests"'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.owner_group.name)
+
+    def test_group_list_auth_dropdown_renders(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(reverse("book_shop_here:group-list"))
+        self.assertEqual(response.status_code, 200)
+        # Dropdown summary text is present
+        self.assertContains(response, "Show auth permissions")
+        # The auth model headers should be present in the collapsed section's markup
+        self.assertContains(response, ">User<")
+        self.assertContains(response, ">Role<")
+
+    def test_group_create_form_permissions_matrix(self):
+        self.client.login(username="testuser", password="testpass")
+        content_type = ContentType.objects.get_for_model(Group)
+        permission = Permission.objects.get(codename="add_group", content_type=content_type)
+        self.user.user_permissions.add(permission)
+        response = self.client.get(reverse("book_shop_here:group-create"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "book_shop_here/group_form.html")
+        # Headers from matrix
+        self.assertContains(response, ">Book<")
+        self.assertContains(response, ">Author<")
+        self.assertContains(response, ">User<")
+        self.assertContains(response, ">Role<")
+        # Contains at least one permissions checkbox
+        self.assertContains(response, 'name="permissions"', html=False)
+
+    def test_group_permissions_matrix_display(self):
+        self.client.login(username="testuser", password="testpass")
+        # Give the group a single permission (e.g., add_book)
+        from django.contrib.auth.models import Permission
+        from django.contrib.contenttypes.models import ContentType
+
+        ct = ContentType.objects.get_for_model(Book)
+        add_book = Permission.objects.get(codename="add_book", content_type=ct)
+        self.group.permissions.add(add_book)
+
+        response = self.client.get(reverse("book_shop_here:group-list"))
+        self.assertEqual(response.status_code, 200)
+        # Header includes models as columns
+        self.assertContains(response, ">Book<")
+        self.assertContains(response, ">Author<")
+        self.assertContains(response, ">Employee<")
+        # We expect at least one green check (✓) to render and no red Xs
+        self.assertContains(response, "&#10003;")  # green check present somewhere
+        self.assertNotContains(response, "&#10007;")  # red x removed for cleaner look
 
     def test_group_create_view(self):
         self.client.login(username="testuser", password="testpass")
@@ -284,7 +365,7 @@ class ViewTests(TestCase):
         response = self.client.get(reverse("book_shop_here:group-create"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/group_form.html")
-        self.assertContains(response, "Add Group")
+        self.assertContains(response, "Add Role")
 
     def test_group_create_post(self):
         self.client.login(username="testuser", password="testpass")

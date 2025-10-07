@@ -1,8 +1,10 @@
 import logging
+import shlex
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import Group
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
@@ -300,7 +302,41 @@ class GroupListView(LoginRequiredMixin, ListView):
     context_object_name = "groups"
 
     def get_queryset(self):
-        return Group.objects.all().select_related("profile").order_by("name")
+        # Prefetch permissions to avoid N+1 queries in template
+        qs = (
+            Group.objects.all()
+            .select_related("profile")
+            .prefetch_related("permissions")
+            .order_by("name")
+        )
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            # Tokenize query supporting quoted phrases; AND all tokens across name/description
+            try:
+                tokens = shlex.split(q)
+            except ValueError:
+                tokens = q.split()
+            if not tokens:
+                tokens = [q]
+            combined = Q()
+            first = True
+            for tok in tokens:
+                tok = tok.strip()
+                if not tok:
+                    continue
+                clause = Q(name__icontains=tok) | Q(profile__description__icontains=tok)
+                # Also match space-stripped variant to catch things like "View Tests" vs "ViewTests"
+                tok_ns = tok.replace(" ", "")
+                if tok_ns and tok_ns != tok:
+                    clause = clause | Q(name__icontains=tok_ns)
+                if first:
+                    combined = clause
+                    first = False
+                else:
+                    combined = combined & clause
+            if not first:
+                qs = qs.filter(combined)
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -311,8 +347,24 @@ class GroupListView(LoginRequiredMixin, ListView):
             name = g.name
             base = name.split(" (")[0]
             desc = getattr(getattr(g, "profile", None), "description", "") or "-"
+            # Attach a simple list of permission codenames for quick membership checks in template
+            g.perm_codenames = list(g.permissions.values_list("codename", flat=True))
             display.append({"name": name, "base_name": base, "description": desc, "id": g.id})
         context["groups_display"] = display
+
+        # Define the action rows and model columns for the permission matrix
+        # Note: "change" maps to UI label "Update"
+        context["permission_actions"] = [
+            ("view", "View"),
+            ("add", "Add"),
+            ("change", "Update"),
+            ("delete", "Delete"),
+        ]
+        # Limit to primary domain models for clarity
+        context["permission_models"] = ["book", "author", "customer", "order", "employee"]
+        # Provide less-important auth models in a separate, collapsible section
+        # Use (code, label) pairs so we can display "role" for the "group" model
+        context["permission_models_auth"] = [("user", "user"), ("group", "role")]
         return context
 
 
@@ -323,6 +375,42 @@ class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     success_url = reverse_lazy("book_shop_here:group-list")
     permission_required = "auth.add_group"
     raise_exception = True
+
+    def get_context_data(self, **kwargs):
+        from django.contrib.auth.models import Permission
+
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Add Role"
+        permission_actions = [
+            ("view", "View"),
+            ("add", "Add"),
+            ("change", "Update"),
+            ("delete", "Delete"),
+        ]
+        domain_models = ["book", "author", "customer", "order", "employee"]
+        auth_models = [("user", "user"), ("group", "role")]
+        permission_models_all = [(m, m) for m in domain_models] + auth_models
+        perms = Permission.objects.filter(
+            content_type__app_label__in=["book_shop_here", "auth"]
+        ).values("id", "codename")
+        perm_by_code = {p["codename"]: p["id"] for p in perms}
+        rows = []
+        for action_code, action_label in permission_actions:
+            cells = []
+            for code, label in permission_models_all:
+                codename = f"{action_code}_{code}"
+                cells.append(
+                    {
+                        "model_code": code,
+                        "model_label": label,
+                        "codename": codename,
+                        "perm_id": perm_by_code.get(codename),
+                    }
+                )
+            rows.append({"action_code": action_code, "action_label": action_label, "cells": cells})
+        context["permission_rows"] = rows
+        context["permission_models_all"] = permission_models_all
+        return context
 
     def form_valid(self, form):
         try:
@@ -342,6 +430,42 @@ class GroupUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     success_url = reverse_lazy("book_shop_here:group-list")
     permission_required = "auth.change_group"
     raise_exception = True
+
+    def get_context_data(self, **kwargs):
+        from django.contrib.auth.models import Permission
+
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Edit Role"
+        permission_actions = [
+            ("view", "View"),
+            ("add", "Add"),
+            ("change", "Update"),
+            ("delete", "Delete"),
+        ]
+        domain_models = ["book", "author", "customer", "order", "employee"]
+        auth_models = [("user", "user"), ("group", "role")]
+        permission_models_all = [(m, m) for m in domain_models] + auth_models
+        perms = Permission.objects.filter(
+            content_type__app_label__in=["book_shop_here", "auth"]
+        ).values("id", "codename")
+        perm_by_code = {p["codename"]: p["id"] for p in perms}
+        rows = []
+        for action_code, action_label in permission_actions:
+            cells = []
+            for code, label in permission_models_all:
+                codename = f"{action_code}_{code}"
+                cells.append(
+                    {
+                        "model_code": code,
+                        "model_label": label,
+                        "codename": codename,
+                        "perm_id": perm_by_code.get(codename),
+                    }
+                )
+            rows.append({"action_code": action_code, "action_label": action_label, "cells": cells})
+        context["permission_rows"] = rows
+        context["permission_models_all"] = permission_models_all
+        return context
 
     def form_valid(self, form):
         try:

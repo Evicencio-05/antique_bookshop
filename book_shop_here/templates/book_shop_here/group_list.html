@@ -2,58 +2,114 @@
 {% load i18n %}
 
 {% block content %}
-    <h1>{% trans "Groups" %}</h1>
-    <form method="get">
-        <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by group name' %}">
-        <button type="submit">{% trans "Search" %}</button>
-    </form>
-    <p><a href="{% url 'book_shop_here:group-create' %}">{% trans "Add Group" %}</a></p>
-    {% if messages %}
-        <ul class="messages">
-        {% for message in messages %}
-            <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% if groups %}
-        <table style="width: 100%; border=2px solid black; border-collapse: collapse;">
-        <tr>
-            <th>{% trans "Name" %}</th>
-            <th>{% trans "Description" %}</th>
-            <th>{% trans "Permissions" %}</th>
-            <th>{% trans "Actions" %}</th>
-        </tr>
-        {% for group in groups %}
-            <tr>
-            <td>{{ group.name }}</td>
-            <td>{{ group.profile.description|default:"-" }}</td>
-            <td>
-                <table style="border: none; width: 100%;">
-                    {% for perm in group.permissions.all %}
-                    <tr style="border: none;">
-                        <td style="border: none;">
-                        {% with trimmed_permission=perm.name|slice:"4:" %}
-                            {{ trimmed_permission|capfirst }}
-                        {% endwith %}
-                    </td></tr>
-                {% empty %}
-                    <tr style="border: none;"><td style="border: none;">
+    <div class="bg-white p-6 rounded shadow">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-2xl font-bold text-blue-600">{% trans "Roles" %}</h1>
+            <a href="{% url 'book_shop_here:group-create' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Add Role" %}</a>
+        </div>
+
+        <form method="get" class="mb-4">
+            <div class="flex items-center max-w-md">
+                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by group name' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
+                <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
+            </div>
+        </form>
+
+        {% if groups %}
+            <table class="w-full border border-gray-300 border-collapse">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Name" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Description" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Permissions" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for group in groups %}
+                    <tr>
+                        <td class="border border-gray-300 px-3 py-2">{{ group.name }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ group.profile.description|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">
+                            <div class="overflow-x-auto">
+                                <table class="w-full border border-gray-200 border-collapse">
+                                    <thead>
+                                        <tr class="bg-gray-50">
+                                            <th class="border border-gray-200 px-3 py-2 text-left sticky top-0 bg-gray-50 z-10">{% trans "Permission" %}</th>
+                                            {% for model in permission_models %}
+                                            <th class="border border-gray-200 px-3 py-2 sticky top-0 bg-gray-50 z-10">{{ model|title }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for action in permission_actions %}
+                                            <tr>
+                                                <td class="border border-gray-200 px-3 py-2 sticky left-0 bg-white z-10">{{ action.1 }}</td>
+                                                {% for model in permission_models %}
+                                                    {% with codename=action.0|add:"_"|add:model %}
+                                                        <td class="border border-gray-200 px-3 py-2 text-center">
+                                                            {% if codename in group.perm_codenames %}
+                                                                <span class="text-green-600">&#10003;</span>
+                                                            {% endif %}
+                                                        </td>
+                                                    {% endwith %}
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {% if permission_models_auth %}
+                            <details class="mt-2">
+                                <summary class="cursor-pointer text-blue-600 hover:underline">{% trans "Show auth permissions" %}</summary>
+                                <div class="mt-2 overflow-x-auto">
+                                    <table class="w-full border border-gray-200 border-collapse">
+                                        <thead>
+                                            <tr class="bg-gray-50">
+                                                <th class="border border-gray-200 px-3 py-2 text-left sticky top-0 bg-gray-50 z-10">{% trans "Permission" %}</th>
+                                                {% for pair in permission_models_auth %}
+                                                    <th class="border border-gray-200 px-3 py-2 sticky top-0 bg-gray-50 z-10">{{ pair.1|title }}</th>
+                                                {% endfor %}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for action in permission_actions %}
+                                                <tr>
+                                                    <td class="border border-gray-200 px-3 py-2 sticky left-0 bg-white z-10">{{ action.1 }}</td>
+                                                    {% for pair in permission_models_auth %}
+                                                        {% with codename=action.0|add:"_"|add:pair.0 %}
+                                                            <td class="border border-gray-200 px-3 py-2 text-center">
+                                                                {% if codename in group.perm_codenames %}
+                                                                    <span class="text-green-600">&#10003;</span>
+                                                                {% endif %}
+                                                            </td>
+                                                        {% endwith %}
+                                                    {% endfor %}
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </details>
+                            {% endif %}
+                        </td>
+                        <td class="border border-gray-300 px-3 py-2">
+                            <a href="{% url 'book_shop_here:group-update' pk=group.id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                            <a href="{% url 'book_shop_here:group-delete' pk=group.id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
+                        </td>
+                    </tr>
                 {% endfor %}
-                </table> 
-            <td>
-                <a href="{% url 'book_shop_here:group-update' pk=group.id %}">{% trans "Edit" %}</a> |
-                <a href="{% url 'book_shop_here:group-delete' pk=group.id %}">{% trans "Delete" %}</a>
-            </td>
-            </tr>
-        {% endfor %}
-        {% if groups_display %}
-            {% for gd in groups_display %}
-                <tr class="sr-only"><td colspan="4">{{ gd.name }} - {{ gd.description }}</td></tr>
-                <tr class="sr-only"><td colspan="4">{{ gd.base_name }} - {{ gd.description }}</td></tr>
-            {% endfor %}
+                {% if groups_display %}
+                    {% for gd in groups_display %}
+                        <tr class="sr-only"><td colspan="4">{{ gd.name }} - {{ gd.description }}</td></tr>
+                        <tr class="sr-only"><td colspan="4">{{ gd.base_name }} - {{ gd.description }}</td></tr>
+                    {% endfor %}
+                {% endif %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{% trans "No groups found." %}</p>
         {% endif %}
-        </table>
-    {% else %}
-        <p>{% trans "No groups found." %}</p>
-    {% endif %}
+    </div>
 {% endblock %}

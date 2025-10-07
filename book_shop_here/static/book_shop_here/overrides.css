@@ -31,8 +31,10 @@ select {
   pointer-events: none;
 }
 
-button,
-input:where([type="submit"])
-{
-  background-color: green;
+h1 {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  font-weight: 800;
+  margin: auto;
+  margin-bottom: 10px;
 }
