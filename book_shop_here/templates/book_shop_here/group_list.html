@@ -28,18 +28,35 @@
             <td>{{ group.name }}</td>
             <td>{{ group.profile.description|default:"-" }}</td>
             <td>
-                <table style="border: none; width: 100%;">
-                    {% for perm in group.permissions.all %}
-                    <tr style="border: none;">
-                        <td style="border: none;">
-                        {% with trimmed_permission=perm.name|slice:"4:" %}
-                            {{ trimmed_permission|capfirst }}
-                        {% endwith %}
-                    </td></tr>
-                {% empty %}
-                    <tr style="border: none;"><td style="border: none;">
-                {% endfor %}
-                </table> 
+                <table style="border: 1px solid #ddd; width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 6px; text-align: left;">{% trans "Permission" %}</th>
+                            {% for model in permission_models %}
+                                <th style="border: 1px solid #ddd; padding: 6px; text-transform: capitalize;">{{ model }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for action in permission_actions %}
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 6px;">{{ action.1 }}</td>
+                                {% for model in permission_models %}
+                                    {% with codename=action.0|add:"_"|add:model %}
+                                        <td style="border: 1px solid #ddd; padding: 6px; text-align: center;">
+                                            {% if codename in group.perm_codenames %}
+                                                <span style="color: #16a34a;">&#10003;</span>
+                                            {% else %}
+                                                <span style="color: #dc2626;">&#10007;</span>
+                                            {% endif %}
+                                        </td>
+                                    {% endwith %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </td>
             <td>
                 <a href="{% url 'book_shop_here:group-update' pk=group.id %}">{% trans "Edit" %}</a> |
                 <a href="{% url 'book_shop_here:group-delete' pk=group.id %}">{% trans "Delete" %}</a>

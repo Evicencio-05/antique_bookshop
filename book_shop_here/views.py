@@ -300,7 +300,13 @@ class GroupListView(LoginRequiredMixin, ListView):
     context_object_name = "groups"
 
     def get_queryset(self):
-        return Group.objects.all().select_related("profile").order_by("name")
+        # Prefetch permissions to avoid N+1 queries in template
+        return (
+            Group.objects.all()
+            .select_related("profile")
+            .prefetch_related("permissions")
+            .order_by("name")
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -311,8 +317,21 @@ class GroupListView(LoginRequiredMixin, ListView):
             name = g.name
             base = name.split(" (")[0]
             desc = getattr(getattr(g, "profile", None), "description", "") or "-"
+            # Attach a simple list of permission codenames for quick membership checks in template
+            g.perm_codenames = list(g.permissions.values_list("codename", flat=True))
             display.append({"name": name, "base_name": base, "description": desc, "id": g.id})
         context["groups_display"] = display
+
+        # Define the action rows and model columns for the permission matrix
+        # Note: "change" maps to UI label "Update"
+        context["permission_actions"] = [
+            ("view", "View"),
+            ("add", "Add"),
+            ("change", "Update"),
+            ("delete", "Delete"),
+        ]
+        # Limit to primary domain models for clarity
+        context["permission_models"] = ["book", "author", "customer", "order", "employee"]
         return context
 
 

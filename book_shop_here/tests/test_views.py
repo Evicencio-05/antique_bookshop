@@ -276,6 +276,27 @@ class ViewTests(TestCase):
         self.assertContains(response, "Owner - The Owner")
         self.assertContains(response, "Add Group")
 
+    def test_group_permissions_matrix_display(self):
+        self.client.login(username="testuser", password="testpass")
+        # Give the group a single permission (e.g., add_book)
+        from django.contrib.auth.models import Permission
+        from django.contrib.contenttypes.models import ContentType
+
+        ct = ContentType.objects.get_for_model(Book)
+        add_book = Permission.objects.get(codename="add_book", content_type=ct)
+        self.group.permissions.add(add_book)
+
+        response = self.client.get(reverse("book_shop_here:group-list"))
+        self.assertEqual(response.status_code, 200)
+        # Header includes models as columns
+        self.assertContains(response, ">book<")
+        self.assertContains(response, ">author<")
+        self.assertContains(response, ">employee<")
+        # Checkmark for granted permission and red X for a missing one
+        # We expect at least one green check (✓) and one red X (✗) to render
+        self.assertContains(response, "&#10003;")  # green check present somewhere
+        self.assertContains(response, "&#10007;")  # red x present somewhere
+
     def test_group_create_view(self):
         self.client.login(username="testuser", password="testpass")
         content_type = ContentType.objects.get_for_model(Group)
