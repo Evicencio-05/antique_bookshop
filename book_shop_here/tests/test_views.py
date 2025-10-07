@@ -200,7 +200,7 @@ class ViewTests(TestCase):
         permission = Permission.objects.get(codename="delete_book", content_type=content_type)
         self.user.user_permissions.add(permission)
         response = self.client.post(
-            reverse("book_shop_here:book-delete", kwargs={"pk": "doej1234"})
+            reverse("book_shop_here:book-delete", kwargs={"pk": self.book.book_id})
         )
         self.assertRedirects(response, reverse("book_shop_here:book-list"))
         self.assertFalse(Book.objects.filter(legacy_id="doej1234").exists())

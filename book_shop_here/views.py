@@ -299,26 +299,6 @@ class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = "book_shop_here.delete_book"
     raise_exception = True
 
-    def get_object(self, queryset=None):
-        from django.shortcuts import get_object_or_404
-
-        pk = self.kwargs.get("pk")
-        # For delete, the URL uses a slug so we treat pk as the legacy_id key.
-        # Fall back to numeric primary key if pk is digits.
-        if isinstance(pk, str) and pk.isdigit():
-            return get_object_or_404(Book, pk=int(pk))
-        return get_object_or_404(Book, legacy_id=pk)
-
-    def post(self, request, *args, **kwargs):
-        from django.shortcuts import redirect
-
-        try:
-            self.object = self.get_object()
-        except Exception:
-            messages.warning(request, "Book not found; nothing to delete.")
-            return redirect(self.success_url)
-        return super().post(request, *args, **kwargs)
-
 
 class BookDetailView(LoginRequiredMixin, TemplateView):
     template_name = "book_shop_here/book_detail.html"
