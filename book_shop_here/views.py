@@ -332,6 +332,9 @@ class GroupListView(LoginRequiredMixin, ListView):
         ]
         # Limit to primary domain models for clarity
         context["permission_models"] = ["book", "author", "customer", "order", "employee"]
+        # Provide less-important auth models in a separate, collapsible section
+        # Use (code, label) pairs so we can display "role" for the "group" model
+        context["permission_models_auth"] = [("user", "user"), ("group", "role")]
         return context
 
 
@@ -342,6 +345,42 @@ class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     success_url = reverse_lazy("book_shop_here:group-list")
     permission_required = "auth.add_group"
     raise_exception = True
+
+    def get_context_data(self, **kwargs):
+        from django.contrib.auth.models import Permission
+
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Add Role"
+        permission_actions = [
+            ("view", "View"),
+            ("add", "Add"),
+            ("change", "Update"),
+            ("delete", "Delete"),
+        ]
+        domain_models = ["book", "author", "customer", "order", "employee"]
+        auth_models = [("user", "user"), ("group", "role")]
+        permission_models_all = [(m, m) for m in domain_models] + auth_models
+        perms = Permission.objects.filter(
+            content_type__app_label__in=["book_shop_here", "auth"]
+        ).values("id", "codename")
+        perm_by_code = {p["codename"]: p["id"] for p in perms}
+        rows = []
+        for action_code, action_label in permission_actions:
+            cells = []
+            for code, label in permission_models_all:
+                codename = f"{action_code}_{code}"
+                cells.append(
+                    {
+                        "model_code": code,
+                        "model_label": label,
+                        "codename": codename,
+                        "perm_id": perm_by_code.get(codename),
+                    }
+                )
+            rows.append({"action_code": action_code, "action_label": action_label, "cells": cells})
+        context["permission_rows"] = rows
+        context["permission_models_all"] = permission_models_all
+        return context
 
     def form_valid(self, form):
         try:
@@ -361,6 +400,42 @@ class GroupUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     success_url = reverse_lazy("book_shop_here:group-list")
     permission_required = "auth.change_group"
     raise_exception = True
+
+    def get_context_data(self, **kwargs):
+        from django.contrib.auth.models import Permission
+
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Edit Role"
+        permission_actions = [
+            ("view", "View"),
+            ("add", "Add"),
+            ("change", "Update"),
+            ("delete", "Delete"),
+        ]
+        domain_models = ["book", "author", "customer", "order", "employee"]
+        auth_models = [("user", "user"), ("group", "role")]
+        permission_models_all = [(m, m) for m in domain_models] + auth_models
+        perms = Permission.objects.filter(
+            content_type__app_label__in=["book_shop_here", "auth"]
+        ).values("id", "codename")
+        perm_by_code = {p["codename"]: p["id"] for p in perms}
+        rows = []
+        for action_code, action_label in permission_actions:
+            cells = []
+            for code, label in permission_models_all:
+                codename = f"{action_code}_{code}"
+                cells.append(
+                    {
+                        "model_code": code,
+                        "model_label": label,
+                        "codename": codename,
+                        "perm_id": perm_by_code.get(codename),
+                    }
+                )
+            rows.append({"action_code": action_code, "action_label": action_label, "cells": cells})
+        context["permission_rows"] = rows
+        context["permission_models_all"] = permission_models_all
+        return context
 
     def form_valid(self, form):
         try:

@@ -274,7 +274,33 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/group_list.html")
         self.assertContains(response, "Owner - The Owner")
-        self.assertContains(response, "Add Group")
+        self.assertContains(response, "Add Role")
+
+    def test_group_list_auth_dropdown_renders(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(reverse("book_shop_here:group-list"))
+        self.assertEqual(response.status_code, 200)
+        # Dropdown summary text is present
+        self.assertContains(response, "Show auth permissions")
+        # The auth model headers should be present in the collapsed section's markup
+        self.assertContains(response, ">user<")
+        self.assertContains(response, ">role<")
+
+    def test_group_create_form_permissions_matrix(self):
+        self.client.login(username="testuser", password="testpass")
+        content_type = ContentType.objects.get_for_model(Group)
+        permission = Permission.objects.get(codename="add_group", content_type=content_type)
+        self.user.user_permissions.add(permission)
+        response = self.client.get(reverse("book_shop_here:group-create"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "book_shop_here/group_form.html")
+        # Headers from matrix
+        self.assertContains(response, ">book<")
+        self.assertContains(response, ">author<")
+        self.assertContains(response, ">user<")
+        self.assertContains(response, ">role<")
+        # Contains at least one permissions checkbox
+        self.assertContains(response, 'name="permissions"', html=False)
 
     def test_group_permissions_matrix_display(self):
         self.client.login(username="testuser", password="testpass")
@@ -305,7 +331,7 @@ class ViewTests(TestCase):
         response = self.client.get(reverse("book_shop_here:group-create"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/group_form.html")
-        self.assertContains(response, "Add Group")
+        self.assertContains(response, "Add Role")
 
     def test_group_create_post(self):
         self.client.login(username="testuser", password="testpass")
