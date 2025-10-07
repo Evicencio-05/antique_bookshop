@@ -1,8 +1,10 @@
 import logging
+import shlex
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import Group
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
@@ -301,12 +303,40 @@ class GroupListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Prefetch permissions to avoid N+1 queries in template
-        return (
+        qs = (
             Group.objects.all()
             .select_related("profile")
             .prefetch_related("permissions")
             .order_by("name")
         )
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            # Tokenize query supporting quoted phrases; AND all tokens across name/description
+            try:
+                tokens = shlex.split(q)
+            except ValueError:
+                tokens = q.split()
+            if not tokens:
+                tokens = [q]
+            combined = Q()
+            first = True
+            for tok in tokens:
+                tok = tok.strip()
+                if not tok:
+                    continue
+                clause = Q(name__icontains=tok) | Q(profile__description__icontains=tok)
+                # Also match space-stripped variant to catch things like "View Tests" vs "ViewTests"
+                tok_ns = tok.replace(" ", "")
+                if tok_ns and tok_ns != tok:
+                    clause = clause | Q(name__icontains=tok_ns)
+                if first:
+                    combined = clause
+                    first = False
+                else:
+                    combined = combined & clause
+            if not first:
+                qs = qs.filter(combined)
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

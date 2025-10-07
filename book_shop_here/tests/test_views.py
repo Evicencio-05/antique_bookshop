@@ -276,6 +276,41 @@ class ViewTests(TestCase):
         self.assertContains(response, "Owner - The Owner")
         self.assertContains(response, "Add Role")
 
+    def test_group_list_search_filters_by_name_and_description(self):
+        self.client.login(username="testuser", password="testpass")
+        # Ensure owner has a profile matching 'Owner'
+        GroupProfile.objects.update_or_create(
+            group=self.owner_group, defaults={"description": "The Owner"}
+        )
+        # Search by name
+        response = self.client.get(reverse("book_shop_here:group-list"), {"q": "Owner"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.owner_group.name)
+        # Manager group should not appear when filtering by 'Owner'
+        self.assertNotContains(response, self.group.name)
+
+    def test_group_list_search_multiple_tokens_and_phrase(self):
+        self.client.login(username="testuser", password="testpass")
+        GroupProfile.objects.update_or_create(
+            group=self.owner_group, defaults={"description": "The Owner"}
+        )
+        # Multiple tokens should be ANDed across fields
+        response = self.client.get(reverse("book_shop_here:group-list"), {"q": "Owner ViewTests"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.owner_group.name)
+        self.assertNotContains(response, self.group.name)
+        # Quoted phrase should be treated as one token
+        response = self.client.get(reverse("book_shop_here:group-list"), {"q": '"The Owner"'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.owner_group.name)
+
+    def test_group_list_search_spaceless_normalization(self):
+        self.client.login(username="testuser", password="testpass")
+        # Owner name contains "ViewTests" without a space; quoted phrase with a space should still match
+        response = self.client.get(reverse("book_shop_here:group-list"), {"q": '"View Tests"'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.owner_group.name)
+
     def test_group_list_auth_dropdown_renders(self):
         self.client.login(username="testuser", password="testpass")
         response = self.client.get(reverse("book_shop_here:group-list"))
@@ -283,8 +318,8 @@ class ViewTests(TestCase):
         # Dropdown summary text is present
         self.assertContains(response, "Show auth permissions")
         # The auth model headers should be present in the collapsed section's markup
-        self.assertContains(response, ">user<")
-        self.assertContains(response, ">role<")
+        self.assertContains(response, ">User<")
+        self.assertContains(response, ">Role<")
 
     def test_group_create_form_permissions_matrix(self):
         self.client.login(username="testuser", password="testpass")
@@ -295,10 +330,10 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/group_form.html")
         # Headers from matrix
-        self.assertContains(response, ">book<")
-        self.assertContains(response, ">author<")
-        self.assertContains(response, ">user<")
-        self.assertContains(response, ">role<")
+        self.assertContains(response, ">Book<")
+        self.assertContains(response, ">Author<")
+        self.assertContains(response, ">User<")
+        self.assertContains(response, ">Role<")
         # Contains at least one permissions checkbox
         self.assertContains(response, 'name="permissions"', html=False)
 
@@ -315,13 +350,12 @@ class ViewTests(TestCase):
         response = self.client.get(reverse("book_shop_here:group-list"))
         self.assertEqual(response.status_code, 200)
         # Header includes models as columns
-        self.assertContains(response, ">book<")
-        self.assertContains(response, ">author<")
-        self.assertContains(response, ">employee<")
-        # Checkmark for granted permission and red X for a missing one
-        # We expect at least one green check (✓) and one red X (✗) to render
+        self.assertContains(response, ">Book<")
+        self.assertContains(response, ">Author<")
+        self.assertContains(response, ">Employee<")
+        # We expect at least one green check (✓) to render and no red Xs
         self.assertContains(response, "&#10003;")  # green check present somewhere
-        self.assertContains(response, "&#10007;")  # red x present somewhere
+        self.assertNotContains(response, "&#10007;")  # red x removed for cleaner look
 
     def test_group_create_view(self):
         self.client.login(username="testuser", password="testpass")

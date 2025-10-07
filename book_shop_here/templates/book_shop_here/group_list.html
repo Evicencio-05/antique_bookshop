@@ -15,16 +15,6 @@
             </div>
         </form>
 
-        {% if messages %}
-            <div class="mb-4">
-                {% for message in messages %}
-                    <div class="bg-{% if message.tags == 'error' %}red{% else %}green{% endif %}-100 border-{% if message.tags == 'error' %}red{% else %}green{% endif %}-500 text-{% if message.tags == 'error' %}red{% else %}green{% endif %}-700 px-4 py-3 rounded relative" role="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
         {% if groups %}
             <table class="w-full border border-gray-300 border-collapse">
                 <thead>
@@ -45,23 +35,21 @@
                                 <table class="w-full border border-gray-200 border-collapse">
                                     <thead>
                                         <tr class="bg-gray-50">
-                                            <th class="border border-gray-200 px-3 py-2 text-left">{% trans "Permission" %}</th>
+                                            <th class="border border-gray-200 px-3 py-2 text-left sticky top-0 bg-gray-50 z-10">{% trans "Permission" %}</th>
                                             {% for model in permission_models %}
-                                                <th class="border border-gray-200 px-3 py-2 capitalize">{{ model }}</th>
+                                            <th class="border border-gray-200 px-3 py-2 sticky top-0 bg-gray-50 z-10">{{ model|title }}</th>
                                             {% endfor %}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for action in permission_actions %}
                                             <tr>
-                                                <td class="border border-gray-200 px-3 py-2">{{ action.1 }}</td>
+                                                <td class="border border-gray-200 px-3 py-2 sticky left-0 bg-white z-10">{{ action.1 }}</td>
                                                 {% for model in permission_models %}
                                                     {% with codename=action.0|add:"_"|add:model %}
                                                         <td class="border border-gray-200 px-3 py-2 text-center">
                                                             {% if codename in group.perm_codenames %}
                                                                 <span class="text-green-600">&#10003;</span>
-                                                            {% else %}
-                                                                <span class="text-red-600">&#10007;</span>
                                                             {% endif %}
                                                         </td>
                                                     {% endwith %}
@@ -79,23 +67,21 @@
                                     <table class="w-full border border-gray-200 border-collapse">
                                         <thead>
                                             <tr class="bg-gray-50">
-                                                <th class="border border-gray-200 px-3 py-2 text-left">{% trans "Permission" %}</th>
+                                                <th class="border border-gray-200 px-3 py-2 text-left sticky top-0 bg-gray-50 z-10">{% trans "Permission" %}</th>
                                                 {% for pair in permission_models_auth %}
-                                                    <th class="border border-gray-200 px-3 py-2 capitalize">{{ pair.1 }}</th>
+                                                    <th class="border border-gray-200 px-3 py-2 sticky top-0 bg-gray-50 z-10">{{ pair.1|title }}</th>
                                                 {% endfor %}
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for action in permission_actions %}
                                                 <tr>
-                                                    <td class="border border-gray-200 px-3 py-2">{{ action.1 }}</td>
+                                                    <td class="border border-gray-200 px-3 py-2 sticky left-0 bg-white z-10">{{ action.1 }}</td>
                                                     {% for pair in permission_models_auth %}
                                                         {% with codename=action.0|add:"_"|add:pair.0 %}
                                                             <td class="border border-gray-200 px-3 py-2 text-center">
                                                                 {% if codename in group.perm_codenames %}
                                                                     <span class="text-green-600">&#10003;</span>
-                                                                {% else %}
-                                                                    <span class="text-red-600">&#10007;</span>
                                                                 {% endif %}
                                                             </td>
                                                         {% endwith %}
