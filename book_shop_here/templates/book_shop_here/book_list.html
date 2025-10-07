@@ -44,9 +44,11 @@
                         <td class="border border-gray-300 px-3 py-2">{{ book.authors.all|join:", " }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ book.retail_price }}</td>
                         <td class="border border-gray-300 px-3 py-2">
+                            <a href="{% url 'book_shop_here:book-detail' pk=book.book_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
+                            <span class="px-2">|</span>
                             <a href="{% url 'book_shop_here:book-update' pk=book.book_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
                             <span class="px-2">|</span>
-                            <a href="{% url 'book_shop_here:book-delete' pk=book.book_id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
+                            <a href="{% url 'book_shop_here:book-delete' pk=book.legacy_id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
                         </td>
                     </tr>
                 {% endfor %}

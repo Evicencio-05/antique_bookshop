@@ -104,7 +104,10 @@
                             {% endif %}
                         </td>
                         <td class="border border-gray-300 px-3 py-2">
+                            <a href="{% url 'book_shop_here:group-detail' pk=group.id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
+                            <span class="px-2">|</span>
                             <a href="{% url 'book_shop_here:group-update' pk=group.id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                            <span class="px-2">|</span>
                             <a href="{% url 'book_shop_here:group-delete' pk=group.id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
                         </td>
                     </tr>

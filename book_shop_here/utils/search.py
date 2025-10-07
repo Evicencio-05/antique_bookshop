@@ -1,5 +1,6 @@
 import shlex
 from collections.abc import Iterable
+from typing import Any
 
 from django.db import connection
 from django.db.models import F, Q, Value
@@ -62,7 +63,7 @@ def build_advanced_search(
     def field_lookup(field: str, *, nospace: bool) -> str:
         """Return the lookup name (possibly annotated) for contains operations."""
         suffix_parts: list[str] = []
-        expr = F(field)
+        expr: Any = F(field)
         if nospace:
             expr = Replace(expr, Value(" "), Value(""))
             suffix_parts.append("ns")

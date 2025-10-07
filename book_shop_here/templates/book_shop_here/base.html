@@ -18,15 +18,9 @@
                 <a href="{% url 'book_shop_here:book-list' %}" class="hover:underline">{% trans "Books" %}</a>
                 <a href="{% url 'book_shop_here:author-list' %}" class="hover:underline">{% trans "Authors" %}</a>
                 <a href="{% url 'book_shop_here:customer-list' %}" class="hover:underline">{% trans "Customers" %}</a>
-                {% if perms.book_shop_here.add_order %}
-                    <a href="{% url 'book_shop_here:order-list' %}" class="hover:underline">{% trans "Orders" %}</a>
-                {% endif %}
-                {% if perms.book_shop_here.add_group %}
-                    <a href="{% url 'book_shop_here:group-list' %}" class="hover:underline">{% trans "Roles" %}</a>
-                {% endif %}
-                {% if perms.book_shop_here.add_employee %}
-                    <a href="{% url 'book_shop_here:employee-list' %}" class="hover:underline">{% trans "Employees" %}</a>
-                {% endif %}
+                <a href="{% url 'book_shop_here:order-list' %}" class="hover:underline">{% trans "Orders" %}</a>
+                <a href="{% url 'book_shop_here:group-list' %}" class="hover:underline">{% trans "Roles" %}</a>
+                <a href="{% url 'book_shop_here:employee-list' %}" class="hover:underline">{% trans "Employees" %}</a>
                 {% if user.is_authenticated %}
                     <form action="{% url 'logout' %}" method="post" class="inline">
                         {% csrf_token %}

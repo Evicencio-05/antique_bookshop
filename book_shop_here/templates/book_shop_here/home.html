@@ -23,7 +23,14 @@
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Books" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for b in lookup_results.books %}
-                        <li>{{ b.title }}{% if b.legacy_id %} ({{ b.legacy_id }}){% endif %}</li>
+                        <li>{{ b.title }}{% if b.legacy_id %} ({{ b.legacy_id }}){% endif %}
+                            <span class="ml-2 text-sm">
+                                {% if perms.book_shop_here.change_book %}
+                                    <a href="{% url 'book_shop_here:book-update' pk=b.book_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:book-detail' pk=b.book_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -33,7 +40,14 @@
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Authors" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for a in lookup_results.authors %}
-                        <li>{{ a }}</li>
+                        <li>{{ a }}
+                            <span class="ml-2 text-sm">
+                                {% if perms.book_shop_here.change_author %}
+                                    <a href="{% url 'book_shop_here:author-update' pk=a.author_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:author-detail' pk=a.author_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -43,7 +57,14 @@
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Customers" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for c in lookup_results.customers %}
-                        <li>{{ c }}</li>
+                        <li>{{ c }}
+                            <span class="ml-2 text-sm">
+                                {% if perms.book_shop_here.change_customer %}
+                                    <a href="{% url 'book_shop_here:customer-update' pk=c.customer_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:customer-detail' pk=c.customer_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -53,7 +74,14 @@
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Employees" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for e in lookup_results.employees %}
-                        <li>{{ e }}{% if e.group %} — {{ e.group.name }}{% endif %}</li>
+                        <li>{{ e }}{% if e.group %} — {{ e.group.name }}{% endif %}
+                            <span class="ml-2 text-sm">
+                                {% if perms.book_shop_here.change_employee %}
+                                    <a href="{% url 'book_shop_here:employee-update' pk=e.employee_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:employee-detail' pk=e.employee_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -63,7 +91,14 @@
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Orders" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for o in lookup_results.orders %}
-                        <li>#{{ o.order_id }} — {{ o.customer_id }} — {{ o.order_status }}</li>
+                        <li>#{{ o.order_id }} — {{ o.customer_id }} — {{ o.order_status }}
+                            <span class="ml-2 text-sm">
+                                {% if perms.book_shop_here.change_order %}
+                                    <a href="{% url 'book_shop_here:order-update' pk=o.order_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:order-detail' pk=o.order_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -73,7 +108,14 @@
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Roles" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for g in lookup_results.roles %}
-                        <li>{{ g.name }}{% if g.profile and g.profile.description %} — {{ g.profile.description }}{% endif %}</li>
+                        <li>{{ g.name }}{% if g.profile and g.profile.description %} — {{ g.profile.description }}{% endif %}
+                            <span class="ml-2 text-sm">
+                                {% if perms.auth.change_group %}
+                                    <a href="{% url 'book_shop_here:group-update' pk=g.id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:group-detail' pk=g.id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -102,7 +144,7 @@
                     {% for e in recent_employees %}<li>{% trans "Employee" %}: {{ e }}</li>{% endfor %}
                 </ul>
             </div>
-        </div
+        </div>
         {% if not user.is_authenticated %}
             <div class="text-center mt-8">
                 <a href="{% url 'login' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Log In" %}</a>

@@ -300,6 +300,37 @@ class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     raise_exception = True
 
     def get_object(self, queryset=None):
+        from django.shortcuts import get_object_or_404
+
+        pk = self.kwargs.get("pk")
+        # For delete, the URL uses a slug so we treat pk as the legacy_id key.
+        # Fall back to numeric primary key if pk is digits.
+        if isinstance(pk, str) and pk.isdigit():
+            return get_object_or_404(Book, pk=int(pk))
+        return get_object_or_404(Book, legacy_id=pk)
+
+    def post(self, request, *args, **kwargs):
+        from django.shortcuts import redirect
+
+        try:
+            self.object = self.get_object()
+        except Exception:
+            messages.warning(request, "Book not found; nothing to delete.")
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+
+class BookDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/book_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["book"] = get_object_or_404(Book, book_id=self.kwargs["pk"])
+        return context
+
+    def get_object(self, queryset=None):
         """Find the Book by book_id (passed as 'pk' in URL)"""
         return get_object_or_404(Book, book_id=self.kwargs["pk"])
 
@@ -416,6 +447,17 @@ class AuthorDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     success_url = reverse_lazy("book_shop_here:author-list")
     permission_required = "book_shop_here.delete_author"
     raise_exception = True
+
+
+class AuthorDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/author_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["author"] = get_object_or_404(Author, pk=self.kwargs["pk"])
+        return context
 
     def form_valid(self, form):
         try:
@@ -559,6 +601,17 @@ class OrderDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     success_url = reverse_lazy("book_shop_here:order-list")
     permission_required = "book_shop_here.delete_order"
     raise_exception = True
+
+
+class OrderDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/order_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["order"] = get_object_or_404(Order, pk=self.kwargs["pk"])
+        return context
 
     def form_valid(self, form):
         try:
@@ -758,6 +811,20 @@ class GroupDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = "auth.delete_group"
     raise_exception = True
 
+
+class GroupDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/group_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["group"] = get_object_or_404(
+            Group.objects.select_related("profile").prefetch_related("permissions"),
+            pk=self.kwargs["pk"],
+        )
+        return context
+
     def form_valid(self, form):
         try:
             messages.success(self.request, "Group removed.")
@@ -862,6 +929,19 @@ class EmployeeDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView
     permission_required = "book_shop_here.delete_employee"
     raise_exception = True
 
+
+class EmployeeDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/employee_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["employee"] = get_object_or_404(
+            Employee.objects.select_related("group"), pk=self.kwargs["pk"]
+        )
+        return context
+
     def form_valid(self, form):
         try:
             messages.success(self.request, "Employee removed.")
@@ -962,6 +1042,17 @@ class CustomerDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView
     template_name = "book_shop_here/customer_delete_confirm.html"
     success_url = reverse_lazy("book_shop_here:customer-list")
     permission_required = "book_shop_here.delete_customer"
+
+
+class CustomerDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/customer_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["customer"] = get_object_or_404(Customer, pk=self.kwargs["pk"])
+        return context
 
     def form_valid(self, form):
         try:

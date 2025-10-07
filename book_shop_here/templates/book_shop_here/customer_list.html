@@ -41,6 +41,8 @@
                         <td class="border border-gray-300 px-3 py-2">{{ customer.phone_number|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ customer.mailing_address|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">
+                            <a href="{% url 'book_shop_here:customer-detail' pk=customer.customer_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
+                            <span class="px-2">|</span>
                             <a href="{% url 'book_shop_here:customer-update' pk=customer.customer_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
                             <span class="px-2">|</span>
                             <a href="{% url 'book_shop_here:customer-delete' pk=customer.customer_id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
