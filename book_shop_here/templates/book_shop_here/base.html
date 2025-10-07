@@ -42,17 +42,18 @@
         </div>
     </nav>
 
-    <div class="container mx-auto p-4">
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
         {% if messages %}
-            <div class="mb-4">
-                {% for message in messages %}
-                    <div class="bg-{% if message.tags == 'error' %}red{% else %}green{% endif %}-100 border-{% if message.tags == 'error' %}red{% else %}green{% endif %}-500 text-{% if message.tags == 'error' %}red{% else %}green{% endif %}-700 px-4 py-3 rounded relative" role="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
+            {% for message in messages %}
+                <div class="flex items-start space-x-3 px-4 py-3 rounded shadow bg-{% if message.tags == 'error' %}red-100{% else %}green-100{% endif %} text-{% if message.tags == 'error' %}red-700{% else %}green-700{% endif %}" role="alert" data-toast>
+                    <div class="text-sm">{{ message }}</div>
+                    <button type="button" class="ml-2 text-gray-700 hover:text-gray-900" aria-label="Close" data-toast-close>&times;</button>
+                </div>
+            {% endfor %}
         {% endif %}
+    </div>
 
+    <div class="container mx-auto p-4">
         {% block content %}
             <div class="bg-white p-6 rounded shadow">
                 <h2 class="text-xl font-semibold mb-4">{% trans "Welcome to Book Shop Here!" %}</h2>
@@ -60,5 +61,17 @@
             </div>
         {% endblock %}
     </div>
+    <script>
+    (function(){
+      var container = document.getElementById('toast-container');
+      if(!container) return;
+      function attach(el){
+        var btns = el.querySelectorAll('[data-toast-close]');
+        btns.forEach(function(btn){ btn.addEventListener('click', function(){ if (el && el.parentNode) el.remove(); }); });
+        setTimeout(function(){ if (el && el.parentNode) el.remove(); }, 5000);
+      }
+      container.querySelectorAll('[data-toast]').forEach(attach);
+    })();
+    </script>
 </body>
 </html>

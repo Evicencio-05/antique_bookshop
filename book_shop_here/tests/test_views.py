@@ -386,7 +386,7 @@ class ViewTests(TestCase):
         response = self.client.get(reverse("book_shop_here:group-create"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/group_form.html")
-        self.assertContains(response, "Add Group")
+        self.assertContains(response, "Add Role")
 
     def test_group_create_post(self):
         self.client.login(username="testuser", password="testpass")
