@@ -32,7 +32,7 @@
                                     <th class="border border-gray-200 px-3 py-2 text-center sticky top-0 bg-gray-50 z-10">
                                         <div class="flex items-center justify-center space-x-2">
                                             <span>{{ label|title }}</span>
-                                            <label class="inline-flex items-center justify-center p-1 rounded border border-gray-300 cursor-pointer">
+                                            <label class="inline-flex items-center justify-center rounded border border-gray-300 cursor-pointer">
                                                 <input type="checkbox" class="h-4 w-4 col-toggle" data-col="{{ forloop.counter0 }}" data-col-type="{% if forloop.counter0 < permission_domain_count %}domain{% else %}auth{% endif %}" />
                                             </label>
                                         </div>
@@ -82,19 +82,19 @@
                     table.querySelectorAll('.row-toggle').forEach(function(cb){
                         cb.addEventListener('change', function(){ setRow(this.getAttribute('data-row'), this.checked); });
                     });
-                  var btnAll = document.getElementById('perm-select-all');
-                  var btnNone = document.getElementById('perm-clear-all');
-                  var btnDom = document.getElementById('perm-select-domain');
-                  var btnAuth = document.getElementById('perm-select-auth');
-                  if(btnAll){ btnAll.addEventListener('click', function(){ permBoxes.forEach(function(cb){ cb.checked = true; }); }); }
-                  if(btnNone){ btnNone.addEventListener('click', function(){ permBoxes.forEach(function(cb){ cb.checked = false; }); }); }
-                  function setColsByType(type, checked){
-                    table.querySelectorAll('.col-toggle[data-col-type="'+type+'"]').forEach(function(hcb){
-                      setCol(hcb.getAttribute('data-col'), checked);
-                    });
-                  }
-                  if(btnDom){ btnDom.addEventListener('click', function(){ setColsByType('domain', true); }); }
-                  if(btnAuth){ btnAuth.addEventListener('click', function(){ setColsByType('auth', true); }); }
+                    var btnAll = document.getElementById('perm-select-all');
+                    var btnNone = document.getElementById('perm-clear-all');
+                    var btnDom = document.getElementById('perm-select-domain');
+                    var btnAuth = document.getElementById('perm-select-auth');
+                    if(btnAll){ btnAll.addEventListener('click', function(){ permBoxes.forEach(function(cb){ cb.checked = true; }); }); }
+                    if(btnNone){ btnNone.addEventListener('click', function(){ permBoxes.forEach(function(cb){ cb.checked = false; }); }); }
+                    function setColsByType(type, checked){
+                        table.querySelectorAll('.col-toggle[data-col-type="'+type+'"]').forEach(function(hcb){
+                        setCol(hcb.getAttribute('data-col'), checked);
+                        });
+                    }
+                    if(btnDom){ btnDom.addEventListener('click', function(){ setColsByType('domain', true); }); }
+                    if(btnAuth){ btnAuth.addEventListener('click', function(){ setColsByType('auth', true); }); }
                 })();
                 </script>
             </div>
