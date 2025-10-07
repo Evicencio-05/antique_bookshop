@@ -29,13 +29,41 @@ class BookListView(LoginRequiredMixin, ListView):
     context_object_name = "books"
 
     def get_queryset(self):
-        queryset = Book.objects.filter(book_status="available").prefetch_related("authors")
-        query = self.request.GET.get("q")
-        if query:
-            queryset = queryset.filter(title__icontains=query) | queryset.filter(
-                legacy_id__icontains=query
+        qs = Book.objects.filter(book_status="available").prefetch_related("authors")
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            fields = [
+                "title",
+                "legacy_id",
+                "authors__first_name",
+                "authors__last_name",
+                "publisher",
+                "rating",
+            ]
+            # Map display labels to values for rating
+            rating_map = {label.lower(): value for value, label in Book.Rating.choices}
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=["legacy_id", "title"],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "title": ["title"],
+                    "author": ["authors__first_name", "authors__last_name"],
+                    "legacy": ["legacy_id"],
+                    "publisher": ["publisher"],
+                    "rating": ["rating"],
+                },
+                choice_value_map={
+                    "rating": rating_map,
+                },
             )
-        return queryset
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -132,6 +160,34 @@ class AuthorListView(LoginRequiredMixin, ListView):
     template_name = "book_shop_here/author_list.html"
     context_object_name = "authors"
 
+    def get_queryset(self):
+        qs = Author.objects.all()
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            fields = ["first_name", "last_name", "description"]
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=[],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "first": ["first_name"],
+                    "last": ["last_name"],
+                    "desc": ["description"],
+                },
+            )
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")
+        return context
+
 
 class AuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Author
@@ -202,6 +258,52 @@ class OrderListView(LoginRequiredMixin, ListView):
     model = Order
     template_name = "book_shop_here/order_list.html"
     context_object_name = "orders"
+
+    def get_queryset(self):
+        qs = Order.objects.select_related("customer_id", "employee_id").prefetch_related("books")
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            fields = [
+                "customer_id__first_name",
+                "customer_id__last_name",
+                "employee_id__first_name",
+                "employee_id__last_name",
+                "payment_method",
+                "order_status",
+                "books__title",
+            ]
+            status_map = {label.lower(): value for value, label in Order.OrderStatus.choices}
+            payment_map = {label.lower(): value for value, label in Order.PaymentMethod.choices}
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=["customer_id__last_name", "employee_id__last_name"],
+                include_unaccent=True,
+                mode="AND",
+                numeric_eq_fields=["order_id"],
+                prefixed_fields={
+                    "id": ["order_id"],
+                    "customer": ["customer_id__first_name", "customer_id__last_name"],
+                    "employee": ["employee_id__first_name", "employee_id__last_name"],
+                    "status": ["order_status"],
+                    "payment": ["payment_method"],
+                    "book": ["books__title"],
+                },
+                choice_value_map={
+                    "order_status": status_map,
+                    "payment_method": payment_map,
+                },
+            )
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")
+        return context
 
 
 class OrderCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -322,6 +424,11 @@ class GroupListView(LoginRequiredMixin, ListView):
                 nospace_fields=["name"],
                 include_unaccent=True,
                 mode="AND",
+                prefixed_fields={
+                    "name": ["name"],
+                    "desc": ["profile__description"],
+                    "perm": ["permissions__codename", "permissions__name"],
+                },
             )
             if q_obj is not None:
                 if annotations:
@@ -381,6 +488,7 @@ class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         domain_models = ["book", "author", "customer", "order", "employee"]
         auth_models = [("user", "user"), ("group", "role")]
         permission_models_all = [(m, m) for m in domain_models] + auth_models
+        context["permission_domain_count"] = len(domain_models)
         perms = Permission.objects.filter(
             content_type__app_label__in=["book_shop_here", "auth"]
         ).values("id", "codename")
@@ -436,6 +544,7 @@ class GroupUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         domain_models = ["book", "author", "customer", "order", "employee"]
         auth_models = [("user", "user"), ("group", "role")]
         permission_models_all = [(m, m) for m in domain_models] + auth_models
+        context["permission_domain_count"] = len(domain_models)
         perms = Permission.objects.filter(
             content_type__app_label__in=["book_shop_here", "auth"]
         ).values("id", "codename")
@@ -490,6 +599,39 @@ class EmployeeListView(LoginRequiredMixin, ListView):
     model = Employee
     template_name = "book_shop_here/employee_list.html"
     context_object_name = "employees"
+
+    def get_queryset(self):
+        qs = Employee.objects.select_related("group")
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            fields = [
+                "first_name",
+                "last_name",
+                "email",
+                "group__name",
+            ]
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=[],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "name": ["first_name", "last_name"],
+                    "email": ["email"],
+                    "role": ["group__name"],
+                },
+            )
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")
+        return context
 
 
 class EmployeeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -561,6 +703,39 @@ class CustomerListView(LoginRequiredMixin, ListView):
     model = Customer
     template_name = "book_shop_here/customer_list.html"
     context_object_name = "customers"
+
+    def get_queryset(self):
+        qs = Customer.objects.all()
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            fields = [
+                "first_name",
+                "last_name",
+                "phone_number",
+                "mailing_address",
+            ]
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=["phone_number"],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "name": ["first_name", "last_name"],
+                    "phone": ["phone_number"],
+                    "address": ["mailing_address"],
+                },
+            )
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")
+        return context
 
 
 class CustomerCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):

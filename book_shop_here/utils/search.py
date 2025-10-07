@@ -22,6 +22,9 @@ def build_advanced_search(
     nospace_fields: Iterable[str] | None = None,
     include_unaccent: bool = True,
     mode: str = "AND",
+    numeric_eq_fields: Iterable[str] | None = None,
+    prefixed_fields: dict[str, list[str]] | None = None,
+    choice_value_map: dict[str, dict[str, str]] | None = None,
 ) -> tuple[Q | None, dict[str, object]]:
     """
     Build a Q object and required annotations for advanced text search across fields.
@@ -48,6 +51,9 @@ def build_advanced_search(
         tokens = [query]
 
     nospace_fields = set(nospace_fields or [])
+    numeric_eq_fields = list(numeric_eq_fields or [])
+    prefixed_fields = prefixed_fields or {}
+    choice_value_map = choice_value_map or {}
 
     use_unaccent = include_unaccent and connection.vendor == "postgresql" and Unaccent is not None
 
@@ -78,9 +84,32 @@ def build_advanced_search(
         tok = raw_tok.strip()
         if not tok:
             continue
+
+        # Prefixed token support: prefix:value limits fields for this token
+        token_fields = list(fields)
+        token_choice_map = choice_value_map
+        if ":" in tok:
+            pref, val = tok.split(":", 1)
+            pref = pref.strip().lower()
+            val = val.strip()
+            if pref in prefixed_fields:
+                tok = val
+                token_fields = prefixed_fields[pref]
+
         # Per-token, OR across fields
         token_q: Q | None = None
-        for field in fields:
+        tok_lower = tok.lower()
+        for field in token_fields:
+            # Choice label mapping: if label matches, include equality on value
+            if field in token_choice_map:
+                mapping = token_choice_map[field]
+                code = mapping.get(tok_lower)
+                if code is not None:
+                    token_q = (
+                        (token_q | Q(**{field: code}))
+                        if token_q is not None
+                        else Q(**{field: code})
+                    )
             # Normal lookup
             lk = field_lookup(field, nospace=False)
             part = Q(**{lk: tok})
@@ -92,6 +121,11 @@ def build_advanced_search(
                     lk_ns = field_lookup(field, nospace=True)
                     part_ns = Q(**{lk_ns: tok_ns})
                     token_q = token_q | part_ns
+        # Numeric equality across specified fields
+        if numeric_eq_fields and tok.isdigit():
+            for nfield in numeric_eq_fields:
+                eq_part = Q(**{nfield: int(tok)})
+                token_q = eq_part if token_q is None else (token_q | eq_part)
         if token_q is None:
             continue
         if combined_q is None:

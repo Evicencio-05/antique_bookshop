@@ -1,10 +1,47 @@
 {% extends 'book_shop_here/base.html' %}
+{% load i18n %}
 {% block content %}
-    <h1>Welcome to the Book Shop!</h1>
-    <p>Browse our collection of antique books.</p>
-    {% if not user.is_authenticated %}
-        <a href="{% url 'login' %}">Login</a> to manage books, authors, and orders.
-    {% else %}
-        <a href="{% url 'book_list' %}">View Books</a>
-    {% endif %}
+    <div class="bg-white p-8 rounded shadow">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-blue-600 mb-2">{% trans "Antique Bookshop" %}</h1>
+            <p class="text-gray-700">{% trans "Discover, manage, and delight in rare books." %}</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{% url 'book_shop_here:book-list' %}" class="block border rounded p-4 hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="text-xl font-semibold text-blue-600 mb-1">{% trans "Books" %}</div>
+                <p class="text-gray-700">{% trans "Browse inventory and manage titles." %}</p>
+            </a>
+            <a href="{% url 'book_shop_here:author-list' %}" class="block border rounded p-4 hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="text-xl font-semibold text-blue-600 mb-1">{% trans "Authors" %}</div>
+                <p class="text-gray-700">{% trans "Maintain author profiles and details." %}</p>
+            </a>
+            <a href="{% url 'book_shop_here:customer-list' %}" class="block border rounded p-4 hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="text-xl font-semibold text-blue-600 mb-1">{% trans "Customers" %}</div>
+                <p class="text-gray-700">{% trans "Manage customer records and info." %}</p>
+            </a>
+            {% if perms.book_shop_here.add_order %}
+            <a href="{% url 'book_shop_here:order-list' %}" class="block border rounded p-4 hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="text-xl font-semibold text-blue-600 mb-1">{% trans "Orders" %}</div>
+                <p class="text-gray-700">{% trans "Create and track customer orders." %}</p>
+            </a>
+            {% endif %}
+            {% if perms.book_shop_here.add_employee %}
+            <a href="{% url 'book_shop_here:employee-list' %}" class="block border rounded p-4 hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="text-xl font-semibold text-blue-600 mb-1">{% trans "Employees" %}</div>
+                <p class="text-gray-700">{% trans "Manage staff and assignments." %}</p>
+            </a>
+            {% endif %}
+            {% if perms.book_shop_here.add_group %}
+            <a href="{% url 'book_shop_here:group-list' %}" class="block border rounded p-4 hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="text-xl font-semibold text-blue-600 mb-1">{% trans "Roles" %}</div>
+                <p class="text-gray-700">{% trans "Configure access and permissions." %}</p>
+            </a>
+            {% endif %}
+        </div>
+        {% if not user.is_authenticated %}
+            <div class="text-center mt-8">
+                <a href="{% url 'login' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Log In" %}</a>
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}

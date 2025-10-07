@@ -2,40 +2,46 @@
 {% load i18n %}
 
 {% block content %}
-    <h1>{% trans "Customers" %}</h1>
-    <form method="get">
-        <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by name' %}">
-        <button type="submit">{% trans "Search" %}</button>
-    </form>
-    <p><a href="{% url 'book_shop_here:customer-create' %}">{% trans "Add Customer" %}</a></p>
-    {% if messages %}
-        <ul class="messages">
-        {% for message in messages %}
-            <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% if customers %}
-        <table>
-        <tr>
-            <th>{% trans "Name" %}</th>
-            <th>{% trans "Phone Number" %}</th>
-            <th>{% trans "Mailing Address" %}</th>
-            <th>{% trans "Actions" %}</th>
-        </tr>
-        {% for customer in customers %}
-            <tr>
-            <td>{{ customer }}</td>
-            <td>{{ customer.phone_number|default:"-" }}</td>
-            <td>{{ customer.mailing_address|default:"-" }}</td>
-            <td>
-                <a href="{% url 'book_shop_here:customer-update' pk=customer.customer_id %}">{% trans "Edit" %}</a> |
-                <a href="{% url 'book_shop_here:customer-delete' pk=customer.customer_id %}">{% trans "Delete" %}</a>
-            </td>
-            </tr>
-        {% endfor %}
-        </table>
-    {% else %}
-        <p>{% trans "No customers found." %}</p>
-    {% endif %}
+    <div class="bg-white p-6 rounded shadow">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-2xl font-bold text-blue-600">{% trans "Customers" %}</h1>
+            <a href="{% url 'book_shop_here:customer-create' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Add Customer" %}</a>
+        </div>
+
+        <form method="get" class="mb-4">
+            <div class="flex items-center max-w-md">
+                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by name, phone, or address' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
+                <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
+            </div>
+        </form>
+
+        {% if customers %}
+            <table class="w-full border border-gray-300 border-collapse">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Name" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Phone Number" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Mailing Address" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for customer in customers %}
+                    <tr>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer.phone_number|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer.mailing_address|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">
+                            <a href="{% url 'book_shop_here:customer-update' pk=customer.customer_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                            <span class="px-2">|</span>
+                            <a href="{% url 'book_shop_here:customer-delete' pk=customer.customer_id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{% trans "No customers found." %}</p>
+        {% endif %}
+    </div>
 {% endblock %}

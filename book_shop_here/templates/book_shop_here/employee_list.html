@@ -2,42 +2,48 @@
 {% load i18n %}
 
 {% block content %}
-    <h1>{% trans "Employees" %}</h1>
-    <form method="get">
-        <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by name or email' %}">
-        <button type="submit">{% trans "Search" %}</button>
-    </form>
-    <p><a href="{% url 'book_shop_here:employee-create' %}">{% trans "Add Employee" %}</a></p>
-    {% if messages %}
-        <ul class="messages">
-        {% for message in messages %}
-            <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% if employees %}
-        <table>
-        <tr>
-            <th>{% trans "Name" %}</th>
-            <th>{% trans "Email" %}</th>
-            <th>{% trans "Group" %}</th>
-            <th>{% trans "Phone Number" %}</th>
-            <th>{% trans "Actions" %}</th>
-        </tr>
-        {% for employee in employees %}
-            <tr>
-            <td>{{ employee }}</td>
-            <td>{{ employee.email|default:"-" }}</td>
-            <td>{{ employee.group.name|default:"-" }}</td>
-            <td>{{ employee.phone_number|default:"-" }}</td>
-            <td>
-                <a href="{% url 'book_shop_here:employee-update' pk=employee.employee_id %}">{% trans "Edit" %}</a> |
-                <a href="{% url 'book_shop_here:employee-delete' pk=employee.employee_id %}">{% trans "Delete" %}</a>
-            </td>
-            </tr>
-        {% endfor %}
-        </table>
-    {% else %}
-        <p>{% trans "No employees found." %}</p>
-    {% endif %}
+    <div class="bg-white p-6 rounded shadow">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-2xl font-bold text-blue-600">{% trans "Employees" %}</h1>
+            <a href="{% url 'book_shop_here:employee-create' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Add Employee" %}</a>
+        </div>
+
+        <form method="get" class="mb-4">
+            <div class="flex items-center max-w-md">
+                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by name, email, or role' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
+                <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
+            </div>
+        </form>
+
+        {% if employees %}
+            <table class="w-full border border-gray-300 border-collapse">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Name" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Email" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Role" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Phone Number" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for employee in employees %}
+                    <tr>
+                        <td class="border border-gray-300 px-3 py-2">{{ employee }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ employee.email|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ employee.group.name|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ employee.phone_number|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">
+                            <a href="{% url 'book_shop_here:employee-update' pk=employee.employee_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                            <span class="px-2">|</span>
+                            <a href="{% url 'book_shop_here:employee-delete' pk=employee.employee_id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{% trans "No employees found." %}</p>
+        {% endif %}
+    </div>
 {% endblock %}

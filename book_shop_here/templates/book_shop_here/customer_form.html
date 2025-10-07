@@ -3,21 +3,18 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-    <h1>{{ title|default:"Add Customer" }}</h1>
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        {{ form|crispy }}
-        {% url 'book_shop_here:customer-list' as cancel_link %}
-        <div class="mt-8 flex items-center space-x-4">
-            <button type="submit" class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-500">{% trans "Save" %}</button>
-            <a href="{{ cancel_link }}" class="inline-flex items-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-500">{% trans "Cancel" %}</a>
-        </div>
-    </form>
+    <div class="bg-white p-6 rounded shadow">
+        <h1 class="text-2xl font-bold text-blue-600 mb-4">{{ title|default:"Add Customer" }}</h1>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="space-y-4">
+                {{ form|crispy }}
+            </div>
+            {% url 'book_shop_here:customer-list' as cancel_link %}
+            <div class="mt-8 flex items-center space-x-4">
+                <button type="submit" class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-500">{% trans "Save" %}</button>
+                <a href="{{ cancel_link }}" class="inline-flex items-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-500">{% trans "Cancel" %}</a>
+            </div>
+        </form>
+    </div>
 {% endblock %}
