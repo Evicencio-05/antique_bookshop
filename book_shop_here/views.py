@@ -9,6 +9,7 @@ from django.views.generic import CreateView, DeleteView, ListView, TemplateView,
 
 from .forms import AuthorForm, BookForm, CustomerForm, EmployeeForm, GroupForm, OrderForm
 from .models import Author, Book, Customer, Employee, Order
+from .utils.search import build_advanced_search
 
 logger = logging.getLogger(__name__)
 
@@ -300,7 +301,33 @@ class GroupListView(LoginRequiredMixin, ListView):
     context_object_name = "groups"
 
     def get_queryset(self):
-        return Group.objects.all().select_related("profile").order_by("name")
+        # Prefetch permissions to avoid N+1 queries in template
+        qs = (
+            Group.objects.all()
+            .select_related("profile")
+            .prefetch_related("permissions")
+            .order_by("name")
+        )
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            fields = [
+                "name",
+                "profile__description",
+                "permissions__codename",
+                "permissions__name",
+            ]
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=["name"],
+                include_unaccent=True,
+                mode="AND",
+            )
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
