@@ -59,14 +59,15 @@ class ViewTests(TestCase):
     def test_home_view_authenticated(self):
         self.client.login(username="testuser", password="testpass")
         response = self.client.get(reverse("book_shop_here:home"))
-        self.assertRedirects(response, reverse("book_shop_here:book-list"))
-        self.assertTemplateNotUsed(response, "book_shop_here/home.html")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "book_shop_here/home.html")
 
     def test_home_view_unauthenticated(self):
         response = self.client.get(reverse("book_shop_here:home"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "book_shop_here/home.html")
-        self.assertContains(response, "Login</a> to manage books")
+        # Now unauthenticated users are redirected to the login page
+        self.assertRedirects(
+            response, reverse("book_shop_here:login"), fetch_redirect_response=False
+        )
 
     def test_book_list_view(self):
         self.client.login(username="testuser", password="testpass")
@@ -84,6 +85,20 @@ class ViewTests(TestCase):
         response = self.client.get(reverse("book_shop_here:book-list"), {"q": "Nonexistent"})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "No books found")
+        # Prefixed by author
+        response = self.client.get(reverse("book_shop_here:book-list"), {"q": "author:John"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Book")
+        # Prefixed by legacy id
+        response = self.client.get(
+            reverse("book_shop_here:book-list"), {"q": f"legacy:{self.book.legacy_id}"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Book")
+        # Rating label
+        response = self.client.get(reverse("book_shop_here:book-list"), {"q": "rating:Excellent"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Book")
 
     def test_book_create_view_permission(self):
         self.client.login(username="testuser", password="testpass")
@@ -185,7 +200,7 @@ class ViewTests(TestCase):
         permission = Permission.objects.get(codename="delete_book", content_type=content_type)
         self.user.user_permissions.add(permission)
         response = self.client.post(
-            reverse("book_shop_here:book-delete", kwargs={"pk": "doej1234"})
+            reverse("book_shop_here:book-delete", kwargs={"pk": self.book.book_id})
         )
         self.assertRedirects(response, reverse("book_shop_here:book-list"))
         self.assertFalse(Book.objects.filter(legacy_id="doej1234").exists())
@@ -197,6 +212,15 @@ class ViewTests(TestCase):
         self.assertTemplateUsed(response, "book_shop_here/author_list.html")
         self.assertContains(response, "John Doe")
         self.assertContains(response, "Add Author")
+
+    def test_author_list_search(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(reverse("book_shop_here:author-list"), {"q": "John"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "John Doe")
+        response = self.client.get(reverse("book_shop_here:author-list"), {"q": "Nonexistent"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No authors found")
 
     def test_author_create_view(self):
         self.client.login(username="testuser", password="testpass")
@@ -332,6 +356,11 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.group.name)
 
+        # Search using prefix
+        response = self.client.get(reverse("book_shop_here:group-list"), {"q": "perm:add_book"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.group.name)
+
     def test_group_list_auth_dropdown_renders(self):
         self.client.login(username="testuser", password="testpass")
         response = self.client.get(reverse("book_shop_here:group-list"))
@@ -357,6 +386,9 @@ class ViewTests(TestCase):
         self.assertContains(response, ">Role<")
         # Contains at least one permissions checkbox
         self.assertContains(response, 'name="permissions"', html=False)
+        # Domain/auth select buttons present
+        self.assertContains(response, "Select domain")
+        self.assertContains(response, "Select auth")
 
     def test_group_permissions_matrix_display(self):
         self.client.login(username="testuser", password="testpass")
@@ -447,6 +479,31 @@ class ViewTests(TestCase):
         self.assertContains(response, str(self.order.order_id))
         self.assertContains(response, "Add Order")
 
+    def test_order_list_search(self):
+        self.client.login(username="testuser", password="testpass")
+        # Search by customer last name
+        response = self.client.get(
+            reverse("book_shop_here:order-list"), {"q": self.customer.last_name}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, str(self.order.order_id))
+        # Search by numeric order id
+        response = self.client.get(
+            reverse("book_shop_here:order-list"), {"q": str(self.order.order_id)}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, str(self.order.order_id))
+        # Search by status label via prefix
+        response = self.client.get(
+            reverse("book_shop_here:order-list"), {"q": 'status:"To Be Shipped"'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, str(self.order.order_id))
+        # Search by payment label via prefix
+        response = self.client.get(reverse("book_shop_here:order-list"), {"q": "payment:Cash"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, str(self.order.order_id))
+
     def test_order_create_view(self):
         self.client.login(username="testuser", password="testpass")
         content_type = ContentType.objects.get_for_model(Order)
@@ -525,6 +582,16 @@ class ViewTests(TestCase):
         self.assertTemplateUsed(response, "book_shop_here/employee_list.html")
         self.assertContains(response, "Test Employee")
         self.assertContains(response, "Add Employee")
+
+    def test_employee_list_search(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(reverse("book_shop_here:employee-list"), {"q": "Manager"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Employee")
+        # Prefixed role
+        response = self.client.get(reverse("book_shop_here:employee-list"), {"q": "role:Manager"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Employee")
 
     def test_employee_create_view(self):
         self.client.login(username="testuser", password="testpass")
@@ -616,6 +683,19 @@ class ViewTests(TestCase):
         self.assertTemplateUsed(response, "book_shop_here/customer_list.html")
         self.assertContains(response, "Bob Jones")
         self.assertContains(response, "Add Customer")
+
+    def test_customer_list_search(self):
+        self.client.login(username="testuser", password="testpass")
+        # Use explicit name: prefix for deterministic match
+        response = self.client.get(reverse("book_shop_here:customer-list"), {"q": "name:Bob"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Bob Jones")
+        # Prefixed search
+        response = self.client.get(
+            reverse("book_shop_here:customer-list"), {"q": f"phone:{self.customer.phone_number}"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Bob Jones")
 
     def test_customer_create_view(self):
         self.client.login(username="testuser", password="testpass")

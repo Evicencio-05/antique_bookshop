@@ -2,46 +2,63 @@
 {% load i18n %}
 
 {% block content %}
-    <h1>{% trans "Orders" %}</h1>
-    <form method="get">
-        <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by order ID or customer name' %}">
-        <button type="submit">{% trans "Search" %}</button>
-    </form>
-    <p><a href="{% url 'book_shop_here:order-create' %}">{% trans "Add Order" %}</a></p>
-    {% if messages %}
-        <ul class="messages">
-        {% for message in messages %}
-            <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% if orders %}
-        <table>
-        <tr>
-            <th>{% trans "Order ID" %}</th>
-            <th>{% trans "Customer" %}</th>
-            <th>{% trans "Employee" %}</th>
-            <th>{% trans "Sale Amount" %}</th>
-            <th>{% trans "Status" %}</th>
-            <th>{% trans "Books" %}</th>
-            <th>{% trans "Actions" %}</th>
-        </tr>
-        {% for order in orders %}
-            <tr>
-            <td>{{ order.order_id }}</td>
-            <td>{{ order.customer_id }}</td>
-            <td>{{ order.employee_id }}</td>
-            <td>{{ order.sale_amount }}</td>
-            <td>{{ order.order_status }}</td>
-            <td>{{ order.books.all|join:", " }}</td>
-            <td>
-                <a href="{% url 'book_shop_here:order-update' pk=order.order_id %}">{% trans "Edit" %}</a> |
-                <a href="{% url 'book_shop_here:order-delete' pk=order.order_id %}">{% trans "Delete" %}</a>
-            </td>
-            </tr>
-        {% endfor %}
-        </table>
-    {% else %}
-        <p>{% trans "No orders found." %}</p>
-    {% endif %}
+    <div class="bg-white p-6 rounded shadow">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-2xl font-bold text-blue-600">{% trans "Orders" %}</h1>
+            <a href="{% url 'book_shop_here:order-create' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Add Order" %}</a>
+        </div>
+
+        <form method="get" class="mb-4">
+            <div class="flex items-center max-w-md">
+                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by order ID, customer/employee, status, or book' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
+                <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
+            </div>
+        </form>
+
+        <details class="mb-4 text-sm text-gray-700">
+            <summary class="cursor-pointer text-blue-600 hover:underline">{% trans "Search tips" %}</summary>
+            <div class="mt-2 space-y-1">
+                <p><strong>{% trans "Examples" %}:</strong></p>
+                <p><code>id:123</code>, <code>customer:"Bob Jones"</code>, <code>status:"To Be Shipped"</code>, <code>payment:Cash</code>, <code>book:"Test Book"</code></p>
+                <p><a href="{% url 'book_shop_here:docs' %}#search" class="text-blue-600 hover:underline">{% trans "Full search documentation" %}</a></p>
+            </div>
+        </details>
+
+        {% if orders %}
+            <table class="w-full border border-gray-300 border-collapse">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Order ID" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Customer" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Employee" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Sale Amount" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Status" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Books" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td class="border border-gray-300 px-3 py-2">{{ order.order_id }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ order.customer_id }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ order.employee_id }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ order.sale_amount }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ order.order_status }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ order.books.all|join:", " }}</td>
+                        <td class="border border-gray-300 px-3 py-2">
+                            <a href="{% url 'book_shop_here:order-detail' pk=order.order_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
+                            <span class="px-2">|</span>
+                            <a href="{% url 'book_shop_here:order-update' pk=order.order_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                            <span class="px-2">|</span>
+                            <a href="{% url 'book_shop_here:order-delete' pk=order.order_id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{% trans "No orders found." %}</p>
+        {% endif %}
+    </div>
 {% endblock %}

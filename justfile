@@ -45,12 +45,29 @@ createsuperuser:
 test:
     uv run python manage.py test book_shop_here.tests --pattern="test_*.py"
 
+test-file file:
+    uv run python manage.py test {{file}} --pattern="test_*.py"
+
+test-views:
+    uv run python manage.py test book_shop_here.tests.test_views --pattern="test_*.py"
+
+test-forms:
+    uv run python manage.py test book_shop_here.tests.test_forms --pattern="test_*.py"
+
+test-models:
+    uv run python manage.py test book_shop_here.tests.test_models --pattern="test_*.py"
+
 # Linting and formatting with Ruff
 lint:
     uv run ruff check .
 
 lint-fix:
     uv run ruff check . --fix
+
+quick:
+    uv run ruff format .
+    uv run ruff check .
+    uv run mypy --install-types --non-interactive .
 
 format:
     uv run ruff format .

@@ -1,10 +1,154 @@
 {% extends 'book_shop_here/base.html' %}
+{% load i18n %}
 {% block content %}
-    <h1>Welcome to the Book Shop!</h1>
-    <p>Browse our collection of antique books.</p>
-    {% if not user.is_authenticated %}
-        <a href="{% url 'login' %}">Login</a> to manage books, authors, and orders.
-    {% else %}
-        <a href="{% url 'book_list' %}">View Books</a>
-    {% endif %}
+    <div class="bg-white p-8 rounded shadow">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-blue-600 mb-2">{% trans "Antique Bookshop" %}</h1>
+            <p class="text-gray-700">{% trans "Discover, manage, and delight in rare books." %}</p>
+        </div>
+
+        <form method="get" class="max-w-2xl mx-auto mb-6">
+            <div class="flex items-center">
+                <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Quick lookup across books, authors, customers, employees, orders, and roles' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
+                <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
+            </div>
+        </form>
+
+        {% if q %}
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">{% trans "Lookup Results" %}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% if lookup_results.books %}
+                <div>
+                    <h3 class="font-semibold text-blue-600 mb-2">{% trans "Books" %}</h3>
+                    <ul class="list-disc pl-6 text-gray-700">
+                        {% for b in lookup_results.books %}
+                        <li>{{ b.title }}{% if b.legacy_id %} ({{ b.legacy_id }}){% endif %}
+                            <span class="ml-2 text-sm">
+                                {% if perms.book_shop_here.change_book %}
+                                    <a href="{% url 'book_shop_here:book-update' pk=b.book_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:book-detail' pk=b.book_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if lookup_results.authors %}
+                <div>
+                    <h3 class="font-semibold text-blue-600 mb-2">{% trans "Authors" %}</h3>
+                    <ul class="list-disc pl-6 text-gray-700">
+                        {% for a in lookup_results.authors %}
+                        <li>{{ a }}
+                            <span class="ml-2 text-sm">
+                                {% if perms.book_shop_here.change_author %}
+                                    <a href="{% url 'book_shop_here:author-update' pk=a.author_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:author-detail' pk=a.author_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if lookup_results.customers %}
+                <div>
+                    <h3 class="font-semibold text-blue-600 mb-2">{% trans "Customers" %}</h3>
+                    <ul class="list-disc pl-6 text-gray-700">
+                        {% for c in lookup_results.customers %}
+                        <li>{{ c }}
+                            <span class="ml-2 text-sm">
+                                {% if perms.book_shop_here.change_customer %}
+                                    <a href="{% url 'book_shop_here:customer-update' pk=c.customer_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:customer-detail' pk=c.customer_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if lookup_results.employees %}
+                <div>
+                    <h3 class="font-semibold text-blue-600 mb-2">{% trans "Employees" %}</h3>
+                    <ul class="list-disc pl-6 text-gray-700">
+                        {% for e in lookup_results.employees %}
+                        <li>{{ e }}{% if e.group %} — {{ e.group.name }}{% endif %}
+                            <span class="ml-2 text-sm">
+                                {% if perms.book_shop_here.change_employee %}
+                                    <a href="{% url 'book_shop_here:employee-update' pk=e.employee_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:employee-detail' pk=e.employee_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if lookup_results.orders %}
+                <div>
+                    <h3 class="font-semibold text-blue-600 mb-2">{% trans "Orders" %}</h3>
+                    <ul class="list-disc pl-6 text-gray-700">
+                        {% for o in lookup_results.orders %}
+                        <li>#{{ o.order_id }} — {{ o.customer_id }} — {{ o.order_status }}
+                            <span class="ml-2 text-sm">
+                                {% if perms.book_shop_here.change_order %}
+                                    <a href="{% url 'book_shop_here:order-update' pk=o.order_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:order-detail' pk=o.order_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if lookup_results.roles %}
+                <div>
+                    <h3 class="font-semibold text-blue-600 mb-2">{% trans "Roles" %}</h3>
+                    <ul class="list-disc pl-6 text-gray-700">
+                        {% for g in lookup_results.roles %}
+                        <li>{{ g.name }}{% if g.profile and g.profile.description %} — {{ g.profile.description }}{% endif %}
+                            <span class="ml-2 text-sm">
+                                {% if perms.auth.change_group %}
+                                    <a href="{% url 'book_shop_here:group-update' pk=g.id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% endif %}
+                                <a href="{% url 'book_shop_here:group-detail' pk=g.id %}" class="text-blue-600 hover:underline ml-2">{% trans "View" %}</a>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h2 class="text-xl font-semibold mb-3">{% trans "Recent Orders" %}</h2>
+                <ul class="list-disc pl-6 text-gray-700">
+                    {% for o in recent_orders %}
+                    <li>#{{ o.order_id }} — {{ o.customer_id }} — {{ o.order_status }}</li>
+                    {% empty %}
+                    <li class="text-gray-500">{% trans "No recent orders." %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div>
+                <h2 class="text-xl font-semibold mb-3">{% trans "Recently Updated" %}</h2>
+                <ul class="list-disc pl-6 text-gray-700">
+                    {% for b in recent_books %}<li>{% trans "Book" %}: {{ b.title }}</li>{% endfor %}
+                    {% for a in recent_authors %}<li>{% trans "Author" %}: {{ a }}</li>{% endfor %}
+                    {% for c in recent_customers %}<li>{% trans "Customer" %}: {{ c }}</li>{% endfor %}
+                    {% for e in recent_employees %}<li>{% trans "Employee" %}: {{ e }}</li>{% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% if not user.is_authenticated %}
+            <div class="text-center mt-8">
+                <a href="{% url 'login' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Log In" %}</a>
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}

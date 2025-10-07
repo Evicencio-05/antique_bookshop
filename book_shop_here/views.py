@@ -17,10 +17,183 @@ logger = logging.getLogger(__name__)
 class HomeView(TemplateView):
     template_name = "book_shop_here/home.html"
 
-    def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect("book_shop_here:book-list")
-        return super().get(request, *args, **kwargs)
+    def dispatch(self, request, *args, **kwargs):
+        # Redirect unauthenticated users to login to avoid exposing inventory/search
+        if not request.user.is_authenticated:
+            return redirect("book_shop_here:login")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        q = (self.request.GET.get("q") or "").strip()
+        context["q"] = q
+
+        # Recent sections
+        context["recent_orders"] = Order.objects.select_related(
+            "customer_id", "employee_id"
+        ).order_by("-order_date")[:5]
+        context["recent_books"] = Book.objects.order_by("-pk")[:5]
+        context["recent_authors"] = Author.objects.order_by("-pk")[:5]
+        context["recent_customers"] = Customer.objects.order_by("-pk")[:5]
+        context["recent_employees"] = Employee.objects.select_related("group").order_by("-pk")[:5]
+
+        # Quick lookup across models
+        results = {}
+        if q:
+            # Books
+            b_qs = Book.objects.filter(book_status="available").prefetch_related("authors")
+            b_fields = [
+                "title",
+                "legacy_id",
+                "authors__first_name",
+                "authors__last_name",
+                "publisher",
+                "rating",
+            ]
+            rating_map = {label.lower(): value for value, label in Book.Rating.choices}
+            b_q, b_ann = build_advanced_search(
+                q,
+                fields=b_fields,
+                nospace_fields=["legacy_id", "title"],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "title": ["title"],
+                    "author": ["authors__first_name", "authors__last_name"],
+                    "legacy": ["legacy_id"],
+                    "publisher": ["publisher"],
+                    "rating": ["rating"],
+                },
+                choice_value_map={"rating": rating_map},
+            )
+            if b_q is not None:
+                if b_ann:
+                    b_qs = b_qs.annotate(**b_ann)
+                results["books"] = list(b_qs.filter(b_q).distinct()[:5])
+
+            # Authors
+            a_qs = Author.objects.all()
+            a_q, a_ann = build_advanced_search(
+                q,
+                fields=["first_name", "last_name", "description"],
+                nospace_fields=[],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "first": ["first_name"],
+                    "last": ["last_name"],
+                    "desc": ["description"],
+                },
+            )
+            if a_q is not None:
+                if a_ann:
+                    a_qs = a_qs.annotate(**a_ann)
+                results["authors"] = list(a_qs.filter(a_q).distinct()[:5])
+
+            # Customers
+            c_qs = Customer.objects.all()
+            c_q, c_ann = build_advanced_search(
+                q,
+                fields=["first_name", "last_name", "phone_number", "mailing_address"],
+                nospace_fields=["phone_number"],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "name": ["first_name", "last_name"],
+                    "phone": ["phone_number"],
+                    "address": ["mailing_address"],
+                },
+            )
+            if c_q is not None:
+                if c_ann:
+                    c_qs = c_qs.annotate(**c_ann)
+                results["customers"] = list(c_qs.filter(c_q).distinct()[:5])
+
+            # Employees
+            e_qs = Employee.objects.select_related("group")
+            e_q, e_ann = build_advanced_search(
+                q,
+                fields=["first_name", "last_name", "email", "group__name"],
+                nospace_fields=[],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "name": ["first_name", "last_name"],
+                    "email": ["email"],
+                    "role": ["group__name"],
+                },
+            )
+            if e_q is not None:
+                if e_ann:
+                    e_qs = e_qs.annotate(**e_ann)
+                results["employees"] = list(e_qs.filter(e_q).distinct()[:5])
+
+            # Orders
+            o_qs = Order.objects.select_related("customer_id", "employee_id").prefetch_related(
+                "books"
+            )
+            status_map = {label.lower(): value for value, label in Order.OrderStatus.choices}
+            payment_map = {label.lower(): value for value, label in Order.PaymentMethod.choices}
+            o_q, o_ann = build_advanced_search(
+                q,
+                fields=[
+                    "customer_id__first_name",
+                    "customer_id__last_name",
+                    "employee_id__first_name",
+                    "employee_id__last_name",
+                    "payment_method",
+                    "order_status",
+                    "books__title",
+                ],
+                nospace_fields=["customer_id__last_name", "employee_id__last_name"],
+                include_unaccent=True,
+                mode="AND",
+                numeric_eq_fields=["order_id"],
+                prefixed_fields={
+                    "id": ["order_id"],
+                    "customer": ["customer_id__first_name", "customer_id__last_name"],
+                    "employee": ["employee_id__first_name", "employee_id__last_name"],
+                    "status": ["order_status"],
+                    "payment": ["payment_method"],
+                    "book": ["books__title"],
+                },
+                choice_value_map={"order_status": status_map, "payment_method": payment_map},
+            )
+            if o_q is not None:
+                if o_ann:
+                    o_qs = o_qs.annotate(**o_ann)
+                results["orders"] = list(o_qs.filter(o_q).distinct()[:5])
+
+            # Roles (Groups)
+            g_qs = Group.objects.select_related("profile").prefetch_related("permissions").all()
+            g_q, g_ann = build_advanced_search(
+                q,
+                fields=[
+                    "name",
+                    "profile__description",
+                    "permissions__codename",
+                    "permissions__name",
+                ],
+                nospace_fields=["name"],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "name": ["name"],
+                    "desc": ["profile__description"],
+                    "perm": ["permissions__codename", "permissions__name"],
+                },
+            )
+            if g_q is not None:
+                if g_ann:
+                    g_qs = g_qs.annotate(**g_ann)
+                results["roles"] = list(g_qs.filter(g_q).distinct()[:5])
+
+        context["lookup_results"] = results
+        return context
+
+
+class DocsView(TemplateView):
+    template_name = "book_shop_here/docs.html"
 
 
 class BookListView(LoginRequiredMixin, ListView):
@@ -29,13 +202,41 @@ class BookListView(LoginRequiredMixin, ListView):
     context_object_name = "books"
 
     def get_queryset(self):
-        queryset = Book.objects.filter(book_status="available").prefetch_related("authors")
-        query = self.request.GET.get("q")
-        if query:
-            queryset = queryset.filter(title__icontains=query) | queryset.filter(
-                legacy_id__icontains=query
+        qs = Book.objects.filter(book_status="available").prefetch_related("authors")
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            fields = [
+                "title",
+                "legacy_id",
+                "authors__first_name",
+                "authors__last_name",
+                "publisher",
+                "rating",
+            ]
+            # Map display labels to values for rating
+            rating_map = {label.lower(): value for value, label in Book.Rating.choices}
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=["legacy_id", "title"],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "title": ["title"],
+                    "author": ["authors__first_name", "authors__last_name"],
+                    "legacy": ["legacy_id"],
+                    "publisher": ["publisher"],
+                    "rating": ["rating"],
+                },
+                choice_value_map={
+                    "rating": rating_map,
+                },
             )
-        return queryset
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -98,6 +299,17 @@ class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = "book_shop_here.delete_book"
     raise_exception = True
 
+
+class BookDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/book_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["book"] = get_object_or_404(Book, book_id=self.kwargs["pk"])
+        return context
+
     def get_object(self, queryset=None):
         """Find the Book by book_id (passed as 'pk' in URL)"""
         return get_object_or_404(Book, book_id=self.kwargs["pk"])
@@ -131,6 +343,34 @@ class AuthorListView(LoginRequiredMixin, ListView):
     model = Author
     template_name = "book_shop_here/author_list.html"
     context_object_name = "authors"
+
+    def get_queryset(self):
+        qs = Author.objects.all()
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            fields = ["first_name", "last_name", "description"]
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=[],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "first": ["first_name"],
+                    "last": ["last_name"],
+                    "desc": ["description"],
+                },
+            )
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")
+        return context
 
 
 class AuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -188,6 +428,17 @@ class AuthorDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = "book_shop_here.delete_author"
     raise_exception = True
 
+
+class AuthorDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/author_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["author"] = get_object_or_404(Author, pk=self.kwargs["pk"])
+        return context
+
     def form_valid(self, form):
         try:
             messages.success(self.request, "Author removed.")
@@ -202,6 +453,52 @@ class OrderListView(LoginRequiredMixin, ListView):
     model = Order
     template_name = "book_shop_here/order_list.html"
     context_object_name = "orders"
+
+    def get_queryset(self):
+        qs = Order.objects.select_related("customer_id", "employee_id").prefetch_related("books")
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            fields = [
+                "customer_id__first_name",
+                "customer_id__last_name",
+                "employee_id__first_name",
+                "employee_id__last_name",
+                "payment_method",
+                "order_status",
+                "books__title",
+            ]
+            status_map = {label.lower(): value for value, label in Order.OrderStatus.choices}
+            payment_map = {label.lower(): value for value, label in Order.PaymentMethod.choices}
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=["customer_id__last_name", "employee_id__last_name"],
+                include_unaccent=True,
+                mode="AND",
+                numeric_eq_fields=["order_id"],
+                prefixed_fields={
+                    "id": ["order_id"],
+                    "customer": ["customer_id__first_name", "customer_id__last_name"],
+                    "employee": ["employee_id__first_name", "employee_id__last_name"],
+                    "status": ["order_status"],
+                    "payment": ["payment_method"],
+                    "book": ["books__title"],
+                },
+                choice_value_map={
+                    "order_status": status_map,
+                    "payment_method": payment_map,
+                },
+            )
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")
+        return context
 
 
 class OrderCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -285,6 +582,17 @@ class OrderDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = "book_shop_here.delete_order"
     raise_exception = True
 
+
+class OrderDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/order_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["order"] = get_object_or_404(Order, pk=self.kwargs["pk"])
+        return context
+
     def form_valid(self, form):
         try:
             messages.success(self.request, "Order removed.")
@@ -322,6 +630,11 @@ class GroupListView(LoginRequiredMixin, ListView):
                 nospace_fields=["name"],
                 include_unaccent=True,
                 mode="AND",
+                prefixed_fields={
+                    "name": ["name"],
+                    "desc": ["profile__description"],
+                    "perm": ["permissions__codename", "permissions__name"],
+                },
             )
             if q_obj is not None:
                 if annotations:
@@ -381,6 +694,7 @@ class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         domain_models = ["book", "author", "customer", "order", "employee"]
         auth_models = [("user", "user"), ("group", "role")]
         permission_models_all = [(m, m) for m in domain_models] + auth_models
+        context["permission_domain_count"] = len(domain_models)
         perms = Permission.objects.filter(
             content_type__app_label__in=["book_shop_here", "auth"]
         ).values("id", "codename")
@@ -436,6 +750,7 @@ class GroupUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         domain_models = ["book", "author", "customer", "order", "employee"]
         auth_models = [("user", "user"), ("group", "role")]
         permission_models_all = [(m, m) for m in domain_models] + auth_models
+        context["permission_domain_count"] = len(domain_models)
         perms = Permission.objects.filter(
             content_type__app_label__in=["book_shop_here", "auth"]
         ).values("id", "codename")
@@ -476,6 +791,20 @@ class GroupDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = "auth.delete_group"
     raise_exception = True
 
+
+class GroupDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/group_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["group"] = get_object_or_404(
+            Group.objects.select_related("profile").prefetch_related("permissions"),
+            pk=self.kwargs["pk"],
+        )
+        return context
+
     def form_valid(self, form):
         try:
             messages.success(self.request, "Group removed.")
@@ -490,6 +819,39 @@ class EmployeeListView(LoginRequiredMixin, ListView):
     model = Employee
     template_name = "book_shop_here/employee_list.html"
     context_object_name = "employees"
+
+    def get_queryset(self):
+        qs = Employee.objects.select_related("group")
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            fields = [
+                "first_name",
+                "last_name",
+                "email",
+                "group__name",
+            ]
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=[],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "name": ["first_name", "last_name"],
+                    "email": ["email"],
+                    "role": ["group__name"],
+                },
+            )
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")
+        return context
 
 
 class EmployeeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -547,6 +909,19 @@ class EmployeeDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView
     permission_required = "book_shop_here.delete_employee"
     raise_exception = True
 
+
+class EmployeeDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/employee_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["employee"] = get_object_or_404(
+            Employee.objects.select_related("group"), pk=self.kwargs["pk"]
+        )
+        return context
+
     def form_valid(self, form):
         try:
             messages.success(self.request, "Employee removed.")
@@ -561,6 +936,39 @@ class CustomerListView(LoginRequiredMixin, ListView):
     model = Customer
     template_name = "book_shop_here/customer_list.html"
     context_object_name = "customers"
+
+    def get_queryset(self):
+        qs = Customer.objects.all()
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            fields = [
+                "first_name",
+                "last_name",
+                "phone_number",
+                "mailing_address",
+            ]
+            q_obj, annotations = build_advanced_search(
+                q,
+                fields=fields,
+                nospace_fields=["phone_number"],
+                include_unaccent=True,
+                mode="AND",
+                prefixed_fields={
+                    "name": ["first_name", "last_name"],
+                    "phone": ["phone_number"],
+                    "address": ["mailing_address"],
+                },
+            )
+            if q_obj is not None:
+                if annotations:
+                    qs = qs.annotate(**annotations)
+                qs = qs.filter(q_obj).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")
+        return context
 
 
 class CustomerCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -614,6 +1022,17 @@ class CustomerDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView
     template_name = "book_shop_here/customer_delete_confirm.html"
     success_url = reverse_lazy("book_shop_here:customer-list")
     permission_required = "book_shop_here.delete_customer"
+
+
+class CustomerDetailView(LoginRequiredMixin, TemplateView):
+    template_name = "book_shop_here/customer_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from django.shortcuts import get_object_or_404
+
+        context = super().get_context_data(**kwargs)
+        context["customer"] = get_object_or_404(Customer, pk=self.kwargs["pk"])
+        return context
 
     def form_valid(self, form):
         try:

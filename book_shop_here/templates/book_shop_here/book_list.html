@@ -2,42 +2,60 @@
 {% load i18n %}
 
 {% block content %}
-    <h1>{% trans "Books" %}</h1>
-    <form method="get">
-        <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by title or legacy ID' %}">
-        <button type="submit">{% trans "Search" %}</button>
-    </form>
-    <p><a href="{% url 'book_shop_here:book-create' %}">{% trans "Add Book" %}</a></p>
-    {% if messages %}
-        <ul class="messages">
-        {% for message in messages %}
-            <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% if books %}
-        <table>
-        <tr>
-            <th>{% trans "Legacy ID" %}</th>
-            <th>{% trans "Title" %}</th>
-            <th>{% trans "Authors" %}</th>
-            <th>{% trans "Retail Price" %}</th>
-            <th>{% trans "Actions" %}</th>
-        </tr>
-        {% for book in books %}
-            <tr>
-            <td>{{ book.legacy_id|default:"-" }}</td>
-            <td>{{ book.title }}</td>
-            <td>{{ book.authors.all|join:", " }}</td>
-            <td>{{ book.retail_price }}</td>
-            <td>
-                <a href="{% url 'book_shop_here:book-update' pk=book.book_id %}">{% trans "Edit" %}</a> |
-                <a href="{% url 'book_shop_here:book-delete' pk=book.book_id %}">{% trans "Delete" %}</a>
-            </td>
-            </tr>
-        {% endfor %}
-        </table>
-    {% else %}
-        <p>{% trans "No books found." %}</p>
-    {% endif %}
+    <div class="bg-white p-6 rounded shadow">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-2xl font-bold text-blue-600">{% trans "Books" %}</h1>
+            <a href="{% url 'book_shop_here:book-create' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Add Book" %}</a>
+        </div>
+
+        <form method="get" class="mb-4">
+            <div class="flex items-center max-w-md">
+                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by title, author, or legacy ID' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
+                <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
+            </div>
+        </form>
+
+        <details class="mb-4 text-sm text-gray-700">
+            <summary class="cursor-pointer text-blue-600 hover:underline">{% trans "Search tips" %}</summary>
+            <div class="mt-2 space-y-1">
+                <p><strong>{% trans "Examples" %}:</strong></p>
+                <p><code>title:gatsby</code>, <code>author:"John Doe"</code>, <code>legacy:ABC123</code>, <code>rating:Excellent</code></p>
+                <p>{% trans "Quoted phrases match exactly; multiple terms are ANDed." %}</p>
+                <p><a href="{% url 'book_shop_here:docs' %}#search" class="text-blue-600 hover:underline">{% trans "Full search documentation" %}</a></p>
+            </div>
+        </details>
+
+        {% if books %}
+            <table class="w-full border border-gray-300 border-collapse">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Legacy ID" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Title" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Authors" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Retail Price" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for book in books %}
+                    <tr>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.legacy_id|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.title }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.authors.all|join:", " }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.retail_price }}</td>
+                        <td class="border border-gray-300 px-3 py-2">
+                            <a href="{% url 'book_shop_here:book-detail' pk=book.book_id %}" class="text-blue-600 hover:underline" aria-label="{% trans 'View book' %}">{% trans "View" %}</a>
+                            <span class="px-2">|</span>
+                            <a href="{% url 'book_shop_here:book-update' pk=book.book_id %}" class="text-blue-600 hover:underline" aria-label="{% trans 'Edit book' %}">{% trans "Edit" %}</a>
+                            <span class="px-2">|</span>
+                            <a href="{% url 'book_shop_here:book-delete' pk=book.book_id %}" class="text-blue-600 hover:underline" aria-label="{% trans 'Delete book' %}">{% trans "Delete" %}</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{% trans "No books found." %}</p>
+        {% endif %}
+    </div>
 {% endblock %}

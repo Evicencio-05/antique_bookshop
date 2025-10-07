@@ -17,8 +17,10 @@
                 <div class="flex items-center justify-between mb-2">
                     <h2 class="text-xl font-semibold">{% trans "Permissions" %}</h2>
                     <div class="space-x-2">
-                        <button type="button" id="perm-select-all" class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm mb-4">{% trans "Select all" %}</button>
-                        <button type="button" id="perm-clear-all" class="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm mb-4">{% trans "Clear all" %}</button>
+                        <button type="button" id="perm-select-all" class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm">{% trans "Select all" %}</button>
+                        <button type="button" id="perm-select-domain" class="px-3 py-1 rounded bg-green-600 hover:bg-green-700 text-white text-sm">{% trans "Select domain" %}</button>
+                        <button type="button" id="perm-select-auth" class="px-3 py-1 rounded bg-purple-600 hover:bg-purple-700 text-white text-sm">{% trans "Select auth" %}</button>
+                        <button type="button" id="perm-clear-all" class="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm">{% trans "Clear all" %}</button>
                     </div>
                 </div>
                 <div class="relative overflow-x-auto max-h-96">
@@ -28,10 +30,10 @@
                                 <th class="border border-gray-200 px-3 py-2 text-left sticky top-0 left-0 bg-gray-50 z-20">{% trans "Permission" %}</th>
                                 {% for code,label in permission_models_all %}
                                     <th class="border border-gray-200 px-3 py-2 text-center sticky top-0 bg-gray-50 z-10">
-                                        <div class="flex items-center justify-center space-x-4">
+                                        <div class="flex items-center justify-center space-x-2">
                                             <span>{{ label|title }}</span>
-                                            <label class="inline-flex items-center justify-center p-1 rounded border border-gray-300 cursor-pointer">
-                                                <input type="checkbox" class="h-4 w-4 col-toggle" data-col="{{ forloop.counter0 }}" />
+                                            <label class="inline-flex items-center justify-center rounded border border-gray-300 cursor-pointer">
+                                                <input type="checkbox" class="h-4 w-4 col-toggle" data-col="{{ forloop.counter0 }}" data-col-type="{% if forloop.counter0 < permission_domain_count %}domain{% else %}auth{% endif %}" />
                                             </label>
                                         </div>
                                     </th>
@@ -82,8 +84,17 @@
                     });
                     var btnAll = document.getElementById('perm-select-all');
                     var btnNone = document.getElementById('perm-clear-all');
+                    var btnDom = document.getElementById('perm-select-domain');
+                    var btnAuth = document.getElementById('perm-select-auth');
                     if(btnAll){ btnAll.addEventListener('click', function(){ permBoxes.forEach(function(cb){ cb.checked = true; }); }); }
                     if(btnNone){ btnNone.addEventListener('click', function(){ permBoxes.forEach(function(cb){ cb.checked = false; }); }); }
+                    function setColsByType(type, checked){
+                        table.querySelectorAll('.col-toggle[data-col-type="'+type+'"]').forEach(function(hcb){
+                        setCol(hcb.getAttribute('data-col'), checked);
+                        });
+                    }
+                    if(btnDom){ btnDom.addEventListener('click', function(){ setColsByType('domain', true); }); }
+                    if(btnAuth){ btnAuth.addEventListener('click', function(){ setColsByType('auth', true); }); }
                 })();
                 </script>
             </div>
