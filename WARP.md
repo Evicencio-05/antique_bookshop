@@ -1,95 +1,100 @@
 # WARP.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+Project operating rules for Warp/Agent Mode in this repository. These rules override personal defaults when working in this project.
 
 Project summary
-- Stack: Django 5.2 (Python), single project (bookshop) with one main app (book_shop_here)
-- Env/config: Settings read from a .env at repo root via django-environ; database configured via dj-database-url (SQLite by default; PostgreSQL supported)
-- Auth/permissions: Uses Django auth plus django-group-model with a GroupProfile for metadata; CRUD views are permission-gated
-- CI: .github/workflows/django.yml installs requirements and runs python manage.py test with SECRET_KEY and DATABASE_URL provided via GitHub Secrets
+- Stack: Django 5.2 (Python), project: `bookshop`, app: `book_shop_here`
+- Dependencies: managed via `pyproject.toml` and `uv` (creates/uses `.venv`)
+- Env/config: `.env` at repo root via `django-environ`; DB via `dj-database-url` (SQLite by default, PostgreSQL supported)
+- Auth/permissions: Django auth + GroupProfile metadata; views enforce permissions (CRUD + custom report permissions)
+- CI: GitHub Actions installs `uv`, lints with Ruff, type-checks with mypy, then runs Django tests
 
-Common commands
-- Environment setup (bash)
-  - Install uv
-    - curl -LsSf https://astral.sh/uv/install.sh | sh
-  - Sync dependencies (creates/updates .venv)
-    - uv sync --all-extras
-- Database
-  - Make migrations
-    - uv run python manage.py makemigrations
-  - Apply migrations
-    - uv run python manage.py migrate
-- Run server
-  - uv run python manage.py runserver
-- Checks
-  - Django system checks
-    - uv run python manage.py check
-- Tests (Django test runner)
-  - All tests
-    - uv run python manage.py test
-  - Single file
-    - uv run python manage.py test book_shop_here.tests.test_models
-  - Single test case
-    - uv run python manage.py test book_shop_here.tests.test_models.BookModelTests
-  - Single test method
-    - uv run python manage.py test book_shop_here.tests.test_models.BookModelTests.test_book_str
+Shell and tooling defaults
+- Primary shell: bash. On Windows, use Git Bash (required for `just` recipes).
+- PowerShell: supported for quick commands; when invoking executables use PowerShell’s call operator `&`.
+- Git: avoid pagers. Use `--no-pager` on commands that could page (e.g., `git --no-pager log -n 10`).
 
-Environment and configuration
-- .env lives at repo root (next to manage.py) and should include at minimum:
-  - SECRET_KEY
-  - DEBUG (True/False)
-  - ALLOWED_HOSTS (comma-separated)
-  - DATABASE_URL
-- Defaults
-  - For local dev, DATABASE_URL=sqlite:///db.sqlite3 works out of the box
-- CI variables
-  - Workflow uses: secrets.DJANGO_SECRET_KEY → SECRET_KEY, secrets.DJANGO_DATABASE_URL → DATABASE_URL
+Environment and secrets
+- `.env` lives at the repo root (next to `manage.py`). Required keys for local dev:
+  - SECRET_KEY, DEBUG, ALLOWED_HOSTS, DATABASE_URL
+- Prefer setting secrets without printing them to the terminal:
+  - Use `just secret-key-set` to write a generated SECRET_KEY into `.env` silently.
+  - Avoid echoing or logging secret values. If a command requires a secret, refer to it as an environment variable (e.g., `$SECRET_KEY`) and do not print it.
+
+Dependency and environment management
+- Install `uv` (bash): `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Create/sync venv and install all deps (incl. dev): `just sync`
+- Run arbitrary Django management: `just manage <args>`
+- PowerShell alternatives (when needed): `& .\.venv\Scripts\python.exe manage.py <args>`
+
+Run and database
+- Migrations: `just makemigrations` then `just migrate`
+- Dev server: `just run` (visits http://127.0.0.1:8000/)
+- DB defaults to SQLite via `DATABASE_URL=sqlite:///db.sqlite3`; override for PostgreSQL in `.env` if needed
+
+Testing (Django test runner)
+- Standard: `just test` (uses `uv run python manage.py test`)
+- Scope:
+  - Single file: `just test-file book_shop_here/tests/test_models.py`
+  - Specific modules: `just test-views`, `just test-forms`, `just test-models`
+- PowerShell direct (when needed): `& .\.venv\Scripts\python.exe manage.py test -v 2`
+
+Quality (lint/format/types)
+- Lint: `just lint` (Ruff)
+- Format: `just format` (Ruff)
+- Type check: `just typecheck` (mypy + django-stubs)
+- Quick sweep: `just quick` (format + lint + mypy)
+
+Frontend helpers
+- Tailwind watch/build: `just tailwind-watch`, `just tailwind-build`
+
+Git hooks
+- Python hooks: `just pre-commit-install`
+- Node/Husky hooks: `just husky-install` (requires Node via nvm)
 
 Architecture overview
 - Project layout
-  - bookshop/ (project): settings.py reads .env, configures dj-database-url, installs django_extensions and the app; template search path includes <repo>/templates and app templates
-  - book_shop_here/ (app): domain models, forms, views, urls, migrations, and templates
-- Domain model highlights (book_shop_here/models.py)
-  - GroupProfile: One-to-one with Group, stores description
-  - Employee: Links to auth User and a Group; helpers
-    - create_with_user(password, ...): creates a matching User and Employee, assigning group and syncing names/email
-    - sync_user(): keeps the linked User in sync (names/email/username/group)
-    - _generate_username(): first.last with numeric suffix on collision
-    - set_password(): updates linked User password
-  - Author, Book, Customer: Basic entities with __str__ helpers; Book has constrained choices and optional legacy_id
-  - Order: Many-to-many to Book; save() computes sale_amount from books; completed_order() marks books sold and updates status/date
-- Views and routing (book_shop_here/views.py, urls.py)
-  - Class-based views for CRUD on Books, Authors, Orders, Groups, Employees, Customers
-  - Access control uses LoginRequiredMixin and PermissionRequiredMixin with model-specific codenames (e.g., book_shop_here.add_book)
-  - HomeView redirects authenticated users to the book list; BookListView supports query string search (q) across title/legacy_id and filters available books
-  - Templates under book_shop_here/templates/ with resource-specific list/form/delete templates and registration/login.html
-- Settings of note (bookshop/settings.py)
-  - environ.Env.read_env(BASE_DIR/.env)
-  - DATABASES['default'] from env.db('DATABASE_URL')
-  - INSTALLED_APPS includes django_extensions and book_shop_here
-  - LOGIN_REDIRECT_URL='/' and LOGOUT_REDIRECT_URL uses the app's home route
+  - `bookshop/`: settings, urls, wsgi, asgi (settings read `.env`, DB from `DATABASE_URL`, crispy-tailwind enabled)
+  - `book_shop_here/`: models, forms, urls, tests, utils, views, templates, static, migrations
+- Views are modular (split by domain) under `book_shop_here/views/`:
+  - `base.py`: `HomeView`, `DocsView`
+  - `books.py`, `authors.py`, `orders.py`, `customers.py`, `employees.py`, `groups.py`: CRUD views
+  - `reports.py`: `SalesDashboardView` (perm: `book_shop_here.view_sales_reports`), `EmployeeSalesView` (perm: `book_shop_here.view_employee_sales`)
+- URLs import modules explicitly (see `book_shop_here/urls.py`): `from .views import base as views_base`, etc.
+- Models at a glance:
+  - `GroupProfile` (one-to-one with `Group`, description)
+  - `Employee` linked to `User` with helpers: `_generate_username`, `create_with_user`, `sync_user`, `set_password`
+  - `Book` has `rating` choices, optional `condition_notes`, `legacy_id`
+  - `Order` tracks status, payment, books; tests assert auto-calculation and completion behavior
 
-What to reference from README
-- Setup sequence: use uv to create the virtualenv and install from pyproject.toml (uv sync)
-- .env keys: SECRET_KEY, DEBUG, ALLOWED_HOSTS, DATABASE_URL (SQLite by default)
-- Migrations then runserver; superuser created with uv run python manage.py createsuperuser
-- Optional PostgreSQL by setting DATABASE_URL
+Permissions and roles
+- Standard Django model perms are used (view/add/change/delete).
+- Custom report perms (migration 0004) on the `Order` content type:
+  - `book_shop_here.view_sales_reports` — store-wide sales dashboard
+  - `book_shop_here.view_employee_sales` — individual employee sales
+- Role pages (Groups) expose an additional permissions matrix; ensure these codenames appear and are assigned appropriately.
 
-Notes for future agents
-- No repo-defined linter (e.g., flake8/pylint) is configured; use python manage.py check for framework-level validation
-- Tests rely on Django’s built-in test runner; pytest is not present in requirements
-- Permissions are enforced in views; when extending or adding views, ensure appropriate permission codenames are used
+Coding conventions
+- When adding features:
+  - Place new views in the appropriate module under `book_shop_here/views/` and wire them in `book_shop_here/urls.py`.
+  - Add templates under `book_shop_here/templates/book_shop_here/` with consistent naming (list/form/detail/delete_confirm).
+  - Extend forms in `book_shop_here/forms.py` and keep validation pragmatic with clear error messages.
+- Searching: `book_shop_here/utils/search.py` provides `build_advanced_search`; reuse it for consistent search behavior and normalization.
 
-Global testing rule (always-on)
-- For every change to production code, templates, or styles that affect rendering or behavior, always:
-  1) Add or update tests that cover the new or changed behavior, and remove or rewrite any tests whose assertions are no longer valid.
-  2) Prefer focused, fast tests first (unit-level where possible), then integration/view-level assertions as needed. For template changes, assert on stable, semantic markers (IDs, roles, or intentionally public classes) rather than brittle HTML fragments.
-  3) Run the full test suite before and after changes and do not leave the repository in a failing state.
-  4) If removing an existing feature or path, either remove the corresponding tests or replace them with tests that assert the new intended behavior; never leave orphaned tests.
-  5) When test flakiness is detected, prioritize stabilizing the test (improve selectors, use deterministic data) over relaxing assertions.
+Testing rules (always apply)
+1) Create new tests for new features or behaviors; update or delete tests when removing or changing features.
+2) After significant code changes, run relevant tests (or all) to ensure nothing regresses.
+3) Favor deterministic, fast tests; for templates, assert against stable markers (IDs/roles/semantic classes) instead of brittle fragments.
 
-Tooling defaults (standardized)
-- Shell: bash first. On Windows, use Git Bash. PowerShell is supported only where explicitly noted.
-- CI (GitHub Actions): ubuntu-latest uses bash by default; uv is installed via curl | sh; commands run with uv run ...
-- Husky: .husky/pre-commit is POSIX sh and calls `uv run pre-commit run --hook-stage pre-commit`; falls back to `pre-commit` if `uv` is unavailable.
-- VS Code: .vscode/settings.json sets terminal.integrated.defaultProfile.windows to "Git Bash"; tasks.json forces bash as the shell for tasks. Launch uses the integrated terminal, so it will use Git Bash.
+Windows notes
+- `just` uses Git Bash on Windows (configured via `windows-shell`); run `just` from Git Bash for best results.
+- In PowerShell, avoid `&&`. Use separate commands or the call operator `&`. Example test run:
+  - `& .\.venv\Scripts\python.exe manage.py test -v 2`
+
+Troubleshooting
+- `uv: command not found`: install `uv` (see above) and ensure shell PATH is refreshed.
+- Missing `.env`: run `just env-copy` or `just secret-key-set`.
+- Execution policy issues (PowerShell): prefer Git Bash or adjust policy if necessary.
+
+Precedence
+- These project rules supersede personal rules when they conflict (e.g., shell choice). Prefer Git Bash here because `just` recipes are bash-centric.
