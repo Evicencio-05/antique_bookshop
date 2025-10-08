@@ -1,0 +1,156 @@
+{% extends "book_shop_here/base.html" %}
+{% block content %}
+<div class="container mx-auto p-4">
+  <h1 class="text-2xl font-bold mb-4">Sales Dashboard</h1>
+
+  <form method="get" class="mb-4 flex gap-2 items-end">
+    <div>
+      <label class="block text-sm">Start date</label>
+      <input type="date" name="start" value="{{ start }}" class="border p-1 rounded" />
+    </div>
+    <div>
+      <label class="block text-sm">End date</label>
+      <input type="date" name="end" value="{{ end }}" class="border p-1 rounded" />
+    </div>
+    <div>
+      <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded">Filter</button>
+    </div>
+  </form>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="p-4 border rounded">
+      <div class="text-gray-500">Revenue</div>
+      <div class="text-xl font-semibold">${{ summary.revenue }}</div>
+    </div>
+    <div class="p-4 border rounded">
+      <div class="text-gray-500">Orders</div>
+      <div class="text-xl font-semibold">{{ summary.orders }}</div>
+    </div>
+    <div class="p-4 border rounded">
+      <div class="text-gray-500">Books Sold</div>
+      <div class="text-xl font-semibold">{{ summary.books_sold }}</div>
+    </div>
+    <div class="p-4 border rounded">
+      <div class="text-gray-500">Avg Order Value</div>
+      <div class="text-xl font-semibold">${{ summary.avg_order_value }}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Payment Breakdown</h2>
+      <table class="w-full border">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="text-left p-2">Method</th>
+            <th class="text-left p-2">Orders</th>
+            <th class="text-left p-2">Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in payment_breakdown %}
+          <tr class="border-t">
+            <td class="p-2">{{ p.payment_method }}</td>
+            <td class="p-2">{{ p.count }}</td>
+            <td class="p-2">${{ p.revenue }}</td>
+          </tr>
+          {% empty %}
+          <tr><td class="p-2" colspan="3">No data.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Open Orders</h2>
+      <table class="w-full border">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="text-left p-2">Status</th>
+            <th class="text-left p-2">Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in open_by_status %}
+          <tr class="border-t">
+            <td class="p-2">{{ s.order_status }}</td>
+            <td class="p-2">{{ s.count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td class="p-2" colspan="2">No open orders.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Top Employees (Books Sold)</h2>
+      <table class="w-full border">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="text-left p-2">Employee</th>
+            <th class="text-left p-2">Books</th>
+            <th class="text-left p-2">Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in top_employees %}
+          <tr class="border-t">
+            <td class="p-2"><a class="text-blue-700 underline" href="{% url 'book_shop_here:employee-sales' e.employee_id %}">{{ e.employee_id__first_name }} {{ e.employee_id__last_name }}</a></td>
+            <td class="p-2">{{ e.books_sold }}</td>
+            <td class="p-2">${{ e.revenue }}</td>
+          </tr>
+          {% empty %}
+          <tr><td class="p-2" colspan="3">No data.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Top Customers</h2>
+      <table class="w-full border">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="text-left p-2">Customer</th>
+            <th class="text-left p-2">Orders</th>
+            <th class="text-left p-2">Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in top_customers %}
+          <tr class="border-t">
+            <td class="p-2"><a class="text-blue-700 underline" href="{% url 'book_shop_here:customer-detail' c.customer_id %}">{{ c.customer_id__first_name }} {{ c.customer_id__last_name }}</a></td>
+            <td class="p-2">{{ c.purchase_count }}</td>
+            <td class="p-2">${{ c.revenue }}</td>
+          </tr>
+          {% empty %}
+          <tr><td class="p-2" colspan="3">No data.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Inventory by Status</h2>
+      <table class="w-full border">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="text-left p-2">Status</th>
+            <th class="text-left p-2">Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in inventory_by_status %}
+          <tr class="border-t">
+            <td class="p-2">{{ i.book_status }}</td>
+            <td class="p-2">{{ i.count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td class="p-2" colspan="2">No data.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

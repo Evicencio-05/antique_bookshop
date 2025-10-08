@@ -127,6 +127,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <h2 class="text-xl font-semibold mb-3">{% trans "Recent Orders" %}</h2>
+                {% if perms.book_shop_here.view_sales_reports %}
+                <div class="mb-3">
+                    <a class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded" href="{% url 'book_shop_here:sales-dashboard' %}">{% trans "Open Sales Dashboard" %}</a>
+                </div>
+                {% endif %}
                 <ul class="list-disc pl-6 text-gray-700">
                     {% for o in recent_orders %}
                     <li>#{{ o.order_id }} — {{ o.customer_id }} — {{ o.order_status }}</li>

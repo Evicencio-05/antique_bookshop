@@ -1,0 +1,82 @@
+{% extends "book_shop_here/base.html" %}
+{% block content %}
+<div class="container mx-auto p-4">
+  <h1 class="text-2xl font-bold mb-4">Employee Sales: {{ employee.first_name }} {{ employee.last_name }}</h1>
+
+  <form method="get" class="mb-4 flex gap-2 items-end">
+    <div>
+      <label class="block text-sm">Start date</label>
+      <input type="date" name="start" value="{{ start }}" class="border p-1 rounded" />
+    </div>
+    <div>
+      <label class="block text-sm">End date</label>
+      <input type="date" name="end" value="{{ end }}" class="border p-1 rounded" />
+    </div>
+    <div>
+      <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded">Filter</button>
+    </div>
+  </form>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="p-4 border rounded">
+      <div class="text-gray-500">Total Revenue</div>
+      <div class="text-xl font-semibold">${{ totals.revenue }}</div>
+    </div>
+    <div class="p-4 border rounded">
+      <div class="text-gray-500">Orders</div>
+      <div class="text-xl font-semibold">{{ totals.orders }}</div>
+    </div>
+    <div class="p-4 border rounded">
+      <div class="text-gray-500">Books Sold</div>
+      <div class="text-xl font-semibold">{{ totals.books }}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Books Sold</h2>
+      <table class="w-full border">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="text-left p-2">ID</th>
+            <th class="text-left p-2">Title</th>
+            <th class="text-left p-2">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in sold_books %}
+          <tr class="border-t">
+            <td class="p-2">{{ b.legacy_id|default:b.book_id }}</td>
+            <td class="p-2"><a class="text-blue-700 underline" href="{% url 'book_shop_here:book-detail' b.book_id %}">{{ b.title }}</a></td>
+            <td class="p-2">{{ b.book_status }}</td>
+          </tr>
+          {% empty %}
+          <tr><td class="p-2" colspan="3">No books sold in this range.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Frequent Customers</h2>
+      <table class="w-full border">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="text-left p-2">Customer</th>
+            <th class="text-left p-2">Purchases</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in frequent_customers %}
+          <tr class="border-t">
+            <td class="p-2"><a class="text-blue-700 underline" href="{% url 'book_shop_here:customer-detail' c.customer_id %}">{{ c.first_name }} {{ c.last_name }}</a></td>
+            <td class="p-2">{{ c.purchase_count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td class="p-2" colspan="2">No frequent customers in this range.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

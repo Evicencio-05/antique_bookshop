@@ -302,6 +302,12 @@ class Order(models.Model):
     )
     books = models.ManyToManyField(Book, related_name="orders")
 
+    class Meta:
+        permissions = [
+            ("view_sales_reports", "Can view sales reports"),
+            ("view_employee_sales", "Can view employee sales"),
+        ]
+
     def __str__(self):
         return f"Order {self.order_id}: {self.order_status}"
 

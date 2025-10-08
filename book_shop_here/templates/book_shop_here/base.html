@@ -19,6 +19,7 @@
                 <a href="{% url 'book_shop_here:author-list' %}" class="hover:underline">{% trans "Authors" %}</a>
                 <a href="{% url 'book_shop_here:customer-list' %}" class="hover:underline">{% trans "Customers" %}</a>
                 <a href="{% url 'book_shop_here:order-list' %}" class="hover:underline">{% trans "Orders" %}</a>
+                {% if perms.book_shop_here.view_sales_reports %}<a href="{% url 'book_shop_here:sales-dashboard' %}" class="hover:underline">{% trans "Reports" %}</a> {% endif %}
                 {% if perms.book_shop_here.view_group %}<a href="{% url 'book_shop_here:group-list' %}" class="hover:underline">{% trans "Roles" %}</a> {% endif %}
                 {% if perms.book_shop_here.view_employee %}<a href="{% url 'book_shop_here:employee-list' %}" class="hover:underline">{% trans "Employees" %}</a> {% endif %}
                 {% if user.is_authenticated %}
