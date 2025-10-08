@@ -218,6 +218,9 @@ class Book(models.Model):
         default=Rating.UNRATED,
         verbose_name=_("Visible book condition"),
     )
+    condition_notes = models.TextField(
+        max_length=1000, blank=True, null=True, verbose_name=_("Condition notes")
+    )
     publication_date = models.DateField(
         blank=True,
         null=True,

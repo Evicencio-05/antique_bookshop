@@ -150,6 +150,27 @@
                 </ul>
             </div>
         </div>
+
+{% if perms.book_shop_here.view_sales_reports or perms.book_shop_here.view_employee_sales and my_employee %}
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold mb-3">{% trans "Reports" %}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% if perms.book_shop_here.view_sales_reports %}
+                <a href="{% url 'book_shop_here:sales-dashboard' %}" class="block p-4 border rounded hover:shadow">
+                    <div class="text-lg font-semibold">{% trans "Sales Dashboard" %}</div>
+                    <div class="text-gray-600 text-sm">{% trans "Store-wide sales metrics and trends" %}</div>
+                </a>
+                {% endif %}
+                {% if perms.book_shop_here.view_employee_sales and my_employee %}
+                <a href="{% url 'book_shop_here:employee-sales' my_employee.employee_id %}" class="block p-4 border rounded hover:shadow">
+                    <div class="text-lg font-semibold">{% trans "My Sales" %}</div>
+                    <div class="text-gray-600 text-sm">{% trans "Your sales, books sold, frequent customers" %}</div>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
         {% if not user.is_authenticated %}
             <div class="text-center mt-8">
                 <a href="{% url 'login' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Log In" %}</a>

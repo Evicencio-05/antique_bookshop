@@ -26,12 +26,16 @@ class BookForm(forms.ModelForm):
             "publisher",
             "edition",
             "rating",
+            "condition_notes",
             "authors",
             "book_status",
             "legacy_id",
         ]
         widgets = {
             "publication_date": forms.DateInput(attrs={"type": "date"}),
+            "condition_notes": forms.Textarea(
+                attrs={"rows": 3, "placeholder": "Optional condition notes..."}
+            ),
         }
 
     def clean_authors(self):
