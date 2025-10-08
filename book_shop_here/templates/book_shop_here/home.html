@@ -16,10 +16,10 @@
 
         {% if q %}
         <div class="mb-8">
-            <h2 class="text-xl font-semibold mb-3">{% trans "Lookup Results" %}</h2>
+            <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Lookup Results" %}</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {% if lookup_results.books %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Books" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for b in lookup_results.books %}
@@ -36,7 +36,7 @@
                 </div>
                 {% endif %}
                 {% if lookup_results.authors %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Authors" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for a in lookup_results.authors %}
@@ -53,7 +53,7 @@
                 </div>
                 {% endif %}
                 {% if lookup_results.customers %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Customers" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for c in lookup_results.customers %}
@@ -70,7 +70,7 @@
                 </div>
                 {% endif %}
                 {% if lookup_results.employees %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Employees" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for e in lookup_results.employees %}
@@ -87,7 +87,7 @@
                 </div>
                 {% endif %}
                 {% if lookup_results.orders %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Orders" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for o in lookup_results.orders %}
@@ -104,7 +104,7 @@
                 </div>
                 {% endif %}
                 {% if lookup_results.roles %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Roles" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for g in lookup_results.roles %}
@@ -125,13 +125,8 @@
         {% endif %}
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <h2 class="text-xl font-semibold mb-3">{% trans "Recent Orders" %}</h2>
-                {% if perms.book_shop_here.view_sales_reports %}
-                <div class="mb-3">
-                    <a class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded" href="{% url 'book_shop_here:sales-dashboard' %}">{% trans "Open Sales Dashboard" %}</a>
-                </div>
-                {% endif %}
+            <div class="p-4 border rounded">
+                <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Recent Orders" %}</h2>
                 <ul class="list-disc pl-6 text-gray-700">
                     {% for o in recent_orders %}
                     <li>#{{ o.order_id }} — {{ o.customer_id }} — {{ o.order_status }}</li>
@@ -140,8 +135,8 @@
                     {% endfor %}
                 </ul>
             </div>
-            <div>
-                <h2 class="text-xl font-semibold mb-3">{% trans "Recently Updated" %}</h2>
+            <div class="p-4 border rounded">
+                <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Recently Updated" %}</h2>
                 <ul class="list-disc pl-6 text-gray-700">
                     {% for b in recent_books %}<li>{% trans "Book" %}: {{ b.title }}</li>{% endfor %}
                     {% for a in recent_authors %}<li>{% trans "Author" %}: {{ a }}</li>{% endfor %}
@@ -152,8 +147,25 @@
         </div>
 
 {% if perms.book_shop_here.view_sales_reports or perms.book_shop_here.view_employee_sales and my_employee %}
-        <div class="mt-8">
-            <h2 class="text-xl font-semibold mb-3">{% trans "Reports" %}</h2>
+        <div class="mt-8 p-4 border rounded">
+            <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Sales Overview" %}</h2>
+            <div class="mb-4">
+                <h3 class="font-semibold mb-2">{% trans "Recent Orders (14d)" %}</h3>
+                {% if home_orders_series.labels %}
+                    <canvas id="homeOrdersSparkline" class="w-full h-24"></canvas>
+                {% else %}
+                    <div class="h-24 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+                {% endif %}
+            </div>
+            <div class="mb-4">
+                <h3 class="font-semibold mb-2">{% trans "Orders by Status" %}</h3>
+                {% if home_orders_by_status %}
+                    <canvas id="homeOrdersStatusChart" class="w-full h-48"></canvas>
+                {% else %}
+                    <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+                {% endif %}
+            </div>
+            <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Reports" %}</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {% if perms.book_shop_here.view_sales_reports %}
                 <a href="{% url 'book_shop_here:sales-dashboard' %}" class="block p-4 border rounded hover:shadow">
@@ -177,4 +189,38 @@
             </div>
         {% endif %}
     </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha256-m9y3qGGmdW8bG3Q8j3HqT7e2XHn3m4m6i8y5m3E9XkM=" crossorigin="anonymous"></script>
+<script>
+(function(){
+  // Sparkline for recent orders
+  var spark = document.getElementById('homeOrdersSparkline');
+  if (spark) {
+    var sLabels = {{ home_orders_series.labels|default:'[]'|safe }};
+    var sData = {{ home_orders_series.counts|default:'[]'|safe }};
+    new Chart(spark.getContext('2d'), {
+      type: 'line',
+      data: { labels: sLabels, datasets: [{ data: sData, borderColor: (window.getChartColor ? window.getChartColor() : '#2563eb'), backgroundColor: 'rgba(0,0,0,0)', tension: 0.3, pointRadius: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+    });
+  }
+  // Bar chart for orders by status
+  var statusEl = document.getElementById('homeOrdersStatusChart');
+  if (statusEl) {
+    var labels = [
+      {% for s in home_orders_by_status %}'{{ s.order_status }}'{% if not forloop.last %},{% endif %}{% endfor %}
+    ];
+    var data = [
+      {% for s in home_orders_by_status %}{{ s.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}
+    ];
+    new Chart(statusEl.getContext('2d'), {
+      type: 'bar',
+      data: { labels: labels, datasets: [{ label: 'Orders', data: data, backgroundColor: (window.getChartColor ? window.getChartColor() : '#2563eb') }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+    });
+  }
+})();
+</script>
 {% endblock %}

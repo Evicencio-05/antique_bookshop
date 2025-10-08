@@ -15,6 +15,7 @@
                 {% block nav_brand %}{% trans "Book Shop Here" %}{% endblock %}
             </a>
             <div class="space-x-4">
+                <a href="{% url 'book_shop_here:home' %}" class="hover:underline">{% trans "Home" %}</a>
                 <a href="{% url 'book_shop_here:book-list' %}" class="hover:underline">{% trans "Books" %}</a>
                 <a href="{% url 'book_shop_here:author-list' %}" class="hover:underline">{% trans "Authors" %}</a>
                 <a href="{% url 'book_shop_here:customer-list' %}" class="hover:underline">{% trans "Customers" %}</a>
@@ -72,5 +73,18 @@
         container.querySelectorAll('[data-toast]').forEach(attach);
     })();
     </script>
+    <script>
+      // Global chart theme persistence
+        (function(){
+            try {
+            if (!window.chartTheme) {
+                var saved = localStorage.getItem('chartTheme');
+                window.chartTheme = saved ? saved : 'light';
+            }
+            window.getChartColor = function(){ return window.chartTheme === 'dark' ? '#93c5fd' : '#2563eb'; }
+            } catch(e) { window.chartTheme = 'light'; window.getChartColor = function(){ return '#2563eb'; }; }
+        })();
+    </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

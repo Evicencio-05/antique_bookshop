@@ -1,6 +1,8 @@
 import logging
+from datetime import date, timedelta
 
 from django.contrib.auth.models import Group
+from django.db.models import Count
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
 
@@ -190,4 +192,37 @@ class HomeView(TemplateView):
                 results["roles"] = list(g_qs.filter(g_q).distinct()[:5])
 
         context["lookup_results"] = results
+
+        # Orders by status overview for Home chart
+        try:
+            status_counts = list(
+                Order.objects.values("order_status")
+                .annotate(count=Count("order_id"))
+                .order_by("order_status")
+            )
+        except Exception:
+            status_counts = []
+        context["home_orders_by_status"] = status_counts
+
+        # Recent orders series (last 14 days) for sparkline
+        try:
+            end = date.today()
+            start = end - timedelta(days=13)
+            series_qs = (
+                Order.objects.filter(order_date__gte=start, order_date__lte=end)
+                .values("order_date")
+                .annotate(count=Count("order_id"))
+            )
+            by_day = {row["order_date"]: row["count"] for row in series_qs}
+            labels = []
+            counts = []
+            d = start
+            while d <= end:
+                labels.append(d.isoformat())
+                counts.append(by_day.get(d, 0))
+                d = d + timedelta(days=1)
+        except Exception:
+            labels = []
+            counts = []
+        context["home_orders_series"] = {"labels": labels, "counts": counts}
         return context
