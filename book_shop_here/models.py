@@ -176,7 +176,12 @@ class Author(models.Model):
     )
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}".strip()
+        parts = []
+        if self.first_name:
+            parts.append(self.first_name)
+        if self.last_name:
+            parts.append(self.last_name)
+        return " ".join(parts).strip()
 
 
 class Book(models.Model):
@@ -257,7 +262,12 @@ class Customer(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}".strip()
+        parts = []
+        if self.first_name:
+            parts.append(self.first_name)
+        if self.last_name:
+            parts.append(self.last_name)
+        return " ".join(parts).strip()
 
 
 class Order(models.Model):
@@ -285,6 +295,7 @@ class Order(models.Model):
     )
     delivery_pickup_date = models.DateField(null=True, blank=True)
     sale_amount = models.DecimalField(max_digits=11, decimal_places=2)
+    discount_amount = models.DecimalField(max_digits=11, decimal_places=2, default=0)
     payment_method = models.CharField(max_length=10, choices=PaymentMethod.choices)
     order_status = models.CharField(
         max_length=30, choices=OrderStatus.choices, default=OrderStatus.PICKUP
@@ -295,9 +306,20 @@ class Order(models.Model):
         return f"Order {self.order_id}: {self.order_status}"
 
     def save(self, *args, **kwargs):
-        # Auto-calculate sale_amount from book cost unless explicitly skipped (e.g., from a form that sets it manually)
-        if not getattr(self, "_skip_recalc", False) and self.pk and self.books.exists():
-            self.sale_amount = sum(book.cost for book in self.books.all())
+        from decimal import Decimal
+
+        # Auto-calculate sale_amount from sum of retail_price minus discount unless explicitly skipped
+        if not getattr(self, "_skip_recalc", False):
+            try:
+                if self.pk and self.books.exists():
+                    total = sum((book.retail_price for book in self.books.all()), Decimal("0.00"))
+                    discount = getattr(self, "discount_amount", Decimal("0.00")) or Decimal("0.00")
+                    amount = total - discount
+                    if amount < 0:
+                        amount = Decimal("0.00")
+                    self.sale_amount = amount
+            except Exception as e:  # Log unexpected issues rather than swallowing
+                logger.exception("Auto-calc sale_amount failed: %s", e)
         super().save(*args, **kwargs)
 
     def completed_order(self):

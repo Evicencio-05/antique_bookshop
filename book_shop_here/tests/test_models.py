@@ -100,7 +100,7 @@ class OrderModelTests(TestCase):
         self.order.books.add(self.book)
         self.order.save()
         self.order.refresh_from_db()
-        self.assertEqual(self.order.sale_amount, self.book.cost)
+        self.assertEqual(self.order.sale_amount, self.book.retail_price)
 
 
 class EmployeeModelTests(TestCase):

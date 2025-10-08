@@ -4,7 +4,9 @@
 <div class="bg-white p-6 rounded shadow">
   <h1 class="text-2xl font-bold text-blue-600 mb-4">{% trans "Customer Detail" %}</h1>
   <div class="space-y-2 text-gray-700">
-    <div><strong>{% trans "Name" %}:</strong> {{ customer }}</div>
+    <div><strong>{% trans "Name" %}:</strong> {{ customer|default:"-" }}</div>
+    <div><strong>{% trans "First Name" %}:</strong> {{ customer.first_name|default:"-" }}</div>
+    <div><strong>{% trans "Last Name" %}:</strong> {{ customer.last_name|default:"-" }}</div>
     <div><strong>{% trans "Phone Number" %}:</strong> {{ customer.phone_number|default:"-" }}</div>
     <div><strong>{% trans "Mailing Address" %}:</strong> {{ customer.mailing_address|default:"-" }}</div>
   </div>

@@ -152,10 +152,11 @@ class OrderFormTests(TestCase):
             book_status="available",
         )
 
-    def test_order_form_valid(self):
+    def test_order_form_valid_manual_amount(self):
         form_data = {
             "customer_id": self.customer.customer_id,
             "employee_id": self.employee.employee_id,
+            "auto_calculate": False,
             "sale_amount": 10.00,
             "payment_method": "cash",
             "order_status": "to_ship",
@@ -163,6 +164,21 @@ class OrderFormTests(TestCase):
         }
         form = OrderForm(data=form_data)
         self.assertTrue(form.is_valid())
+        self.assertTrue(self.book.book_status, "processing")
+
+    def test_order_form_auto_calculates_with_discount(self):
+        form_data = {
+            "customer_id": self.customer.customer_id,
+            "employee_id": self.employee.employee_id,
+            "auto_calculate": True,
+            "discount_amount": 5.00,
+            "payment_method": "cash",
+            "order_status": "to_ship",
+            "books": [self.book.book_id],
+        }
+        form = OrderForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data["sale_amount"], self.book.retail_price - 5)
 
     def test_order_form_no_books(self):
         form_data = {

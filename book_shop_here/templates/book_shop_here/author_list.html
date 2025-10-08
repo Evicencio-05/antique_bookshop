@@ -28,24 +28,30 @@
             <table class="w-full border border-gray-300 border-collapse">
                 <thead>
                     <tr class="bg-gray-100">
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Name" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Birth Year" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Description" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Actions" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Name" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Birth Year" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Death Year" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Description" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for author in authors %}
                     <tr>
-                        <td class="border border-gray-300 px-3 py-2">{{ author }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ author|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ author.birth_year|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ author.death_year|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ author.description|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">
-                            <a href="{% url 'book_shop_here:author-detail' pk=author.author_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
-                            <span class="px-2">|</span>
-                            <a href="{% url 'book_shop_here:author-update' pk=author.author_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
-                            <span class="px-2">|</span>
-                            <a href="{% url 'book_shop_here:author-delete' pk=author.author_id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
+                            {% if perms.book_shop_here.view_author %}
+                                <a href="{% url 'book_shop_here:author-detail' pk=author.author_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
+                            {% endif %}
+                            {% if perms.book_shop_here.change_author %}
+                                <a href="{% url 'book_shop_here:author-update' pk=author.author_id %}" class="text-blue-600 hover:underline ml-2">{% trans "Edit" %}</a>
+                            {% endif %}
+                            {% if perms.book_shop_here.delete_author %}
+                                <a href="{% url 'book_shop_here:author-delete' pk=author.author_id %}" class="text-blue-600 hover:underline ml-2">{% trans "Delete" %}</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

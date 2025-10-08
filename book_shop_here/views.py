@@ -521,8 +521,6 @@ class OrderCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
                         mapped.append(v)
                     else:
                         try:
-                            from .models import Book
-
                             b = Book.objects.get(legacy_id=v)
                             mapped.append(str(b.pk))
                         except Book.DoesNotExist:
@@ -536,6 +534,11 @@ class OrderCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
             # Save without triggering auto-recalc (respect posted sale_amount)
             obj = form.save(commit=False)
             obj._skip_recalc = True
+            selected_books = form.cleaned_data["books"].values_list("pk", flat=True)
+            books = Book.objects.filter(pk__in=selected_books)
+            for book in books:
+                book.book_status = "processing"
+                book.save()
             obj.save()
             form.save_m2m()
             self.object = obj

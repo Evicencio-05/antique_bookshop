@@ -29,26 +29,30 @@
             <table class="w-full border border-gray-300 border-collapse">
                 <thead>
                     <tr class="bg-gray-100">
-                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Legacy ID" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Title" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Authors" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Retail Price" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Legacy ID" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for book in books %}
                     <tr>
-                        <td class="border border-gray-300 px-3 py-2">{{ book.legacy_id|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ book.title }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ book.authors.all|join:", " }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ book.retail_price }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.legacy_id|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">
-                            <a href="{% url 'book_shop_here:book-detail' pk=book.book_id %}" class="text-blue-600 hover:underline" aria-label="{% trans 'View book' %}">{% trans "View" %}</a>
-                            <span class="px-2">|</span>
-                            <a href="{% url 'book_shop_here:book-update' pk=book.book_id %}" class="text-blue-600 hover:underline" aria-label="{% trans 'Edit book' %}">{% trans "Edit" %}</a>
-                            <span class="px-2">|</span>
-                            <a href="{% url 'book_shop_here:book-delete' pk=book.book_id %}" class="text-blue-600 hover:underline" aria-label="{% trans 'Delete book' %}">{% trans "Delete" %}</a>
+                            {% if perms.book_shop_here.view_book %}
+                                <a href="{% url 'book_shop_here:book-detail' pk=book.book_id %}" class="text-blue-600 hover:underline" aria-label="{% trans 'View book' %}">{% trans "View" %}</a>
+                            {% endif %}
+                            {% if perms.book_shop_here.change_book %}
+                                <a href="{% url 'book_shop_here:book-update' pk=book.book_id %}" class="text-blue-600 hover:underline ml-2" aria-label="{% trans 'Edit book' %}">{% trans "Edit" %}</a>
+                            {% endif %}
+                            {% if perms.book_shop_here.delete_book %}
+                                <a href="{% url 'book_shop_here:book-delete' pk=book.book_id %}" class="text-blue-600 hover:underline ml-2" aria-label="{% trans 'Delete book' %}">{% trans "Delete" %}</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

@@ -8,6 +8,11 @@
     <div><strong>{% trans "Email" %}:</strong> {{ employee.email|default:"-" }}</div>
     <div><strong>{% trans "Role" %}:</strong> {{ employee.group.name|default:"-" }}</div>
     <div><strong>{% trans "Phone Number" %}:</strong> {{ employee.phone_number|default:"-" }}</div>
+    <div><strong>{% trans "Address" %}:</strong> {{ employee.address|default:"-" }}</div>
+    <div><strong>{% trans "Zip Code" %}:</strong> {{ employee.zip_code|default:"-" }}</div>
+    <div><strong>{% trans "State" %}:</strong> {{ employee.state|default:"-" }}</div>
+    <div><strong>{% trans "Birth Date" %}:</strong> {{ employee.birth_date|default:"-" }}</div>
+    <div><strong>{% trans "Hire Date" %}:</strong> {{ employee.hire_date|default:"-" }}</div>
   </div>
 </div>
 {% endblock %}
