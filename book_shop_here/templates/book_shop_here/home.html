@@ -125,7 +125,7 @@
         {% endif %}
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="p-4 border rounded">
+            <div class="p-4 border rounded border-gray-300 shadow-xl">
                 <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Recent Orders" %}</h2>
                 <ul class="list-disc pl-6 text-gray-700">
                     {% for o in recent_orders %}
@@ -135,7 +135,7 @@
                     {% endfor %}
                 </ul>
             </div>
-            <div class="p-4 border rounded">
+            <div class="p-4 border rounded border-gray-300 shadow-xl">
                 <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Recently Updated" %}</h2>
                 <ul class="list-disc pl-6 text-gray-700">
                     {% for b in recent_books %}<li>{% trans "Book" %}: {{ b.title }}</li>{% endfor %}
@@ -147,7 +147,7 @@
         </div>
 
 {% if perms.book_shop_here.view_sales_reports or perms.book_shop_here.view_employee_sales and my_employee %}
-        <div class="mt-8 p-4 border rounded">
+        <div class="mt-8 p-4 border rounded border-gray-300 shadow-xl">
             <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Sales Overview" %}</h2>
             <div class="mb-4">
                 <h3 class="font-semibold mb-2">{% trans "Recent Orders (14d)" %}</h3>
@@ -157,6 +157,7 @@
                     <div class="h-24 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
                 {% endif %}
             </div>
+            <hr class="border-t border-gray-300 my-4">
             <div class="mb-4">
                 <h3 class="font-semibold mb-2">{% trans "Orders by Status" %}</h3>
                 {% if home_orders_by_status %}
@@ -196,31 +197,31 @@
 <script>
 (function(){
   // Sparkline for recent orders
-  var spark = document.getElementById('homeOrdersSparkline');
-  if (spark) {
-    var sLabels = {{ home_orders_series.labels|default:'[]'|safe }};
-    var sData = {{ home_orders_series.counts|default:'[]'|safe }};
-    new Chart(spark.getContext('2d'), {
-      type: 'line',
-      data: { labels: sLabels, datasets: [{ data: sData, borderColor: (window.getChartColor ? window.getChartColor() : '#2563eb'), backgroundColor: 'rgba(0,0,0,0)', tension: 0.3, pointRadius: 0 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
-    });
-  }
-  // Bar chart for orders by status
-  var statusEl = document.getElementById('homeOrdersStatusChart');
-  if (statusEl) {
-    var labels = [
-      {% for s in home_orders_by_status %}'{{ s.order_status }}'{% if not forloop.last %},{% endif %}{% endfor %}
-    ];
-    var data = [
-      {% for s in home_orders_by_status %}{{ s.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}
-    ];
-    new Chart(statusEl.getContext('2d'), {
-      type: 'bar',
-      data: { labels: labels, datasets: [{ label: 'Orders', data: data, backgroundColor: (window.getChartColor ? window.getChartColor() : '#2563eb') }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
-    });
-  }
+    var spark = document.getElementById('homeOrdersSparkline');
+    if (spark) {
+        var sLabels = {{ home_orders_series.labels|default:'[]'|safe }};
+        var sData = {{ home_orders_series.counts|default:'[]'|safe }};
+        new Chart(spark.getContext('2d'), {
+        type: 'line',
+        data: { labels: sLabels, datasets: [{ data: sData, borderColor: (window.getChartColor ? window.getChartColor() : '#2563eb'), backgroundColor: 'rgba(0,0,0,0)', tension: 0.3, pointRadius: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+        });
+    }
+    // Bar chart for orders by status
+    var statusEl = document.getElementById('homeOrdersStatusChart');
+    if (statusEl) {
+        var labels = [
+        {% for s in home_orders_by_status %}'{{ s.order_status }}'{% if not forloop.last %},{% endif %}{% endfor %}
+        ];
+        var data = [
+        {% for s in home_orders_by_status %}{{ s.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}
+        ];
+        new Chart(statusEl.getContext('2d'), {
+        type: 'bar',
+        data: { labels: labels, datasets: [{ label: 'Orders', data: data, backgroundColor: (window.getChartColor ? window.getChartColor() : '#2563eb') }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+        });
+    }
 })();
 </script>
 {% endblock %}

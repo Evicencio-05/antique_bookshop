@@ -8,7 +8,7 @@
     <link href="{% static 'book_shop_here/site.css' %}" rel="stylesheet">
     <link href="{% static 'book_shop_here/overrides.css' %}" rel="stylesheet">
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-[#d5e1f5] font-sans">
     <nav class="bg-blue-600 text-white p-4">
         <div class="container mx-auto flex justify-between items-center">
             <a href="{% url 'book_shop_here:home' %}" class="text-2xl font-bold">
@@ -49,10 +49,6 @@
 
     <div class="container mx-auto p-4">
         {% block content %}
-            <div class="bg-white p-6 rounded shadow">
-                <h2 class="text-xl font-semibold mb-4">{% trans "Welcome to Book Shop Here!" %}</h2>
-                <p>{% trans "This is the main content area. Please log in to manage books, authors, orders, and more." %}</p>
-            </div>
         {% endblock %}
     </div>
 

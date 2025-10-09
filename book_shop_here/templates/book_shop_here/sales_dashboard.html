@@ -1,9 +1,9 @@
 {% extends "book_shop_here/base.html" %}
 {% load i18n %}
 {% block content %}
-<div class="bg-white p-6 rounded shadow">
+<div class="bg-white p-6 rounded shadow ">
+  <h1 class="flex text-3xl font-extrabold text-blue-600 mb-6 basis-full justify-center">{% trans "Sales Dashboard" %}</h1>
   <div class="flex items-center justify-between mb-4">
-    <h1 class="text-2xl font-bold">{% trans "Sales Dashboard" %}</h1>
     <div class="flex flex-col md:flex-row gap-2 md:items-end">
       <form id="filterForm" method="get" class="flex gap-2 items-end">
         <div>
@@ -19,33 +19,33 @@
         </div>
       </form>
       <div class="flex gap-2">
-        <button type="button" data-range="7" class="px-3 py-2 border rounded hover:bg-gray-50">{% trans "Last 7d" %}</button>
-        <button type="button" data-range="30" class="px-3 py-2 border rounded hover:bg-gray-50">{% trans "Last 30d" %}</button>
-        <button type="button" data-range="90" class="px-3 py-2 border rounded hover:bg-gray-50">{% trans "Last 90d" %}</button>
-        <button type="button" id="chartThemeToggle" class="px-3 py-2 border rounded hover:bg-gray-50">{% trans "Toggle Chart Theme" %}</button>
+        <button type="button" data-range="7" class="px-3 py-2 border border-gray-700 rounded hover:bg-gray-200">{% trans "Last 7d" %}</button>
+        <button type="button" data-range="30" class="px-3 py-2 border border-gray-700 rounded hover:bg-gray-200">{% trans "Last 30d" %}</button>
+        <button type="button" data-range="90" class="px-3 py-2 border border-gray-700 rounded hover:bg-gray-200">{% trans "Last 90d" %}</button>
+        <button type="button" id="chartThemeToggle" class="px-3 py-2 border border-gray-700 rounded hover:bg-gray-200">{% trans "Toggle Chart Theme" %}</button>
       </div>
     </div>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="p-4 border rounded">
+    <div class="p-4 border border-gray-300 shadow-xl rounded">
       <div class="text-gray-500">{% trans "Revenue" %}</div>
       <div class="text-xl font-semibold">${{ summary.revenue }}</div>
     </div>
-    <div class="p-4 border rounded">
+    <div class="p-4 border border-gray-300 shadow-xl rounded">
       <div class="text-gray-500">{% trans "Orders" %}</div>
       <div class="text-xl font-semibold">{{ summary.orders }}</div>
     </div>
-    <div class="p-4 border rounded">
+    <div class="p-4 border border-gray-300 shadow-xl rounded">
       <div class="text-gray-500">{% trans "Books Sold" %}</div>
       <div class="text-xl font-semibold">{{ summary.books_sold }}</div>
     </div>
-    <div class="p-4 border rounded">
+    <div class="p-4 border border-gray-300 shadow-xl rounded">
       <div class="text-gray-500">{% trans "Avg Order Value" %}</div>
       <div class="text-xl font-semibold">${{ summary.avg_order_value }}</div>
     </div>
   </div>
 
-  <div class="mb-6 p-4 border rounded">
+  <div class="mb-6 p-4 border border-gray-300 shadow-xl rounded">
     <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Summary Chart" %}</h2>
     {% if summary.orders or summary.revenue or summary.books_sold %}
       <canvas id="summaryChart" class="w-full h-48"></canvas>
@@ -55,15 +55,15 @@
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-    <div class="p-4 border rounded">
-      <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Payment Breakdown (Revenue)" %}</h2>
+    <div class="p-4 border rounded border-gray-300 shadow-xl">
+      <h2 class="text-lg font-semibold mb-3 border-b pb-2 ">{% trans "Payment Breakdown (Revenue)" %}</h2>
       {% if payment_breakdown %}
         <canvas id="paymentChart" class="w-full h-48"></canvas>
       {% else %}
         <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
       {% endif %}
     </div>
-    <div class="p-4 border rounded">
+    <div class="p-4 border rounded border-gray-300 shadow-xl">
       <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Open Orders by Status" %}</h2>
       {% if open_by_status %}
         <canvas id="openStatusChart" class="w-full h-48"></canvas>
@@ -74,7 +74,7 @@
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="p-4 border rounded">
+    <div class="p-4 border rounded border-gray-300 shadow-xl">
       <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Top Employees (Books Sold)" %}</h2>
       {% if top_employees %}
         <canvas id="topEmployeesChart" class="w-full h-48"></canvas>
@@ -82,7 +82,7 @@
         <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
       {% endif %}
     </div>
-    <div class="p-4 border rounded">
+    <div class="p-4 border rounded border-gray-300 shadow-xl">
       <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Top Customers (Orders)" %}</h2>
       {% if top_customers %}
         <canvas id="topCustomersChart" class="w-full h-48"></canvas>
@@ -90,7 +90,7 @@
         <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
       {% endif %}
     </div>
-    <div class="p-4 border rounded">
+    <div class="p-4 border rounded border-gray-300 shadow-xl">
       <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Inventory by Status" %}</h2>
       {% if inventory_by_status %}
         <canvas id="inventoryChart" class="w-full h-48"></canvas>
