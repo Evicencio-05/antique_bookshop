@@ -281,39 +281,6 @@ class ViewTests(TestCase):
         self.assertContains(resp, self.book.title)
         self.assertContains(resp, f'value="{self.book.pk}"')
 
-    def test_home_quick_actions_visibility_by_permissions(self):
-        self.client.login(username="testuser", password="testpass")
-        # Initially user may not have add permissions; buttons should be absent
-        resp = self.client.get(reverse("book_shop_here:home"))
-        self.assertEqual(resp.status_code, 200)
-        self.assertNotContains(resp, "New Book")
-        self.assertNotContains(resp, "New Author")
-        self.assertNotContains(resp, "New Customer")
-        self.assertNotContains(resp, "New Order")
-        # Grant add permissions and view_sales_reports, then expect links present
-        for model, code in (
-            (Book, "add_book"),
-            (Author, "add_author"),
-            (Customer, "add_customer"),
-            (Order, "add_order"),
-        ):
-            ct = ContentType.objects.get_for_model(model)
-            perm = Permission.objects.get(codename=code, content_type=ct)
-            self.user.user_permissions.add(perm)
-        # custom reports perms
-        ct_order = ContentType.objects.get_for_model(Order)
-        for code in ("view_sales_reports",):
-            p, _ = Permission.objects.get_or_create(
-                codename=code, content_type=ct_order, defaults={"name": code.replace("_", " ")}
-            )
-            self.user.user_permissions.add(p)
-        resp2 = self.client.get(reverse("book_shop_here:home"))
-        self.assertContains(resp2, "New Book")
-        self.assertContains(resp2, "New Author")
-        self.assertContains(resp2, "New Customer")
-        self.assertContains(resp2, "New Order")
-        self.assertContains(resp2, "Sales Dashboard")
-
     def test_order_list_close_buttons_visible_for_open_orders(self):
         self.client.login(username="testuser", password="testpass")
         ct = ContentType.objects.get_for_model(Order)

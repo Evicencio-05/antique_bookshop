@@ -45,6 +45,9 @@ createsuperuser:
 test:
     uv run python manage.py test book_shop_here.tests --pattern="test_*.py"
 
+test-ff:
+    uv run python manage.py test book_shop_here.tests --pattern="test_*.py" --failfast
+
 # Seed development data
 seed:
     uv run python manage.py seed_dev_data
@@ -70,7 +73,7 @@ lint-fix:
 
 quick:
     uv run ruff format .
-    uv run ruff check .
+    uv run ruff check . --fix
     uv run mypy --install-types --non-interactive .
 
 format:
@@ -81,10 +84,10 @@ typecheck:
     uv run mypy --install-types --non-interactive .
 
 # Tailwind / Frontend helpers
-tailwind-build:
+build:
     npm run build
 
-tailwind-watch:
+watch:
     npm run watch
 
 dev:
