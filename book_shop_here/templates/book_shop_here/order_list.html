@@ -46,15 +46,29 @@
                         <td class="border border-gray-300 px-3 py-2">{{ order.sale_amount }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ order.order_status }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ order.books.all|join:", " }}</td>
-                        <td class="border border-gray-300 px-3 py-2">
+                        <td class="border border-gray-300 px-3 py-2 space-x-2">
                             {% if perms.book_shop_here.view_order %}
                                 <a href="{% url 'book_shop_here:order-detail' pk=order.order_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
                             {% endif %}
                             {% if perms.book_shop_here.change_order %}
-                                <a href="{% url 'book_shop_here:order-update' pk=order.order_id %}" class="text-blue-600 hover:underline ml-2">{% trans "Edit" %}</a>
+                                <a href="{% url 'book_shop_here:order-update' pk=order.order_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% if order.order_status != 'shipped' and order.order_status != 'picked_up' %}
+                                <form action="{% url 'book_shop_here:order-close' pk=order.order_id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                                    <input type="hidden" name="status" value="shipped" />
+                                    <button type="submit" class="text-green-700 hover:underline">{% trans "Mark Shipped" %}</button>
+                                </form>
+                                <form action="{% url 'book_shop_here:order-close' pk=order.order_id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                                    <input type="hidden" name="status" value="picked_up" />
+                                    <button type="submit" class="text-green-700 hover:underline">{% trans "Mark Picked Up" %}</button>
+                                </form>
+                                {% endif %}
                             {% endif %}
                             {% if perms.book_shop_here.delete_order %}
-                                <a href="{% url 'book_shop_here:order-delete' pk=order.order_id %}" class="text-blue-600 hover:underline ml-2">{% trans "Delete" %}</a>
+                                <a href="{% url 'book_shop_here:order-delete' pk=order.order_id %}" class="text-red-600 hover:underline">{% trans "Delete" %}</a>
                             {% endif %}
                         </td>
                     </tr>

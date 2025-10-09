@@ -45,6 +45,10 @@ createsuperuser:
 test:
     uv run python manage.py test book_shop_here.tests --pattern="test_*.py"
 
+# Seed development data
+seed:
+    uv run python manage.py seed_dev_data
+
 test-file file:
     uv run python manage.py test {{file}} --pattern="test_*.py"
 

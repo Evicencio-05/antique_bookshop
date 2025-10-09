@@ -8,11 +8,33 @@
         </div>
 
         <form method="get" class="max-w-2xl mx-auto mb-6">
-            <div class="flex items-center">
+            <div class="flex items-center gap-4">
                 <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Quick lookup across books, authors, customers, employees, orders, and roles' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
-                <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
+                <label class="inline-flex items-center text-sm text-gray-700 select-none">
+                    <input type="checkbox" name="include_hidden" value="1" {% if include_hidden %}checked{% endif %} class="mr-2">
+                    {% trans "Include hidden (sold/reserved/processing)" %}
+                </label>
+                <button type="submit" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
             </div>
         </form>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            {% if perms.book_shop_here.add_book %}
+            <a href="{% url 'book_shop_here:book-create' %}" class="block p-3 border rounded hover:shadow text-center text-blue-700">{% trans "New Book" %}</a>
+            {% endif %}
+            {% if perms.book_shop_here.add_author %}
+            <a href="{% url 'book_shop_here:author-create' %}" class="block p-3 border rounded hover:shadow text-center text-blue-700">{% trans "New Author" %}</a>
+            {% endif %}
+            {% if perms.book_shop_here.add_customer %}
+            <a href="{% url 'book_shop_here:customer-create' %}" class="block p-3 border rounded hover:shadow text-center text-blue-700">{% trans "New Customer" %}</a>
+            {% endif %}
+            {% if perms.book_shop_here.add_order %}
+            <a href="{% url 'book_shop_here:order-create' %}" class="block p-3 border rounded hover:shadow text-center text-blue-700">{% trans "New Order" %}</a>
+            {% endif %}
+            {% if perms.book_shop_here.view_sales_reports %}
+            <a href="{% url 'book_shop_here:sales-dashboard' %}" class="block p-3 border rounded hover:shadow text-center text-blue-700">{% trans "Sales Dashboard" %}</a>
+            {% endif %}
+        </div>
 
         {% if q %}
         <div class="mb-8">
@@ -126,14 +148,68 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="p-4 border rounded border-gray-300 shadow-xl">
-                <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Recent Orders" %}</h2>
-                <ul class="list-disc pl-6 text-gray-700">
-                    {% for o in recent_orders %}
-                    <li>#{{ o.order_id }} — {{ o.customer_id }} — {{ o.order_status }}</li>
-                    {% empty %}
-                    <li class="text-gray-500">{% trans "No recent orders." %}</li>
-                    {% endfor %}
-                </ul>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xl font-semibold border-b pb-2">{% trans "Recent Orders" %}</h2>
+                    <div class="text-sm space-x-2">
+                        {% if perms.book_shop_here.add_order %}
+                        <a href="{% url 'book_shop_here:order-create' %}" class="text-blue-600 hover:underline">{% trans "New Order" %}</a>
+                        {% endif %}
+                        {% if perms.book_shop_here.add_customer %}
+                        <a href="{% url 'book_shop_here:customer-create' %}" class="text-blue-600 hover:underline">{% trans "New Customer" %}</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if recent_orders %}
+                <div class="overflow-auto">
+                <table class="w-full border border-gray-300 border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Order ID" %}</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Customer" %}</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Employee" %}</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Amount" %}</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Status" %}</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in recent_orders %}
+                        <tr>
+                            <td class="border border-gray-300 px-3 py-2">{{ o.order_id }}</td>
+                            <td class="border border-gray-300 px-3 py-2">{{ o.customer_id|default:"-" }}</td>
+                            <td class="border border-gray-300 px-3 py-2">{{ o.employee_id|default:"-" }}</td>
+                            <td class="border border-gray-300 px-3 py-2">{{ o.sale_amount }}</td>
+                            <td class="border border-gray-300 px-3 py-2">{{ o.order_status }}</td>
+                            <td class="border border-gray-300 px-3 py-2 space-x-2">
+                                {% if perms.book_shop_here.view_order %}
+                                <a href="{% url 'book_shop_here:order-detail' pk=o.order_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
+                                {% endif %}
+                                {% if perms.book_shop_here.change_order %}
+                                <a href="{% url 'book_shop_here:order-update' pk=o.order_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% if o.order_status != 'shipped' and o.order_status != 'picked_up' %}
+                                <form action="{% url 'book_shop_here:order-close' pk=o.order_id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'book_shop_here:home' %}" />
+                                    <input type="hidden" name="status" value="shipped" />
+                                    <button type="submit" class="text-green-700 hover:underline">{% trans "Mark Shipped" %}</button>
+                                </form>
+                                <form action="{% url 'book_shop_here:order-close' pk=o.order_id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'book_shop_here:home' %}" />
+                                    <input type="hidden" name="status" value="picked_up" />
+                                    <button type="submit" class="text-green-700 hover:underline">{% trans "Mark Picked Up" %}</button>
+                                </form>
+                                {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+                {% else %}
+                    <p class="text-gray-500">{% trans "No recent orders." %}</p>
+                {% endif %}
             </div>
             <div class="p-4 border rounded border-gray-300 shadow-xl">
                 <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Recently Updated" %}</h2>
@@ -196,7 +272,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha256-m9y3qGGmdW8bG3Q8j3HqT7e2XHn3m4m6i8y5m3E9XkM=" crossorigin="anonymous"></script>
 <script>
 (function(){
-  // Sparkline for recent orders
+    // Sparkline for recent orders
     var spark = document.getElementById('homeOrdersSparkline');
     if (spark) {
         var sLabels = {{ home_orders_series.labels|default:'[]'|safe }};

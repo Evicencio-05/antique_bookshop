@@ -5,6 +5,7 @@ from decimal import Decimal
 from django import forms
 from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 from .models import Author, Book, Customer, Employee, GroupProfile, Order
 
@@ -114,6 +115,20 @@ class OrderForm(forms.ModelForm):
         self.fields["sale_amount"].required = False
         if "discount_amount" in self.fields:
             self.fields["discount_amount"].required = False
+        # Ensure selected books remain visible when editing an order
+        try:
+            instance = kwargs.get("instance") or getattr(self, "instance", None)
+            base_q = Q(book_status__in=["available", "reserved"])
+            if instance and getattr(instance, "pk", None):
+                selected_ids = list(instance.books.values_list("pk", flat=True))
+                if selected_ids:
+                    base_q = base_q | Q(pk__in=selected_ids)
+            self.fields["books"].queryset = Book.objects.filter(base_q).order_by("title")
+        except Exception:
+            # Fall back silently if anything goes wrong
+            self.fields["books"].queryset = Book.objects.filter(
+                book_status__in=["available", "reserved"]
+            ).order_by("title")
 
     def clean(self):
         cleaned = super().clean()

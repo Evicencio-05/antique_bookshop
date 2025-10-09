@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
+from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView, View
 
 from ..forms import OrderForm
 from ..models import Book, Order
@@ -157,3 +157,23 @@ class OrderDetailView(LoginRequiredMixin, TemplateView):
             .get(pk=self.kwargs["pk"])
         )
         return context
+
+
+class OrderCloseView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = "book_shop_here.change_order"
+    raise_exception = True
+
+    def post(self, request, *args, **kwargs):
+        from datetime import date
+
+        order = Order.objects.get(pk=kwargs["pk"])
+        status = request.POST.get("status") or "shipped"
+        if status not in (Order.OrderStatus.SHIPPED, Order.OrderStatus.PICKED_UP):
+            status = Order.OrderStatus.SHIPPED
+        order.order_status = status
+        if not order.delivery_pickup_date:
+            order.delivery_pickup_date = date.today()
+        order.save()
+        messages.success(request, "Order closed.")
+        next_url = request.POST.get("next") or reverse_lazy("book_shop_here:order-list")
+        return redirect(next_url)
