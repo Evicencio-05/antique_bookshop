@@ -44,7 +44,12 @@ class HomeView(TemplateView):
         results = {}
         if q:
             # Books
-            b_qs = Book.objects.filter(book_status="available").prefetch_related("authors")
+            include_hidden = self.request.GET.get("include_hidden") in ("1", "true", "True")
+            if include_hidden:
+                b_qs = Book.objects.all().prefetch_related("authors")
+            else:
+                b_qs = Book.objects.filter(book_status="available").prefetch_related("authors")
+            context["include_hidden"] = include_hidden
             b_fields = [
                 "title",
                 "legacy_id",
