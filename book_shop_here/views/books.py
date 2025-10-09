@@ -21,6 +21,9 @@ class BookListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         qs = Book.objects.filter(book_status="available").prefetch_related("authors")
         q = (self.request.GET.get("q") or "").strip()
+        include_hidden = self.request.GET.get("include_hidden") in ("1", "true", "True")
+        if include_hidden:
+            qs = Book.objects.all().prefetch_related("authors")
         if q:
             fields = [
                 "title",
