@@ -9,32 +9,16 @@
 
         <form method="get" class="max-w-2xl mx-auto mb-6">
             <div class="flex items-center gap-4">
-                <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Quick lookup across books, authors, customers, employees, orders, and roles' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
-                <label class="inline-flex items-center text-sm text-gray-700 select-none">
-                    <input type="checkbox" name="include_hidden" value="1" {% if include_hidden %}checked{% endif %} class="mr-2">
-                    {% trans "Include hidden (sold/reserved/processing)" %}
-                </label>
+                <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Quick search' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
                 <button type="submit" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
+                <label class="inline-flex mx-2 items-center text-sm text-gray-700 select-none">
+                    <input type="checkbox" name="include_hidden" value="1" {% if include_hidden %}checked{% endif %} class="mr-2 size-5 p-3">
+                    <div class="flex-none min-w-20">
+                        {% trans "Show hidden" %}
+                    </div>
+                </label>
             </div>
         </form>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {% if perms.book_shop_here.add_book %}
-            <a href="{% url 'book_shop_here:book-create' %}" class="block p-3 border rounded hover:shadow text-center text-blue-700">{% trans "New Book" %}</a>
-            {% endif %}
-            {% if perms.book_shop_here.add_author %}
-            <a href="{% url 'book_shop_here:author-create' %}" class="block p-3 border rounded hover:shadow text-center text-blue-700">{% trans "New Author" %}</a>
-            {% endif %}
-            {% if perms.book_shop_here.add_customer %}
-            <a href="{% url 'book_shop_here:customer-create' %}" class="block p-3 border rounded hover:shadow text-center text-blue-700">{% trans "New Customer" %}</a>
-            {% endif %}
-            {% if perms.book_shop_here.add_order %}
-            <a href="{% url 'book_shop_here:order-create' %}" class="block p-3 border rounded hover:shadow text-center text-blue-700">{% trans "New Order" %}</a>
-            {% endif %}
-            {% if perms.book_shop_here.view_sales_reports %}
-            <a href="{% url 'book_shop_here:sales-dashboard' %}" class="block p-3 border rounded hover:shadow text-center text-blue-700">{% trans "Sales Dashboard" %}</a>
-            {% endif %}
-        </div>
 
         {% if q %}
         <div class="mb-8">
@@ -150,14 +134,6 @@
             <div class="p-4 border rounded border-gray-300 shadow-xl">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-xl font-semibold border-b pb-2">{% trans "Recent Orders" %}</h2>
-                    <div class="text-sm space-x-2">
-                        {% if perms.book_shop_here.add_order %}
-                        <a href="{% url 'book_shop_here:order-create' %}" class="text-blue-600 hover:underline">{% trans "New Order" %}</a>
-                        {% endif %}
-                        {% if perms.book_shop_here.add_customer %}
-                        <a href="{% url 'book_shop_here:customer-create' %}" class="text-blue-600 hover:underline">{% trans "New Customer" %}</a>
-                        {% endif %}
-                    </div>
                 </div>
                 {% if recent_orders %}
                 <div class="overflow-auto">
