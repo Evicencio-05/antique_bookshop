@@ -204,7 +204,9 @@
             <div class="mb-4">
                 <h3 class="font-semibold mb-2">{% trans "Recent Orders (14d)" %}</h3>
                 {% if home_orders_series.labels %}
-                    <canvas id="homeOrdersSparkline" class="w-full h-24"></canvas>
+                    <div>
+                        <canvas id="homeOrdersSparkline" class="w-full h-24"></canvas>
+                    </div>
                 {% else %}
                     <div class="h-24 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
                 {% endif %}
@@ -213,7 +215,9 @@
             <div class="mb-4">
                 <h3 class="font-semibold mb-2">{% trans "Orders by Status" %}</h3>
                 {% if home_orders_by_status %}
-                    <canvas id="homeOrdersStatusChart" class="w-full h-48"></canvas>
+                    <div>
+                        <canvas id="homeOrdersStatusChart" class="w-full h-48"></canvas>
+                    </div>
                 {% else %}
                     <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
                 {% endif %}
@@ -245,7 +249,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha256-m9y3qGGmdW8bG3Q8j3HqT7e2XHn3m4m6i8y5m3E9XkM=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function(){
     // Sparkline for recent orders

@@ -244,6 +244,8 @@ This project uses a `justfile` with bash (Git Bash on Windows is recommended). P
 - Migrations or DB issues
   - For local SQLite: delete `db.sqlite3` (if acceptable) and rerun `just migrate`.
   - For Postgres: verify `DATABASE_URL` is correct and the DB is reachable.
+- Use the following command to install Just via bash. (No nvm download)  
+  ```curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/bin```
 
 ---
 

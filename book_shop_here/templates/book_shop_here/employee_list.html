@@ -52,6 +52,9 @@
                             {% if perms.book_shop_here.delete_employee %}
                                 <a href="{% url 'book_shop_here:employee-delete' pk=employee.employee_id %}" class="text-blue-600 hover:underline ml-2">{% trans "Delete" %}</a>
                             {% endif %}
+                            {% if perms.book_shop_here.view_employee_sales %}
+                                <a href="{% url 'book_shop_here:employee-sales' pk=employee.employee_id %}" class="text-blue-600 hover:underline ml-2">{% trans "View Sales" %}</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}
