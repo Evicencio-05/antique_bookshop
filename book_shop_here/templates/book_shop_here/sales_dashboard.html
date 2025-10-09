@@ -41,7 +41,7 @@
     </div>
     <div class="p-4 border border-gray-300 shadow-xl rounded">
       <div class="text-gray-500">{% trans "Avg Order Value" %}</div>
-      <div class="text-xl font-semibold">${{ summary.avg_order_value }}</div>
+      <div class="text-xl font-semibold">${{ summary.avg_order_value|floatformat:2 }}</div>
     </div>
   </div>
 
