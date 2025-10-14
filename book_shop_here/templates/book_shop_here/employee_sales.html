@@ -45,7 +45,9 @@
   <div class="mb-6 p-4 border rounded">
     <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Totals Chart" %}</h2>
     {% if totals.orders or totals.revenue or totals.books %}
-      <canvas id="employeeTotalsChart" class="w-full h-48"></canvas>
+      <div>
+        <canvas id="employeeTotalsChart" class="w-full h-48"></canvas>
+      </div>  
     {% else %}
       <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
     {% endif %}
@@ -80,7 +82,9 @@
     <div class="p-4 border rounded">
       <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Frequent Customers (Orders)" %}</h2>
       {% if frequent_customers %}
-        <canvas id="frequentCustomersChart" class="w-full h-48"></canvas>
+        <div>
+          <canvas id="frequentCustomersChart" class="w-full h-48"></canvas>
+        </div>
       {% else %}
         <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
       {% endif %}
@@ -110,7 +114,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha256-m9y3qGGmdW8bG3Q8j3HqT7e2XHn3m4m6i8y5m3E9XkM=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function(){
   window._charts = window._charts || [];

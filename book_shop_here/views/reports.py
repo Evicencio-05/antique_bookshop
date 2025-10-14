@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db.models import Count, Q, Sum
+from django.db.models import Avg, Count, Q, Sum
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 
@@ -102,6 +102,8 @@ class SalesDashboardView(LoginRequiredMixin, PermissionRequiredMixin, TemplateVi
         summary_revenue = completed.aggregate(v=Sum("sale_amount"))["v"] or 0
         summary_books = completed.aggregate(v=Count("books"))["v"] or 0
         summary_discount = completed.aggregate(v=Sum("discount_amount"))["v"] or 0
+        summary_avg_order_value = completed.aggregate(v=Avg("sale_amount"))["v"] or 0
+        logger.debug(summary_avg_order_value)
 
         inventory_by_status = list(
             Book.objects.values("book_status")
@@ -149,9 +151,7 @@ class SalesDashboardView(LoginRequiredMixin, PermissionRequiredMixin, TemplateVi
                     "orders": summary_orders,
                     "books_sold": summary_books,
                     "total_discount": summary_discount,
-                    "avg_order_value": (summary_revenue / summary_orders)
-                    if summary_orders > 0
-                    else 0,
+                    "avg_order_value": summary_avg_order_value if summary_orders > 0 else 0,
                 },
                 "inventory_by_status": inventory_by_status,
                 "open_by_status": open_by_status,
