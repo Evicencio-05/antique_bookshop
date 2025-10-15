@@ -70,7 +70,7 @@ class Command(BaseCommand):
                         "title": f"Sample Book {i}",
                         "cost": Decimal("5.00") + Decimal(i % 5),
                         "retail_price": Decimal("10.00") + Decimal(i % 10),
-                        "rating": Book.Rating.UNRATED,
+                        "condition": Book.Condition.UNRATED,
                         "book_status": Book.BookStatus.AVAILABLE,
                     },
                 )

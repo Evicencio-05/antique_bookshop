@@ -185,7 +185,7 @@ class Author(models.Model):
 
 
 class Book(models.Model):
-    class Rating(models.TextChoices):
+    class Condition(models.TextChoices):
         SUPERB = "superb", _("Superb")
         EXCELLENT = "excellent", _("Excellent")
         GOOD = "good", _("Good")
@@ -212,10 +212,10 @@ class Book(models.Model):
     retail_price = models.DecimalField(
         max_digits=11, decimal_places=2, verbose_name=_("Suggested retail price")
     )
-    rating = models.CharField(
+    condition = models.CharField(
         max_length=10,
-        choices=Rating.choices,
-        default=Rating.UNRATED,
+        choices=Condition.choices,
+        default=Condition.UNRATED,
         verbose_name=_("Visible book condition"),
     )
     condition_notes = models.TextField(

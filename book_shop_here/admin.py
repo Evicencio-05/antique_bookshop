@@ -19,9 +19,9 @@ class GroupProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ["book_id", "legacy_id", "title", "retail_price", "rating", "book_status"]
+    list_display = ["book_id", "legacy_id", "title", "retail_price", "condition", "book_status"]
     search_fields = ["title", "legacy_id"]
-    list_filter = ["rating", "book_status", "publication_date"]
+    list_filter = ["condition", "book_status", "publication_date"]
     filter_horizontal = ["authors"]
 
 

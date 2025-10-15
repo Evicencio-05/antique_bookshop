@@ -17,7 +17,7 @@ class BookModelTests(TestCase):
             retail_price=15.00,
             publication_date=date(2020, 1, 1),
             edition="1st",
-            rating="excellent",
+            condition="excellent",
             book_status="available",
         )
         self.book.authors.add(self.author)

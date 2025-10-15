@@ -26,7 +26,7 @@ class BookForm(forms.ModelForm):
             "publication_date",
             "publisher",
             "edition",
-            "rating",
+            "condition",
             "condition_notes",
             "authors",
             "book_status",

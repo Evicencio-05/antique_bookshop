@@ -31,9 +31,9 @@ class BookListView(LoginRequiredMixin, ListView):
                 "authors__first_name",
                 "authors__last_name",
                 "publisher",
-                "rating",
+                "condition",
             ]
-            rating_map = {label.lower(): value for value, label in Book.Rating.choices}
+            condition_map = {label.lower(): value for value, label in Book.Condition.choices}
             q_obj, annotations = build_advanced_search(
                 q,
                 fields=fields,
@@ -45,9 +45,9 @@ class BookListView(LoginRequiredMixin, ListView):
                     "author": ["authors__first_name", "authors__last_name"],
                     "legacy": ["legacy_id"],
                     "publisher": ["publisher"],
-                    "rating": ["rating"],
+                    "condition": ["condition"],
                 },
-                choice_value_map={"rating": rating_map},
+                choice_value_map={"condition": condition_map},
             )
             if q_obj is not None:
                 if annotations:

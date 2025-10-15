@@ -56,9 +56,9 @@ class HomeView(TemplateView):
                 "authors__first_name",
                 "authors__last_name",
                 "publisher",
-                "rating",
+                "condition",
             ]
-            rating_map = {label.lower(): value for value, label in Book.Rating.choices}
+            condition_map = {label.lower(): value for value, label in Book.Condition.choices}
             b_q, b_ann = build_advanced_search(
                 q,
                 fields=b_fields,
@@ -70,9 +70,9 @@ class HomeView(TemplateView):
                     "author": ["authors__first_name", "authors__last_name"],
                     "legacy": ["legacy_id"],
                     "publisher": ["publisher"],
-                    "rating": ["rating"],
+                    "condition": ["condition"],
                 },
-                choice_value_map={"rating": rating_map},
+                choice_value_map={"condition": condition_map},
             )
             if b_q is not None:
                 if b_ann:

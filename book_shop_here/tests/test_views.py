@@ -26,7 +26,7 @@ class ViewTests(TestCase):
             publication_date=date(2020, 1, 1),
             publisher="Test Publisher",
             edition="1st",
-            rating="excellent",
+            condition="excellent",
             book_status="available",
         )
         self.book.authors.add(self.author)
@@ -95,8 +95,10 @@ class ViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Book")
-        # Rating label
-        response = self.client.get(reverse("book_shop_here:book-list"), {"q": "rating:Excellent"})
+        # Condition label
+        response = self.client.get(
+            reverse("book_shop_here:book-list"), {"q": "condition:Excellent"}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Book")
 
@@ -126,7 +128,7 @@ class ViewTests(TestCase):
             "publication_date": "2020-01-01",
             "publisher": "New Publisher",
             "edition": "1st",
-            "rating": "excellent",
+            "condition": "excellent",
             "book_status": "available",
             "legacy_id": "newb1234",
             "authors": [self.author.author_id],
@@ -147,7 +149,7 @@ class ViewTests(TestCase):
             "publication_date": "2020-01-01",
             "publisher": "New Publisher",
             "edition": "1st",
-            "rating": "excellent",
+            "condition": "excellent",
             "book_status": "available",
             "legacy_id": "invalid",
             "authors": [],
@@ -181,7 +183,7 @@ class ViewTests(TestCase):
             "publication_date": "2020-01-01",
             "publisher": "Updated Publisher",
             "edition": "2nd",
-            "rating": "excellent",
+            "condition": "excellent",
             "book_status": "available",
             "legacy_id": "doej1234",
             "authors": [self.author.author_id],

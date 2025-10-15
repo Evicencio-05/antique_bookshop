@@ -9,8 +9,8 @@
         </div>
 
         <form method="get" class="mb-4">
-            <div class="flex items-center max-w-md">
-                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by title, author, or legacy ID' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
+            <div class="flex items-center max-w-screen-lg">
+                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by title, author, or legacy ID' %}" class="w-2/5 border border-gray-300 rounded px-3 py-2 text-gray-700" />
                 <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
                 <label class="inline-flex mx-2 items-center text-sm text-gray-700 select-none">
                     <input type="checkbox" name="include_hidden" value="1" {% if include_hidden %}checked{% endif %} class="mr-2 size-5 p-3">
@@ -25,7 +25,7 @@
             <summary class="cursor-pointer text-blue-600 hover:underline">{% trans "Search tips" %}</summary>
             <div class="mt-2 space-y-1">
                 <p><strong>{% trans "Examples" %}:</strong></p>
-                <p><code>title:gatsby</code>, <code>author:"John Doe"</code>, <code>legacy:ABC123</code>, <code>rating:Excellent</code></p>
+                <p><code>title:gatsby</code>, <code>author:"John Doe"</code>, <code>legacy:ABC123</code>, <code>condition:Excellent</code></p>
                 <p>{% trans "Quoted phrases match exactly; multiple terms are ANDed." %}</p>
                 <p><a href="{% url 'book_shop_here:docs' %}#search" class="text-blue-600 hover:underline">{% trans "Full search documentation" %}</a></p>
             </div>
@@ -36,9 +36,14 @@
                 <thead>
                     <tr class="bg-gray-100">
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Title" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Authors" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Retail Price" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Legacy ID" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Author(s)" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Publisher" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Publication Date" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Edition" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Cost" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Suggested Retail Price" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Condition" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
@@ -46,9 +51,14 @@
                 {% for book in books %}
                     <tr>
                         <td class="border border-gray-300 px-3 py-2">{{ book.title }}</td>
-                        <td class="border border-gray-300 px-3 py-2">{{ book.authors.all|join:", " }}</td>
-                        <td class="border border-gray-300 px-3 py-2">{{ book.retail_price }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ book.legacy_id|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.authors.all|join:", " }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.publisher }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.publication_date }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.edition }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.cost }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.retail_price }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ book.condition }}</td>
                         <td class="border border-gray-300 px-3 py-2">
                             {% if perms.book_shop_here.view_book %}
                                 <a href="{% url 'book_shop_here:book-detail' pk=book.book_id %}" class="text-blue-600 hover:underline" aria-label="{% trans 'View book' %}">{% trans "View" %}</a>

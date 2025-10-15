@@ -1,4 +1,5 @@
 {% extends "book_shop_here/base.html" %}
+{% load custom_filter %}
 {% load i18n %}
 
 {% block content %}
@@ -9,8 +10,8 @@
         </div>
 
         <form method="get" class="mb-4">
-            <div class="flex items-center max-w-md">
-                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by order ID, customer/employee, status, or book' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
+            <div class="flex items-center max-w-screen-lg">
+                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by order ID, customer/employee, status, or book' %}" class="w-5/12 border border-gray-300 rounded px-3 py-2 text-gray-700" />
                 <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
             </div>
         </form>
@@ -44,7 +45,7 @@
                         <td class="border border-gray-300 px-3 py-2">{{ order.customer_id|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ order.employee_id|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ order.sale_amount }}</td>
-                        <td class="border border-gray-300 px-3 py-2">{{ order.order_status }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ order.order_status|title|replace:"_, " }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ order.books.all|join:", " }}</td>
                         <td class="border border-gray-300 px-3 py-2 space-x-2">
                             {% if perms.book_shop_here.view_order %}

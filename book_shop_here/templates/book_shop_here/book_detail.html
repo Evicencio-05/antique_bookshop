@@ -9,7 +9,7 @@
     <div><strong>{% trans "Publisher" %}:</strong> {{ book.publisher|default:"-" }}</div>
     <div><strong>{% trans "Edition" %}:</strong> {{ book.edition|default:"-" }}</div>
     <div><strong>{% trans "Publication Date" %}:</strong> {{ book.publication_date|default:"-" }}</div>
-    <div><strong>{% trans "Rating" %}:</strong> {{ book.get_rating_display|default:"-" }}</div>
+    <div><strong>{% trans "Condition" %}:</strong> {{ book.get_condition_display|default:"-" }}</div>
     <div><strong>{% trans "Condition Notes" %}:</strong> {{ book.condition_notes|default:"-" }}</div>
     <div><strong>{% trans "Status" %}:</strong> {{ book.get_book_status_display|default:"-" }}</div>
     <div><strong>{% trans "Cost" %}:</strong> {{ book.cost|default:"-" }}</div>
