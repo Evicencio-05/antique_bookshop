@@ -1,7 +1,14 @@
+import data_wizard
 from django.contrib import admin
 
 from .forms import EmployeeForm
 from .models import Author, Book, Customer, Employee, GroupProfile, Order
+
+data_wizard.register(Book)
+data_wizard.register(Author)
+data_wizard.register(Customer)
+data_wizard.register(Employee)
+data_wizard.register(Order)
 
 
 @admin.register(Author)
@@ -14,12 +21,19 @@ class AuthorAdmin(admin.ModelAdmin):
 @admin.register(GroupProfile)
 class GroupProfileAdmin(admin.ModelAdmin):
     list_display = ["group", "description"]
-    search_fields = ["group__name", "description"]
+    search_fields = ["group_name", "description"]
 
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ["book_id", "legacy_id", "title", "retail_price", "condition", "book_status"]
+    list_display = [
+        "book_id",
+        "legacy_id",
+        "title",
+        "suggested_retail_price",
+        "condition",
+        "book_status",
+    ]
     search_fields = ["title", "legacy_id"]
     list_filter = ["condition", "book_status", "publication_date"]
     filter_horizontal = ["authors"]
@@ -28,15 +42,21 @@ class BookAdmin(admin.ModelAdmin):
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
     list_display = ["employee_id", "last_name", "first_name", "email", "group", "hire_date"]
-    search_fields = ["first_name", "last_name", "email"]
+    search_fields = ["first_name", "last_name", "email", "address", "secondary_address"]
     list_filter = ["group", "hire_date"]
     form = EmployeeForm
 
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ["customer_id", "last_name", "first_name", "phone_number"]
-    search_fields = ["first_name", "last_name", "phone_number"]
+    list_display = ["customer_id", "last_name", "first_name", "phone_number", "mailing_address"]
+    search_fields = [
+        "first_name",
+        "last_name",
+        "phone_number",
+        "mailing_address",
+        "secondary_mailing_address",
+    ]
 
 
 @admin.register(Order)

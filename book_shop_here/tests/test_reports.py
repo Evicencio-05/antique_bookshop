@@ -59,14 +59,14 @@ class SalesReportsTests(TestCase):
             legacy_id="bk000001",
             title="Pride and Prejudice",
             cost=10.00,
-            retail_price=20.00,
+            suggested_retail_price=20.00,
             book_status="available",
         )
         self.book2 = Book.objects.create(
             legacy_id="bk000002",
             title="Sense and Sensibility",
             cost=12.00,
-            retail_price=24.00,
+            suggested_retail_price=24.00,
             book_status="available",
         )
         self.book1.authors.add(self.author)

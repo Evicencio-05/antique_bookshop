@@ -24,6 +24,7 @@ dependencies = [
   "django-group-model>=1.0.1",
   "django-crispy-forms>=2.1",
   "crispy-tailwind>=1.0.3",
+  "data-wizard>=2.0.0",
 ]
 
 [project.optional-dependencies]

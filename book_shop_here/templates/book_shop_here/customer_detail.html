@@ -9,6 +9,7 @@
     <div><strong>{% trans "Last Name" %}:</strong> {{ customer.last_name|default:"-" }}</div>
     <div><strong>{% trans "Phone Number" %}:</strong> {{ customer.phone_number|default:"-" }}</div>
     <div><strong>{% trans "Mailing Address" %}:</strong> {{ customer.mailing_address|default:"-" }}</div>
+    <div><strong>{% trans "Secondary Mailing Address" %}:</strong> {{ customer.secondary_mailing_address|default:"-" }}</div>
   </div>
 </div>
 {% endblock %}

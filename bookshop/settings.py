@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_tailwind",
     "book_shop_here",
+    "data_wizard",
+    "data_wizard.sources",
 ]
 
 MIDDLEWARE = [

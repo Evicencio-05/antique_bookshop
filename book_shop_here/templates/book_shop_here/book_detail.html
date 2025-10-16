@@ -13,7 +13,7 @@
     <div><strong>{% trans "Condition Notes" %}:</strong> {{ book.condition_notes|default:"-" }}</div>
     <div><strong>{% trans "Status" %}:</strong> {{ book.get_book_status_display|default:"-" }}</div>
     <div><strong>{% trans "Cost" %}:</strong> {{ book.cost|default:"-" }}</div>
-    <div><strong>{% trans "Retail Price" %}:</strong> {{ book.retail_price|default:"-" }}</div>
+    <div><strong>{% trans "Retail Price" %}:</strong> {{ book.suggested_retail_price|default:"-" }}</div>
     <div><strong>{% trans "Legacy ID" %}:</strong> {{ book.legacy_id|default:"-" }}</div>
   </div>
 </div>

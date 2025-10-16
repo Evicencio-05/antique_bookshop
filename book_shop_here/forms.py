@@ -22,7 +22,7 @@ class BookForm(forms.ModelForm):
         fields = [
             "title",
             "cost",
-            "retail_price",
+            "suggested_retail_price",
             "publication_date",
             "publisher",
             "edition",
@@ -52,7 +52,13 @@ class BookForm(forms.ModelForm):
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ["last_name", "first_name", "phone_number", "mailing_address"]
+        fields = [
+            "last_name",
+            "first_name",
+            "phone_number",
+            "mailing_address",
+            "secondary_mailing_address",
+        ]
 
     def clean(self):
         cleaned_data = super().clean()
@@ -141,7 +147,7 @@ class OrderForm(forms.ModelForm):
             if not books:
                 self.add_error("books", "Select at least one book to auto-calculate.")
             else:
-                total = sum((b.retail_price for b in books), Decimal("0.00"))
+                total = sum((b.suggested_retail_price for b in books), Decimal("0.00"))
                 amount = total - discount
                 if amount < 0:
                     amount = Decimal("0.00")
@@ -218,6 +224,7 @@ class EmployeeForm(forms.ModelForm):
             "last_name",
             "phone_number",
             "address",
+            "secondary_address",
             "birth_date",
             "hire_date",
             "group",

@@ -36,6 +36,13 @@ class Employee(models.Model):
         max_length=50, editable=True, verbose_name=_("Employee phone number")
     )
     address = models.CharField(max_length=200, editable=True, verbose_name=_("Employee address"))
+    secondary_address = models.CharField(
+        max_length=200,
+        blank=True,
+        editable=True,
+        default="N/A",
+        verbose_name=_("Employee secondary address"),
+    )
     birth_date = models.DateField(
         auto_now_add=False,
         editable=True,
@@ -209,7 +216,7 @@ class Book(models.Model):
     authors = models.ManyToManyField(
         Author, related_name="books", verbose_name=_("Book author(s)"), editable=True
     )
-    retail_price = models.DecimalField(
+    suggested_retail_price = models.DecimalField(
         max_digits=11, decimal_places=2, verbose_name=_("Suggested retail price")
     )
     condition = models.CharField(
@@ -254,6 +261,13 @@ class Customer(models.Model):
     )
     mailing_address = models.CharField(
         max_length=50, blank=True, null=True, verbose_name=_("Customer mailing address")
+    )
+    secondary_mailing_address = models.CharField(
+        max_length=200,
+        blank=True,
+        editable=True,
+        default="N/A",
+        verbose_name=_("Customer secondary address"),
     )
 
     class Meta:
@@ -317,11 +331,13 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         from decimal import Decimal
 
-        # Auto-calculate sale_amount from sum of retail_price minus discount unless explicitly skipped
+        # Auto-calculate sale_amount from sum of suggested_retail_price minus discount unless explicitly skipped
         if not getattr(self, "_skip_recalc", False):
             try:
                 if self.pk and self.books.exists():
-                    total = sum((book.retail_price for book in self.books.all()), Decimal("0.00"))
+                    total = sum(
+                        (book.suggested_retail_price for book in self.books.all()), Decimal("0.00")
+                    )
                     discount = getattr(self, "discount_amount", Decimal("0.00")) or Decimal("0.00")
                     amount = total - discount
                     if amount < 0:

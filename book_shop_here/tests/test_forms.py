@@ -27,7 +27,7 @@ class BookFormTests(TestCase):
         form_data = {
             "title": "Test Book",
             "cost": 10.00,
-            "retail_price": 15.00,
+            "suggested_retail_price": 15.00,
             "publication_date": date(2020, 1, 1),
             "publisher": "Test Publisher",
             "edition": "1st",
@@ -43,7 +43,7 @@ class BookFormTests(TestCase):
         form_data = {
             "title": "Test Book",
             "cost": 10.00,
-            "retail_price": 15.00,
+            "suggested_retail_price": 15.00,
             "publication_date": date(2020, 1, 1),
             "publisher": "Test Publisher",
             "edition": "1st",
@@ -73,6 +73,19 @@ class CustomerFormTests(TestCase):
         }
         form = CustomerForm(data=form_data)
         self.assertTrue(form.is_valid())
+
+    def test_customer_form_with_secondary_address(self):
+        form_data = {
+            "first_name": "Alice",
+            "last_name": "Smith",
+            "phone_number": "1234567890",
+            "mailing_address": "123 Main St",
+            "secondary_mailing_address": "Apt 4B",
+        }
+        form = CustomerForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        customer = form.save()
+        self.assertEqual(customer.secondary_mailing_address, "Apt 4B")
 
 
 class GroupFormTests(TestCase):
@@ -147,7 +160,7 @@ class OrderFormTests(TestCase):
             legacy_id="test1234",
             title="Test Book",
             cost=10.00,
-            retail_price=15.00,
+            suggested_retail_price=15.00,
             publication_date=date(2020, 1, 1),
             book_status="available",
         )
@@ -178,7 +191,7 @@ class OrderFormTests(TestCase):
         }
         form = OrderForm(data=form_data)
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data["sale_amount"], self.book.retail_price - 5)
+        self.assertEqual(form.cleaned_data["sale_amount"], self.book.suggested_retail_price - 5)
 
     def test_order_form_no_books(self):
         form_data = {
@@ -202,6 +215,7 @@ class EmployeeFormTests(TestCase):
             "last_name": "Doe",
             "phone_number": "1234567890",
             "address": "123 Main St",
+            "secondary_address": "Suite 200",
             "birth_date": date(1990, 1, 1),
             "hire_date": date.today(),
             "group": self.group.id,
@@ -218,6 +232,7 @@ class EmployeeFormTests(TestCase):
         employee = form.save()
         self.assertIsNotNone(employee.user)
         self.assertEqual(employee.user.username, "john.doe")
+        self.assertEqual(employee.secondary_address, "Suite 200")
         self.assertTrue(employee.user.check_password("testpass123"))
 
     def test_form_creation_no_password(self):

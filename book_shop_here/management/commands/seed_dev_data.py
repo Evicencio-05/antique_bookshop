@@ -69,7 +69,7 @@ class Command(BaseCommand):
                     defaults={
                         "title": f"Sample Book {i}",
                         "cost": Decimal("5.00") + Decimal(i % 5),
-                        "retail_price": Decimal("10.00") + Decimal(i % 10),
+                        "suggested_retail_price": Decimal("10.00") + Decimal(i % 10),
                         "condition": Book.Condition.UNRATED,
                         "book_status": Book.BookStatus.AVAILABLE,
                     },
@@ -118,7 +118,7 @@ class Command(BaseCommand):
                 selected = [choice(books) for _ in range(randint(1, 3))]  # noqa: S311
                 order.books.set(selected)
                 # Auto-calc approximate amount
-                total = sum(b.retail_price for b in selected)
+                total = sum(b.suggested_retail_price for b in selected)
                 order.sale_amount = total
                 order.save()
 

@@ -22,7 +22,7 @@ class ViewTests(TestCase):
             legacy_id="test1234",
             title="Test Book",
             cost=10.00,
-            retail_price=15.00,
+            suggested_retail_price=15.00,
             publication_date=date(2020, 1, 1),
             publisher="Test Publisher",
             edition="1st",
@@ -124,7 +124,7 @@ class ViewTests(TestCase):
         form_data = {
             "title": "New Book",
             "cost": 10.00,
-            "retail_price": 15.00,
+            "suggested_retail_price": 15.00,
             "publication_date": "2020-01-01",
             "publisher": "New Publisher",
             "edition": "1st",
@@ -145,7 +145,7 @@ class ViewTests(TestCase):
         form_data = {
             "title": "New Book",
             "cost": 10.00,
-            "retail_price": 15.00,
+            "suggested_retail_price": 15.00,
             "publication_date": "2020-01-01",
             "publisher": "New Publisher",
             "edition": "1st",
@@ -179,7 +179,7 @@ class ViewTests(TestCase):
         form_data = {
             "title": "Updated Book",
             "cost": 12.00,
-            "retail_price": 18.00,
+            "suggested_retail_price": 18.00,
             "publication_date": "2020-01-01",
             "publisher": "Updated Publisher",
             "edition": "2nd",
