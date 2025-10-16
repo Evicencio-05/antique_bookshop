@@ -31,6 +31,10 @@
                         <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Name" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Phone Number" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Mailing Address" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Secondary Mailing Address" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "City" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "State" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Zip Code" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
@@ -40,6 +44,10 @@
                         <td class="border border-gray-300 px-3 py-2">{{ customer|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ customer.phone_number|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ customer.mailing_address|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer.secondary_mailing_address|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer.city|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer.state|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer.zip_code|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">
                             {% if perms.book_shop_here.view_customer %}
                                 <a href="{% url 'book_shop_here:customer-detail' pk=customer.customer_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>

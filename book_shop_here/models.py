@@ -56,6 +56,7 @@ class Employee(models.Model):
     group = models.ForeignKey(
         Group, on_delete=models.CASCADE, editable=True, verbose_name=_("Employee role")
     )
+    city = models.CharField(max_length=50, editable=True, verbose_name=_("Employee city"))
     zip_code = models.CharField(max_length=50, editable=True, verbose_name=_("Employee zip code"))
     state = models.CharField(max_length=50, editable=True, verbose_name=_("Employee state"))
     user = models.OneToOneField(
@@ -249,7 +250,7 @@ class Book(models.Model):
         max_length=50, blank=True, null=True, default="N/A", verbose_name=_("Book edition")
     )
     book_status = models.CharField(
-        max_length=10, choices=BookStatus.choices, default=BookStatus.PROCESSING
+        max_length=10, choices=BookStatus.choices, default=BookStatus.AVAILABLE
     )
 
     def __str__(self):
@@ -259,16 +260,16 @@ class Book(models.Model):
 class Customer(models.Model):
     customer_id = models.AutoField(primary_key=True)
     last_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_("Customer last name")
+        max_length=100, blank=True, null=True, editable=True, verbose_name=_("Customer last name")
     )
     first_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_("Customer first name")
+        max_length=100, blank=True, null=True, editable=True, verbose_name=_("Customer first name")
     )
     phone_number = models.CharField(
-        max_length=25, blank=True, null=True, verbose_name=_("Customer phone number")
+        max_length=25, blank=True, null=True, editable=True, verbose_name=_("Customer phone number")
     )
     mailing_address = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_("Customer mailing address")
+        max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer mailing address")
     )
     secondary_mailing_address = models.CharField(
         max_length=200,
@@ -277,14 +278,17 @@ class Customer(models.Model):
         default="N/A",
         verbose_name=_("Customer secondary address"),
     )
+    city = models.CharField(max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer city"))
+    zip_code = models.CharField(max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer zip code"))
+    state = models.CharField(max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer state"))
 
-    class Meta:
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(first_name__isnull=False) | models.Q(last_name__isnull=False),
-                name="name_required",
-            )
-        ]
+    # class Meta:
+    #     constraints = [
+    #         models.CheckConstraint(
+    #             check=models.Q(first_name__isnull=False) | models.Q(last_name__isnull=False),
+    #             name="name_required",
+    #         )
+    #     ]
 
     def __str__(self):
         parts = []

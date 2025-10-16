@@ -10,6 +10,9 @@
     <div><strong>{% trans "Phone Number" %}:</strong> {{ customer.phone_number|default:"-" }}</div>
     <div><strong>{% trans "Mailing Address" %}:</strong> {{ customer.mailing_address|default:"-" }}</div>
     <div><strong>{% trans "Secondary Mailing Address" %}:</strong> {{ customer.secondary_mailing_address|default:"-" }}</div>
+    <div><strong>{% trans "City" %}:</strong> {{ customer.city|default:"-" }}</div>
+    <div><strong>{% trans "State" %}:</strong> {{ customer.state|default:"-" }}</div>
+    <div><strong>{% trans "Zip code" %}:</strong> {{ customer.zip_code|default:"-" }}</div>
   </div>
 </div>
 {% endblock %}

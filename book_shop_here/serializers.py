@@ -103,6 +103,7 @@ class BookImportSerializer(BaseImportSerializer):
     book_status = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     # Accept author names as strings and handle them
     author_names = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    publication_date = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = Book
@@ -126,7 +127,23 @@ class BookImportSerializer(BaseImportSerializer):
             "publisher",
             "edition",
         ]
-
+        
+    def validate_publication_date(self, value):
+        "Ensure proper date format and null handling"
+        if value is not None or value != "":
+            try:
+                pub_date = date.fromisoformat(value)
+            except (ValueError, TypeError):
+                try:
+                    pub_year = int(value)
+                    pub_date = date(pub_year, 1, 1)
+                except (ValueError, TypeError):
+                    raise serializers.ValidationError(
+                        f"Publication date must be in YYYY-MM-DD or YYYY format, got: {value}"
+                    ) from None
+            return pub_date
+        return value
+            
     def validate_title(self, value):
         """Ensure title is not empty"""
         if not value or (isinstance(value, str) and not value.strip()):
@@ -181,7 +198,7 @@ class BookImportSerializer(BaseImportSerializer):
     def validate_book_status(self, value):
         """Validate book status"""
         if not value:
-            return Book.BookStatus.PROCESSING
+            return Book.BookStatus.AVAILABLE
 
         # Handle both display names and values
         status_map = {choice[1].lower(): choice[0] for choice in Book.BookStatus.choices}
@@ -255,8 +272,13 @@ class CustomerImportSerializer(BaseImportSerializer):
             "phone_number",
             "mailing_address",
             "secondary_mailing_address",
+            "city",
+            "state",
+            "zip_code",
         ]
-        nullable_fields = ["last_name", "first_name", "phone_number", "mailing_address"]
+        nullable_fields = ["last_name", "first_name", "phone_number", "mailing_address","city",
+            "state",
+            "zip_code",]
 
     def validate(self, attrs):
         """Ensure at least first or last name is provided"""
@@ -284,6 +306,7 @@ class EmployeeImportSerializer(BaseImportSerializer):
             "secondary_address",
             "birth_date",
             "hire_date",
+            "city",
             "zip_code",
             "state",
             "email",

@@ -58,6 +58,9 @@ class CustomerForm(forms.ModelForm):
             "phone_number",
             "mailing_address",
             "secondary_mailing_address",
+            "city",
+            "state",
+            "zip_code",
         ]
 
     def clean(self):
@@ -228,6 +231,7 @@ class EmployeeForm(forms.ModelForm):
             "birth_date",
             "hire_date",
             "group",
+            "city",
             "zip_code",
             "state",
             "email",

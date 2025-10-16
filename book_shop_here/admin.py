@@ -64,6 +64,9 @@ class CustomerAdmin(admin.ModelAdmin):
         "phone_number",
         "mailing_address",
         "secondary_mailing_address",
+        "city",
+        "state",
+        "zip_code",
     ]
 
 
