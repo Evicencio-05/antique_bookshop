@@ -24,6 +24,10 @@ uv-install-bash:
 sync:
     uv sync --all-extras
 
+# # Activate the virtualenv in the current shell (bash; Git Bash/macOS/Linux)
+# activate:
+#     if [ -f .venv/Scripts/activate ]; then source .venv/Scripts/activate; elif [ -f .venv/bin/activate ]; then source .venv/bin/activate; else echo "No virtualenv found. Run 'just sync' first."; exit 1; fi
+
 # Run arbitrary Django manage.py command: just manage migrate
 manage *args:
     uv run python manage.py {{args}}

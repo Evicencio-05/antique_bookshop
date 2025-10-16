@@ -1,6 +1,7 @@
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 
+from .unified_import import unified_import_process, unified_import_upload
 from .views import authors as views_authors
 from .views import base as views_base
 from .views import books as views_books
@@ -76,4 +77,7 @@ urlpatterns = [
         views_customers.CustomerDeleteView.as_view(),
         name="customer-delete",
     ),
+    # Unified import endpoints (XLSX, CSV, XML) - handles all file formats
+    path("import/upload/", unified_import_upload, name="import-upload"),
+    path("import/process/", unified_import_process, name="import-process"),
 ]

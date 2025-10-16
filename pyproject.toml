@@ -25,6 +25,7 @@ dependencies = [
   "django-crispy-forms>=2.1",
   "crispy-tailwind>=1.0.3",
   "data-wizard>=2.0.0",
+  "pandas>=2.3.3",
 ]
 
 [project.optional-dependencies]

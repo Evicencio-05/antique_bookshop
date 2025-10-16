@@ -40,6 +40,7 @@ class Employee(models.Model):
         max_length=200,
         blank=True,
         editable=True,
+        null=True,
         default="N/A",
         verbose_name=_("Employee secondary address"),
     )
@@ -73,6 +74,9 @@ class Employee(models.Model):
         return f"{self.first_name} {self.last_name}"
 
     def save(self, *args, **kwargs):
+        # Ensure legacy NOT NULL columns have safe defaults
+        if not self.secondary_address:
+            self.secondary_address = "N/A"
         super().save(*args, **kwargs)
         if self.user:  # Auto-sync on save if User exists (e.g., for updates)
             self.sync_user()
@@ -143,6 +147,10 @@ class Employee(models.Model):
             raise ValueError("First and last name are required.")
         if not group:
             raise ValueError("Group is required for employee creation.")
+
+        # Ensure secondary_address is non-null for legacy schema
+        if not kwargs.get("secondary_address"):
+            kwargs["secondary_address"] = "N/A"
 
         temp_employee = cls(first_name=first_name, last_name=last_name)
         username = temp_employee._generate_username()

@@ -148,6 +148,19 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = ("tailwind",)
 CRISPY_TEMPLATE_PACK = "tailwind"
 
 
+# Data Wizard settings for better error handling
+DATA_WIZARD = {
+    "BACKEND": "data_wizard.backends.threading",
+    "LOADER": "data_wizard.loaders.FileLoader",
+    "IDMAP": "data_wizard.idmap",
+    "PERMISSION": "rest_framework.permissions.IsAuthenticated",
+    "AUTHENTICATE": True,
+    "ANONYMOUS_PERMISSIONS": [],
+    "CELERY_TASK_NAME": "data_wizard.tasks.import_data",
+    "AUTO_IMPORT_LIMIT": 500,  # Auto import if less than 500 rows
+    "SHOW_IN_INDEX": True,
+}
+
 # Logger settings
 
 LOGGING = {
@@ -157,11 +170,19 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
         },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "data_wizard.log",
+        },
     },
     "loggers": {
         "book_shop_here": {
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
             "level": "DEBUG",
+        },
+        "data_wizard": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
         },
     },
 }

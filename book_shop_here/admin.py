@@ -3,12 +3,20 @@ from django.contrib import admin
 
 from .forms import EmployeeForm
 from .models import Author, Book, Customer, Employee, GroupProfile, Order
+from .serializers import (
+    AuthorImportSerializer,
+    BookImportSerializer,
+    CustomerImportSerializer,
+    EmployeeImportSerializer,
+    OrderImportSerializer,
+)
 
-data_wizard.register(Book)
-data_wizard.register(Author)
-data_wizard.register(Customer)
-data_wizard.register(Employee)
-data_wizard.register(Order)
+# Register models with custom serializers for better null value handling
+data_wizard.register(Book, serializer=BookImportSerializer)
+data_wizard.register(Author, serializer=AuthorImportSerializer)
+data_wizard.register(Customer, serializer=CustomerImportSerializer)
+data_wizard.register(Employee, serializer=EmployeeImportSerializer)
+data_wizard.register(Order, serializer=OrderImportSerializer)
 
 
 @admin.register(Author)
