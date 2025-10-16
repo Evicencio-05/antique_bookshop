@@ -13,7 +13,7 @@
                 <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by title, author, or legacy ID' %}" class="w-2/5 border border-gray-300 rounded px-3 py-2 text-gray-700" />
                 <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
                 <label class="inline-flex mx-2 items-center text-sm text-gray-700 select-none">
-                    <input type="checkbox" name="include_hidden" value="1" {% if include_hidden %}checked{% endif %} class="mr-2 size-5 p-3">
+                    <input id="show_hidden_checkbox" type="checkbox" name="include_hidden" value="1" {% if include_hidden %}checked{% endif %} class="mr-2 size-5 p-3">
                     <div class="flex-none min-w-20">
                         {% trans "Show hidden" %}
                     </div>
@@ -42,7 +42,7 @@
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Publication Date" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Edition" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Cost" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Suggested Retail Price" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Retail Price" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Condition" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Actions" %}</th>
                     </tr>
@@ -78,4 +78,24 @@
             <p>{% trans "No books found." %}</p>
         {% endif %}
     </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const showHiddenCheckbox = document.getElementById('show_hidden_checkbox');
+
+    function saveCheckboxState() {
+        localStorage.setItem('show_hidden_books', showHiddenCheckbox.checked);
+    }
+
+    function loadCheckboxState() {
+        const savedState = localStorage.getItem('show_hidden_books');
+        if (savedState !== null) {
+            showHiddenCheckbox.checked = JSON.parse(savedState);
+        }
+    }
+
+    showHiddenCheckbox.addEventListener('change', saveCheckboxState);
+    document.addEventListener('DOMContentLoaded', loadCheckboxState);
+</script>
 {% endblock %}
