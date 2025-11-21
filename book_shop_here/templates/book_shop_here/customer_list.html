@@ -31,21 +31,33 @@
                         <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Name" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Phone Number" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Mailing Address" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Secondary Mailing Address" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "City" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "State" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Zip Code" %}</th>
                         <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for customer in customers %}
                     <tr>
-                        <td class="border border-gray-300 px-3 py-2">{{ customer }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ customer.phone_number|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ customer.mailing_address|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer.secondary_mailing_address|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer.city|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer.state|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ customer.zip_code|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">
-                            <a href="{% url 'book_shop_here:customer-detail' pk=customer.customer_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
-                            <span class="px-2">|</span>
-                            <a href="{% url 'book_shop_here:customer-update' pk=customer.customer_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
-                            <span class="px-2">|</span>
-                            <a href="{% url 'book_shop_here:customer-delete' pk=customer.customer_id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
+                            {% if perms.book_shop_here.view_customer %}
+                                <a href="{% url 'book_shop_here:customer-detail' pk=customer.customer_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
+                            {% endif %}
+                            {% if perms.book_shop_here.change_customer %}
+                                <a href="{% url 'book_shop_here:customer-update' pk=customer.customer_id %}" class="text-blue-600 hover:underline ml-2">{% trans "Edit" %}</a>
+                            {% endif %}
+                            {% if perms.book_shop_here.delete_customer %}
+                                <a href="{% url 'book_shop_here:customer-delete' pk=customer.customer_id %}" class="text-blue-600 hover:underline ml-2">{% trans "Delete" %}</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

@@ -65,6 +65,21 @@
                         </tbody>
                     </table>
                 </div>
+
+                {% if extra_permissions %}
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold mb-2">{% trans "Additional permissions" %}</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {% for p in extra_permissions %}
+                        <label class="inline-flex items-center space-x-2 border p-2 rounded">
+                            <input type="checkbox" name="permissions" value="{{ p.id }}" class="h-4 w-4" {% if form.permissions.value and p.id|stringformat:'s' in form.permissions.value %}checked{% endif %}>
+                            <span class="text-sm">{{ p.codename }} — {{ p.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
                 <script>
                 (function(){
                     var table = document.currentScript.parentElement.querySelector('table');

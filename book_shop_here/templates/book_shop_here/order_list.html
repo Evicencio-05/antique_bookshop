@@ -1,4 +1,5 @@
 {% extends "book_shop_here/base.html" %}
+{% load custom_filter %}
 {% load i18n %}
 
 {% block content %}
@@ -9,8 +10,8 @@
         </div>
 
         <form method="get" class="mb-4">
-            <div class="flex items-center max-w-md">
-                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by order ID, customer/employee, status, or book' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
+            <div class="flex items-center max-w-screen-lg">
+                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search by order ID, customer/employee, status, or book' %}" class="w-5/12 border border-gray-300 rounded px-3 py-2 text-gray-700" />
                 <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
             </div>
         </form>
@@ -28,30 +29,48 @@
             <table class="w-full border border-gray-300 border-collapse">
                 <thead>
                     <tr class="bg-gray-100">
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Order ID" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Customer" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Employee" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Sale Amount" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Status" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Books" %}</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Actions" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Order ID" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Customer" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Employee" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Sale Amount" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Status" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Books" %}</th>
+                        <th class="border border-gray-300 px-3 py-2 text-left sticky top-0 bg-gray-100 z-10">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for order in orders %}
                     <tr>
                         <td class="border border-gray-300 px-3 py-2">{{ order.order_id }}</td>
-                        <td class="border border-gray-300 px-3 py-2">{{ order.customer_id }}</td>
-                        <td class="border border-gray-300 px-3 py-2">{{ order.employee_id }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ order.customer_id|default:"-" }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ order.employee_id|default:"-" }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ order.sale_amount }}</td>
-                        <td class="border border-gray-300 px-3 py-2">{{ order.order_status }}</td>
+                        <td class="border border-gray-300 px-3 py-2">{{ order.order_status|title|replace:"_, " }}</td>
                         <td class="border border-gray-300 px-3 py-2">{{ order.books.all|join:", " }}</td>
-                        <td class="border border-gray-300 px-3 py-2">
-                            <a href="{% url 'book_shop_here:order-detail' pk=order.order_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
-                            <span class="px-2">|</span>
-                            <a href="{% url 'book_shop_here:order-update' pk=order.order_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
-                            <span class="px-2">|</span>
-                            <a href="{% url 'book_shop_here:order-delete' pk=order.order_id %}" class="text-blue-600 hover:underline">{% trans "Delete" %}</a>
+                        <td class="border border-gray-300 px-3 py-2 space-x-2">
+                            {% if perms.book_shop_here.view_order %}
+                                <a href="{% url 'book_shop_here:order-detail' pk=order.order_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
+                            {% endif %}
+                            {% if perms.book_shop_here.change_order %}
+                                <a href="{% url 'book_shop_here:order-update' pk=order.order_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% if order.order_status != 'shipped' and order.order_status != 'picked_up' %}
+                                <form action="{% url 'book_shop_here:order-close' pk=order.order_id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                                    <input type="hidden" name="status" value="shipped" />
+                                    <button type="submit" class="text-green-700 hover:underline">{% trans "Mark Shipped" %}</button>
+                                </form>
+                                <form action="{% url 'book_shop_here:order-close' pk=order.order_id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                                    <input type="hidden" name="status" value="picked_up" />
+                                    <button type="submit" class="text-green-700 hover:underline">{% trans "Mark Picked Up" %}</button>
+                                </form>
+                                {% endif %}
+                            {% endif %}
+                            {% if perms.book_shop_here.delete_order %}
+                                <a href="{% url 'book_shop_here:order-delete' pk=order.order_id %}" class="text-red-600 hover:underline">{% trans "Delete" %}</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

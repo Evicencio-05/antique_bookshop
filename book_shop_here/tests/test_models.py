@@ -14,17 +14,19 @@ class BookModelTests(TestCase):
             legacy_id="doej1234",
             title="Test Book",
             cost=10.00,
-            retail_price=15.00,
+            suggested_retail_price=15.00,
             publication_date=date(2020, 1, 1),
             edition="1st",
-            rating="excellent",
+            condition="excellent",
             book_status="available",
         )
         self.book.authors.add(self.author)
 
     def test_book_str(self):
         self.assertEqual(str(self.book), "doej1234: Test Book")
-        book_no_legacy = Book.objects.create(title="No Legacy", cost=5.00, retail_price=10.00)
+        book_no_legacy = Book.objects.create(
+            title="No Legacy", cost=5.00, suggested_retail_price=10.00
+        )
         self.assertEqual(str(book_no_legacy), f"{book_no_legacy.book_id}: No Legacy")
 
 
@@ -53,6 +55,16 @@ class CustomerModelTests(TestCase):
         customer.full_clean()
         self.assertEqual(str(customer), "Alice Smith")
 
+    def test_customer_secondary_address(self):
+        customer = Customer.objects.create(
+            first_name="Alice",
+            last_name="Smith",
+            mailing_address="123 Main St",
+            secondary_mailing_address="Apt 4B",
+        )
+        self.assertEqual(customer.secondary_mailing_address, "Apt 4B")
+        self.assertEqual(customer.mailing_address, "123 Main St")
+
 
 class OrderModelTests(TestCase):
     def setUp(self):
@@ -75,7 +87,7 @@ class OrderModelTests(TestCase):
             legacy_id="test1234",
             title="Test Book",
             cost=10.00,
-            retail_price=15.00,
+            suggested_retail_price=15.00,
             publication_date=date(2020, 1, 1),
             book_status="available",
         )
@@ -100,7 +112,7 @@ class OrderModelTests(TestCase):
         self.order.books.add(self.book)
         self.order.save()
         self.order.refresh_from_db()
-        self.assertEqual(self.order.sale_amount, self.book.cost)
+        self.assertEqual(self.order.sale_amount, self.book.suggested_retail_price)
 
 
 class EmployeeModelTests(TestCase):
@@ -159,3 +171,10 @@ class EmployeeModelTests(TestCase):
     def test_str(self):
         employee = Employee(**self.employee_data)
         self.assertEqual(str(employee), "John Doe")
+
+    def test_employee_secondary_address(self):
+        employee_data = self.employee_data.copy()
+        employee_data["secondary_address"] = "Suite 200"
+        employee = Employee.create_with_user(password="testpass123", **employee_data)
+        self.assertEqual(employee.secondary_address, "Suite 200")
+        self.assertEqual(employee.address, "123 Main St")

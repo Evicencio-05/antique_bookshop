@@ -1,0 +1,160 @@
+{% extends "book_shop_here/base.html" %}
+{% load i18n %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">{% trans "Employee Sales" %}: {{ employee.first_name }} {{ employee.last_name }}</h1>
+    <div class="flex flex-col md:flex-row gap-2 md:items-end">
+      <form id="empFilterForm" method="get" class="flex gap-2 items-end">
+        <div>
+          <label class="block text-sm">{% trans "Start date" %}</label>
+          <input type="date" name="start" value="{{ start }}" class="border p-1 rounded" />
+        </div>
+        <div>
+          <label class="block text-sm">{% trans "End date" %}</label>
+          <input type="date" name="end" value="{{ end }}" class="border p-1 rounded" />
+        </div>
+        <div>
+          <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded">{% trans "Filter" %}</button>
+        </div>
+      </form>
+      <div class="flex gap-2">
+        <button type="button" data-emp-range="7" class="px-3 py-2 border rounded hover:bg-gray-50">{% trans "Last 7d" %}</button>
+        <button type="button" data-emp-range="30" class="px-3 py-2 border rounded hover:bg-gray-50">{% trans "Last 30d" %}</button>
+        <button type="button" data-emp-range="90" class="px-3 py-2 border rounded hover:bg-gray-50">{% trans "Last 90d" %}</button>
+        <button type="button" id="empChartThemeToggle" class="px-3 py-2 border rounded hover:bg-gray-50">{% trans "Toggle Chart Theme" %}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="p-4 border rounded">
+      <div class="text-gray-500">{% trans "Total Revenue" %}</div>
+      <div class="text-xl font-semibold">${{ totals.revenue }}</div>
+    </div>
+    <div class="p-4 border rounded">
+      <div class="text-gray-500">{% trans "Orders" %}</div>
+      <div class="text-xl font-semibold">{{ totals.orders }}</div>
+    </div>
+    <div class="p-4 border rounded">
+      <div class="text-gray-500">{% trans "Books Sold" %}</div>
+      <div class="text-xl font-semibold">{{ totals.books }}</div>
+    </div>
+  </div>
+
+  <div class="mb-6 p-4 border rounded">
+    <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Totals Chart" %}</h2>
+    {% if totals.orders or totals.revenue or totals.books %}
+      <div>
+        <canvas id="employeeTotalsChart" class="w-full h-48"></canvas>
+      </div>  
+    {% else %}
+      <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+    {% endif %}
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="p-4 border rounded">
+      <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Books Sold" %}</h2>
+      <div class="overflow-auto">
+        <table class="w-full border">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="text-left p-2">{% trans "ID" %}</th>
+              <th class="text-left p-2">{% trans "Title" %}</th>
+              <th class="text-left p-2">{% trans "Status" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in sold_books %}
+            <tr class="border-t">
+              <td class="p-2">{{ b.legacy_id|default:b.book_id }}</td>
+              <td class="p-2"><a class="text-blue-700 underline" href="{% url 'book_shop_here:book-detail' b.book_id %}">{{ b.title }}</a></td>
+              <td class="p-2">{{ b.book_status }}</td>
+            </tr>
+            {% empty %}
+            <tr><td class="p-2" colspan="3">{% trans "No books sold in this range." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="p-4 border rounded">
+      <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Frequent Customers (Orders)" %}</h2>
+      {% if frequent_customers %}
+        <div>
+          <canvas id="frequentCustomersChart" class="w-full h-48"></canvas>
+        </div>
+      {% else %}
+        <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+      {% endif %}
+      <div class="mt-4 overflow-auto">
+        <table class="w-full border">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="text-left p-2">{% trans "Customer" %}</th>
+              <th class="text-left p-2">{% trans "Purchases" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in frequent_customers %}
+            <tr class="border-t">
+              <td class="p-2"><a class="text-blue-700 underline" href="{% url 'book_shop_here:customer-detail' c.customer_id %}">{{ c.first_name }} {{ c.last_name }}</a></td>
+              <td class="p-2">{{ c.purchase_count }}</td>
+            </tr>
+            {% empty %}
+            <tr><td class="p-2" colspan="2">{% trans "No frequent customers in this range." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  window._charts = window._charts || [];
+  window.chartTheme = (localStorage.getItem('chartTheme') || window.chartTheme || 'light');
+  function color(){ return window.getChartColor ? window.getChartColor() : (window.chartTheme === 'dark' ? '#93c5fd' : '#2563eb'); }
+  function makeBar(id, labels, data, label){
+    var el = document.getElementById(id); if(!el) return;
+    var chart = new Chart(el.getContext('2d'), {
+      type: 'bar',
+      data: { labels: labels, datasets: [{ label: label, data: data, backgroundColor: color() }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+    });
+    window._charts.push(chart);
+  }
+  function setEmpRange(days){
+    var form = document.getElementById('empFilterForm'); if(!form) return;
+    var end = new Date();
+    var start = new Date(); start.setDate(end.getDate() - days);
+    function fmt(d){ const m = (d.getMonth()+1).toString().padStart(2,'0'); const day = d.getDate().toString().padStart(2,'0'); return d.getFullYear()+ '-' + m + '-' + day; }
+    form.querySelector('input[name="start"]').value = fmt(start);
+    form.querySelector('input[name="end"]').value = fmt(end);
+    form.submit();
+  }
+  document.querySelectorAll('[data-emp-range]').forEach(function(btn){ btn.addEventListener('click', function(){ setEmpRange(parseInt(btn.getAttribute('data-emp-range'),10)); }); });
+  var themeBtn = document.getElementById('empChartThemeToggle');
+  if(themeBtn){ themeBtn.addEventListener('click', function(){ window.chartTheme = window.chartTheme === 'light' ? 'dark' : 'light'; try { localStorage.setItem('chartTheme', window.chartTheme); } catch(e) {} (window._charts||[]).forEach(function(c){ c.data.datasets.forEach(function(ds){ ds.backgroundColor = color(); }); c.update(); }); }); }
+
+  // Totals chart (Revenue, Orders, Books)
+  {% if totals.orders or totals.revenue or totals.books %}
+    makeBar('employeeTotalsChart', ['Revenue', 'Orders', 'Books'], [{{ totals.revenue|default:0 }}, {{ totals.orders|default:0 }}, {{ totals.books|default:0 }}], 'Totals');
+  {% endif %}
+
+  // Frequent customers by purchases
+  {% if frequent_customers %}
+    makeBar('frequentCustomersChart', [
+      {% for c in frequent_customers %}'{{ c.first_name }} {{ c.last_name }}'{% if not forloop.last %},{% endif %}{% endfor %}
+    ], [
+      {% for c in frequent_customers %}{{ c.purchase_count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}
+    ], 'Orders');
+  {% endif %}
+})();
+</script>
+{% endblock %}

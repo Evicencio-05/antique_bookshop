@@ -1,9 +1,11 @@
 import logging
 import re
+from decimal import Decimal
 
 from django import forms
 from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 from .models import Author, Book, Customer, Employee, GroupProfile, Order
 
@@ -20,15 +22,22 @@ class BookForm(forms.ModelForm):
         fields = [
             "title",
             "cost",
-            "retail_price",
+            "suggested_retail_price",
             "publication_date",
             "publisher",
             "edition",
-            "rating",
+            "condition",
+            "condition_notes",
             "authors",
             "book_status",
             "legacy_id",
         ]
+        widgets = {
+            "publication_date": forms.DateInput(attrs={"type": "date"}),
+            "condition_notes": forms.Textarea(
+                attrs={"rows": 3, "placeholder": "Optional condition notes..."}
+            ),
+        }
 
     def clean_authors(self):
         authors = self.cleaned_data["authors"]
@@ -43,7 +52,16 @@ class BookForm(forms.ModelForm):
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ["last_name", "first_name", "phone_number", "mailing_address"]
+        fields = [
+            "last_name",
+            "first_name",
+            "phone_number",
+            "mailing_address",
+            "secondary_mailing_address",
+            "city",
+            "state",
+            "zip_code",
+        ]
 
     def clean(self):
         cleaned_data = super().clean()
@@ -75,6 +93,15 @@ class OrderForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         required=True,
     )
+    auto_calculate = forms.BooleanField(
+        label="Auto-calculate sale amount",
+        required=False,
+        initial=True,
+    )
+
+    order_date_input = forms.DateField(
+        required=False, label="Order date", widget=forms.DateInput(attrs={"type": "date"})
+    )
 
     class Meta:
         model = Order
@@ -82,11 +109,66 @@ class OrderForm(forms.ModelForm):
             "customer_id",
             "employee_id",
             "sale_amount",
+            "discount_amount",
             "payment_method",
             "order_status",
             "books",
             "delivery_pickup_date",
         ]
+        widgets = {
+            "delivery_pickup_date": forms.DateInput(attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["sale_amount"].required = False
+        if "discount_amount" in self.fields:
+            self.fields["discount_amount"].required = False
+        # Ensure selected books remain visible when editing an order
+        try:
+            instance = kwargs.get("instance") or getattr(self, "instance", None)
+            base_q = Q(book_status__in=["available", "reserved"])
+            if instance and getattr(instance, "pk", None):
+                selected_ids = list(instance.books.values_list("pk", flat=True))
+                if selected_ids:
+                    base_q = base_q | Q(pk__in=selected_ids)
+            self.fields["books"].queryset = Book.objects.filter(base_q).order_by("title")
+        except Exception:
+            # Fall back silently if anything goes wrong
+            self.fields["books"].queryset = Book.objects.filter(
+                book_status__in=["available", "reserved"]
+            ).order_by("title")
+
+    def clean(self):
+        cleaned = super().clean()
+        books = cleaned.get("books") or []
+        auto = cleaned.get("auto_calculate")
+        discount = cleaned.get("discount_amount") or Decimal("0.00")
+        if discount and discount < 0:
+            self.add_error("discount_amount", "Discount cannot be negative.")
+        if auto:
+            if not books:
+                self.add_error("books", "Select at least one book to auto-calculate.")
+            else:
+                total = sum((b.suggested_retail_price for b in books), Decimal("0.00"))
+                amount = total - discount
+                if amount < 0:
+                    amount = Decimal("0.00")
+                cleaned["sale_amount"] = amount
+        else:
+            if cleaned.get("sale_amount") in (None, ""):
+                self.add_error("sale_amount", "Enter a sale amount or enable auto-calculate.")
+        return cleaned
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        od = self.cleaned_data.get("order_date_input")
+        if od:
+            instance.order_date = od
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 
 class GroupForm(forms.ModelForm):
@@ -145,9 +227,11 @@ class EmployeeForm(forms.ModelForm):
             "last_name",
             "phone_number",
             "address",
+            "secondary_address",
             "birth_date",
             "hire_date",
             "group",
+            "city",
             "zip_code",
             "state",
             "email",

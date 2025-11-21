@@ -2,25 +2,28 @@
 {% load i18n static %}
 <html lang="en">
 <head>
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.ico' %}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% trans "Book Shop Here" %}{% endblock %}</title>
     <link href="{% static 'book_shop_here/site.css' %}" rel="stylesheet">
     <link href="{% static 'book_shop_here/overrides.css' %}" rel="stylesheet">
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-[#d5e1f5] font-sans">
     <nav class="bg-blue-600 text-white p-4">
         <div class="container mx-auto flex justify-between items-center">
             <a href="{% url 'book_shop_here:home' %}" class="text-2xl font-bold">
                 {% block nav_brand %}{% trans "Book Shop Here" %}{% endblock %}
             </a>
             <div class="space-x-4">
+                <a href="{% url 'book_shop_here:home' %}" class="hover:underline">{% trans "Home" %}</a>
                 <a href="{% url 'book_shop_here:book-list' %}" class="hover:underline">{% trans "Books" %}</a>
                 <a href="{% url 'book_shop_here:author-list' %}" class="hover:underline">{% trans "Authors" %}</a>
                 <a href="{% url 'book_shop_here:customer-list' %}" class="hover:underline">{% trans "Customers" %}</a>
                 <a href="{% url 'book_shop_here:order-list' %}" class="hover:underline">{% trans "Orders" %}</a>
-                <a href="{% url 'book_shop_here:group-list' %}" class="hover:underline">{% trans "Roles" %}</a>
-                <a href="{% url 'book_shop_here:employee-list' %}" class="hover:underline">{% trans "Employees" %}</a>
+                {% if perms.book_shop_here.view_sales_reports %}<a href="{% url 'book_shop_here:sales-dashboard' %}" class="hover:underline">{% trans "Reports" %}</a> {% endif %}
+                {% if perms.book_shop_here.view_group %}<a href="{% url 'book_shop_here:group-list' %}" class="hover:underline">{% trans "Roles" %}</a> {% endif %}
+                {% if perms.book_shop_here.view_employee %}<a href="{% url 'book_shop_here:employee-list' %}" class="hover:underline">{% trans "Employees" %}</a> {% endif %}
                 {% if user.is_authenticated %}
                     <form action="{% url 'logout' %}" method="post" class="inline">
                         {% csrf_token %}
@@ -47,10 +50,6 @@
 
     <div class="container mx-auto p-4">
         {% block content %}
-            <div class="bg-white p-6 rounded shadow">
-                <h2 class="text-xl font-semibold mb-4">{% trans "Welcome to Book Shop Here!" %}</h2>
-                <p>{% trans "This is the main content area. Please log in to manage books, authors, orders, and more." %}</p>
-            </div>
         {% endblock %}
     </div>
 
@@ -61,15 +60,28 @@
     {% endif %}
     <script>
     (function(){
-      var container = document.getElementById('toast-container');
-      if(!container) return;
-      function attach(el){
-        var btns = el.querySelectorAll('[data-toast-close]');
-        btns.forEach(function(btn){ btn.addEventListener('click', function(){ if (el && el.parentNode) el.remove(); }); });
-        setTimeout(function(){ if (el && el.parentNode) el.remove(); }, 5000);
-      }
-      container.querySelectorAll('[data-toast]').forEach(attach);
+        var container = document.getElementById('toast-container');
+        if(!container) return;
+        function attach(el){
+            var btns = el.querySelectorAll('[data-toast-close]');
+            btns.forEach(function(btn){ btn.addEventListener('click', function(){ if (el && el.parentNode) el.remove(); }); });
+            setTimeout(function(){ if (el && el.parentNode) el.remove(); }, 5000);
+        }
+        container.querySelectorAll('[data-toast]').forEach(attach);
     })();
     </script>
+    <script>
+      // Global chart theme persistence
+        (function(){
+            try {
+            if (!window.chartTheme) {
+                var saved = localStorage.getItem('chartTheme');
+                window.chartTheme = saved ? saved : 'light';
+            }
+            window.getChartColor = function(){ return window.chartTheme === 'dark' ? '#93c5fd' : '#2563eb'; }
+            } catch(e) { window.chartTheme = 'light'; window.getChartColor = function(){ return '#2563eb'; }; }
+        })();
+    </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

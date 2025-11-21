@@ -9,6 +9,7 @@
             {% csrf_token %}
             <div class="space-y-4">
                 {{ form|crispy }}
+                <p class="text-sm text-gray-600">Checking "Auto-calculate sale amount" will total the selected books' retail prices and subtract any discount.</p>
             </div>
             {% url 'book_shop_here:order-list' as cancel_link %}
             <div class="mt-8 flex items-center space-x-4">

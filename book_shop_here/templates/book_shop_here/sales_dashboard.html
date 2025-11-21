@@ -1,0 +1,199 @@
+{% extends "book_shop_here/base.html" %}
+{% load i18n %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow ">
+  <h1 class="flex text-3xl font-extrabold text-blue-600 mb-6 basis-full justify-center">{% trans "Sales Dashboard" %}</h1>
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col md:flex-row gap-2 md:items-end">
+      <form id="filterForm" method="get" class="flex gap-2 items-end">
+        <div>
+          <label class="block text-sm">{% trans "Start date" %}</label>
+          <input type="date" name="start" value="{{ start }}" class="border p-1 rounded" />
+        </div>
+        <div>
+          <label class="block text-sm">{% trans "End date" %}</label>
+          <input type="date" name="end" value="{{ end }}" class="border p-1 rounded" />
+        </div>
+        <div>
+          <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded">{% trans "Filter" %}</button>
+        </div>
+      </form>
+      <div class="flex gap-2">
+        <button type="button" data-range="7" class="px-3 py-2 border border-gray-700 rounded hover:bg-gray-200">{% trans "Last 7d" %}</button>
+        <button type="button" data-range="30" class="px-3 py-2 border border-gray-700 rounded hover:bg-gray-200">{% trans "Last 30d" %}</button>
+        <button type="button" data-range="90" class="px-3 py-2 border border-gray-700 rounded hover:bg-gray-200">{% trans "Last 90d" %}</button>
+        <button type="button" id="chartThemeToggle" class="px-3 py-2 border border-gray-700 rounded hover:bg-gray-200">{% trans "Toggle Chart Theme" %}</button>
+      </div>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="p-4 border border-gray-300 shadow-xl rounded">
+      <div class="text-gray-500">{% trans "Revenue" %}</div>
+      <div class="text-xl font-semibold">${{ summary.revenue }}</div>
+    </div>
+    <div class="p-4 border border-gray-300 shadow-xl rounded">
+      <div class="text-gray-500">{% trans "Orders" %}</div>
+      <div class="text-xl font-semibold">{{ summary.orders }}</div>
+    </div>
+    <div class="p-4 border border-gray-300 shadow-xl rounded">
+      <div class="text-gray-500">{% trans "Books Sold" %}</div>
+      <div class="text-xl font-semibold">{{ summary.books_sold }}</div>
+    </div>
+    <div class="p-4 border border-gray-300 shadow-xl rounded">
+      <div class="text-gray-500">{% trans "Avg Order Value" %}</div>
+      <div class="text-xl font-semibold">${{ summary.avg_order_value|floatformat:2 }}</div>
+    </div>
+  </div>
+
+  <div class="mb-6 p-4 border border-gray-300 shadow-xl rounded">
+    <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Summary Chart" %}</h2>
+    {% if summary.orders or summary.revenue or summary.books_sold %}
+      <div>
+        <canvas id="summaryChart" class="w-full h-48"></canvas>
+      </div>
+    {% else %}
+      <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+    {% endif %}
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="p-4 border rounded border-gray-300 shadow-xl">
+      <h2 class="text-lg font-semibold mb-3 border-b pb-2 ">{% trans "Payment Breakdown (Revenue)" %}</h2>
+      {% if payment_breakdown %}
+        <div>
+          <canvas id="paymentChart" class="w-full h-48"></canvas>
+        </div>  
+      {% else %}
+        <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+      {% endif %}
+    </div>
+    <div class="p-4 border rounded border-gray-300 shadow-xl">
+      <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Open Orders by Status" %}</h2>
+      {% if open_by_status %}
+        <div>
+          <canvas id="openStatusChart" class="w-full h-48"></canvas>
+        </div>
+      {% else %}
+        <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="p-4 border rounded border-gray-300 shadow-xl">
+      <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Top Employees (Books Sold)" %}</h2>
+      {% if top_employees %}
+        <div>
+          <canvas id="topEmployeesChart" class="w-full h-48"></canvas>
+        </div>
+      {% else %}
+        <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+      {% endif %}
+    </div>
+    <div class="p-4 border rounded border-gray-300 shadow-xl">
+      <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Top Customers (Orders)" %}</h2>
+      {% if top_customers %}
+        <div>
+          <canvas id="topCustomersChart" class="w-full h-48"></canvas>
+        </div>
+      {% else %}
+        <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+      {% endif %}
+    </div>
+    <div class="p-4 border rounded border-gray-300 shadow-xl">
+      <h2 class="text-lg font-semibold mb-3 border-b pb-2">{% trans "Inventory by Status" %}</h2>
+      {% if inventory_by_status %}
+        <div>
+          <canvas id="inventoryChart" class="w-full h-48"></canvas>
+        </div> 
+      {% else %}
+        <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  window._charts = window._charts || [];
+  window.chartTheme = (localStorage.getItem('chartTheme') || window.chartTheme || 'light');
+  function color(){ return window.getChartColor ? window.getChartColor() : (window.chartTheme === 'dark' ? '#93c5fd' : '#2563eb'); }
+  function makeBar(id, labels, data, label){
+    var el = document.getElementById(id); if(!el) return;
+    var chart = new Chart(el.getContext('2d'), {
+      type: 'bar',
+      data: { labels: labels, datasets: [{ label: label, data: data, backgroundColor: color() }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+    });
+    window._charts.push(chart);
+  }
+  function setRange(days){
+    var form = document.getElementById('filterForm'); if(!form) return;
+    var end = new Date();
+    var start = new Date(); start.setDate(end.getDate() - days);
+    function fmt(d){ const m = (d.getMonth()+1).toString().padStart(2,'0'); const day = d.getDate().toString().padStart(2,'0'); return d.getFullYear()+ '-' + m + '-' + day; }
+    form.querySelector('input[name="start"]').value = fmt(start);
+    form.querySelector('input[name="end"]').value = fmt(end);
+    form.submit();
+  }
+  document.querySelectorAll('[data-range]').forEach(function(btn){ btn.addEventListener('click', function(){ setRange(parseInt(btn.getAttribute('data-range'),10)); }); });
+  var themeBtn = document.getElementById('chartThemeToggle');
+  if(themeBtn){ themeBtn.addEventListener('click', function(){ window.chartTheme = window.chartTheme === 'light' ? 'dark' : 'light'; try { localStorage.setItem('chartTheme', window.chartTheme); } catch(e) {} (window._charts||[]).forEach(function(c){ c.data.datasets.forEach(function(ds){ ds.backgroundColor = color(); }); c.update(); }); }); }
+
+  // Summary chart (Revenue, Orders, Books)
+  {% with rev=summary.revenue ord=summary.orders books=summary.books_sold %}
+  {% if summary.orders or summary.revenue or summary.books_sold %}
+    makeBar('summaryChart', ['Revenue', 'Orders', 'Books'], [{{ rev|default:0 }}, {{ ord|default:0 }}, {{ books|default:0 }}], 'Summary');
+  {% endif %}
+  {% endwith %}
+
+  // Payment breakdown by revenue
+  {% if payment_breakdown %}
+    makeBar('paymentChart', [
+      {% for p in payment_breakdown %}'{{ p.payment_method }}'{% if not forloop.last %},{% endif %}{% endfor %}
+    ], [
+      {% for p in payment_breakdown %}{{ p.revenue|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}
+    ], 'Revenue');
+  {% endif %}
+
+  // Open orders by status
+  {% if open_by_status %}
+    makeBar('openStatusChart', [
+      {% for s in open_by_status %}'{{ s.order_status }}'{% if not forloop.last %},{% endif %}{% endfor %}
+    ], [
+      {% for s in open_by_status %}{{ s.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}
+    ], 'Count');
+  {% endif %}
+
+  // Top employees by books sold
+  {% if top_employees %}
+    makeBar('topEmployeesChart', [
+      {% for e in top_employees %}'{{ e.employee_id__first_name }} {{ e.employee_id__last_name }}'{% if not forloop.last %},{% endif %}{% endfor %}
+    ], [
+      {% for e in top_employees %}{{ e.books_sold|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}
+    ], 'Books');
+  {% endif %}
+
+  // Top customers by purchases
+  {% if top_customers %}
+    makeBar('topCustomersChart', [
+      {% for c in top_customers %}'{{ c.customer_id__first_name }} {{ c.customer_id__last_name }}'{% if not forloop.last %},{% endif %}{% endfor %}
+    ], [
+      {% for c in top_customers %}{{ c.purchase_count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}
+    ], 'Orders');
+  {% endif %}
+
+  // Inventory by status
+  {% if inventory_by_status %}
+    makeBar('inventoryChart', [
+      {% for i in inventory_by_status %}'{{ i.book_status }}'{% if not forloop.last %},{% endif %}{% endfor %}
+    ], [
+      {% for i in inventory_by_status %}{{ i.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}
+    ], 'Count');
+  {% endif %}
+})();
+</script>
+{% endblock %}

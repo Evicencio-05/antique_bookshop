@@ -4,10 +4,24 @@
 <div class="bg-white p-6 rounded shadow">
   <h1 class="text-2xl font-bold text-blue-600 mb-4">{% trans "Employee Detail" %}</h1>
   <div class="space-y-2 text-gray-700">
-    <div><strong>{% trans "Name" %}:</strong> {{ employee }}</div>
+    <div class="flex justify-between items-center">
+      <div><strong>{% trans "Name" %}:</strong> {{ employee }}</div>
+      {% if perms.book_shop_here.view_employee_sales %}
+      <div>
+        <a class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded" href="{% url 'book_shop_here:employee-sales' employee.employee_id %}">{% trans "View Sales" %}</a>
+      </div>
+      {% endif %}
+    </div>
     <div><strong>{% trans "Email" %}:</strong> {{ employee.email|default:"-" }}</div>
     <div><strong>{% trans "Role" %}:</strong> {{ employee.group.name|default:"-" }}</div>
     <div><strong>{% trans "Phone Number" %}:</strong> {{ employee.phone_number|default:"-" }}</div>
+    <div><strong>{% trans "Address" %}:</strong> {{ employee.address|default:"-" }}</div>
+    <div><strong>{% trans "Secondary Address" %}:</strong> {{ employee.secondary_address|default:"-" }}</div>
+    <div><strong>{% trans "City" %}:</strong> {{ employee.city|default:"-" }}</div>
+    <div><strong>{% trans "Zip Code" %}:</strong> {{ employee.zip_code|default:"-" }}</div>
+    <div><strong>{% trans "State" %}:</strong> {{ employee.state|default:"-" }}</div>
+    <div><strong>{% trans "Birth Date" %}:</strong> {{ employee.birth_date|default:"-" }}</div>
+    <div><strong>{% trans "Hire Date" %}:</strong> {{ employee.hire_date|default:"-" }}</div>
   </div>
 </div>
 {% endblock %}

@@ -36,6 +36,14 @@ class Employee(models.Model):
         max_length=50, editable=True, verbose_name=_("Employee phone number")
     )
     address = models.CharField(max_length=200, editable=True, verbose_name=_("Employee address"))
+    secondary_address = models.CharField(
+        max_length=200,
+        blank=True,
+        editable=True,
+        null=True,
+        default="N/A",
+        verbose_name=_("Employee secondary address"),
+    )
     birth_date = models.DateField(
         auto_now_add=False,
         editable=True,
@@ -48,6 +56,7 @@ class Employee(models.Model):
     group = models.ForeignKey(
         Group, on_delete=models.CASCADE, editable=True, verbose_name=_("Employee role")
     )
+    city = models.CharField(max_length=50, editable=True, verbose_name=_("Employee city"))
     zip_code = models.CharField(max_length=50, editable=True, verbose_name=_("Employee zip code"))
     state = models.CharField(max_length=50, editable=True, verbose_name=_("Employee state"))
     user = models.OneToOneField(
@@ -66,6 +75,9 @@ class Employee(models.Model):
         return f"{self.first_name} {self.last_name}"
 
     def save(self, *args, **kwargs):
+        # Ensure legacy NOT NULL columns have safe defaults
+        if not self.secondary_address:
+            self.secondary_address = "N/A"
         super().save(*args, **kwargs)
         if self.user:  # Auto-sync on save if User exists (e.g., for updates)
             self.sync_user()
@@ -137,6 +149,10 @@ class Employee(models.Model):
         if not group:
             raise ValueError("Group is required for employee creation.")
 
+        # Ensure secondary_address is non-null for legacy schema
+        if not kwargs.get("secondary_address"):
+            kwargs["secondary_address"] = "N/A"
+
         temp_employee = cls(first_name=first_name, last_name=last_name)
         username = temp_employee._generate_username()
 
@@ -176,11 +192,16 @@ class Author(models.Model):
     )
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}".strip()
+        parts = []
+        if self.first_name:
+            parts.append(self.first_name)
+        if self.last_name:
+            parts.append(self.last_name)
+        return " ".join(parts).strip()
 
 
 class Book(models.Model):
-    class Rating(models.TextChoices):
+    class Condition(models.TextChoices):
         SUPERB = "superb", _("Superb")
         EXCELLENT = "excellent", _("Excellent")
         GOOD = "good", _("Good")
@@ -204,14 +225,17 @@ class Book(models.Model):
     authors = models.ManyToManyField(
         Author, related_name="books", verbose_name=_("Book author(s)"), editable=True
     )
-    retail_price = models.DecimalField(
+    suggested_retail_price = models.DecimalField(
         max_digits=11, decimal_places=2, verbose_name=_("Suggested retail price")
     )
-    rating = models.CharField(
+    condition = models.CharField(
         max_length=10,
-        choices=Rating.choices,
-        default=Rating.UNRATED,
+        choices=Condition.choices,
+        default=Condition.UNRATED,
         verbose_name=_("Visible book condition"),
+    )
+    condition_notes = models.TextField(
+        max_length=1000, blank=True, null=True, verbose_name=_("Condition notes")
     )
     publication_date = models.DateField(
         blank=True,
@@ -226,7 +250,7 @@ class Book(models.Model):
         max_length=50, blank=True, null=True, default="N/A", verbose_name=_("Book edition")
     )
     book_status = models.CharField(
-        max_length=10, choices=BookStatus.choices, default=BookStatus.PROCESSING
+        max_length=10, choices=BookStatus.choices, default=BookStatus.AVAILABLE
     )
 
     def __str__(self):
@@ -236,28 +260,43 @@ class Book(models.Model):
 class Customer(models.Model):
     customer_id = models.AutoField(primary_key=True)
     last_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_("Customer last name")
+        max_length=100, blank=True, null=True, editable=True, verbose_name=_("Customer last name")
     )
     first_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_("Customer first name")
+        max_length=100, blank=True, null=True, editable=True, verbose_name=_("Customer first name")
     )
     phone_number = models.CharField(
-        max_length=25, blank=True, null=True, verbose_name=_("Customer phone number")
+        max_length=25, blank=True, null=True, editable=True, verbose_name=_("Customer phone number")
     )
     mailing_address = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_("Customer mailing address")
+        max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer mailing address")
     )
+    secondary_mailing_address = models.CharField(
+        max_length=200,
+        blank=True,
+        editable=True,
+        default="N/A",
+        verbose_name=_("Customer secondary address"),
+    )
+    city = models.CharField(max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer city"))
+    zip_code = models.CharField(max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer zip code"))
+    state = models.CharField(max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer state"))
 
-    class Meta:
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(first_name__isnull=False) | models.Q(last_name__isnull=False),
-                name="name_required",
-            )
-        ]
+    # class Meta:
+    #     constraints = [
+    #         models.CheckConstraint(
+    #             check=models.Q(first_name__isnull=False) | models.Q(last_name__isnull=False),
+    #             name="name_required",
+    #         )
+    #     ]
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}".strip()
+        parts = []
+        if self.first_name:
+            parts.append(self.first_name)
+        if self.last_name:
+            parts.append(self.last_name)
+        return " ".join(parts).strip()
 
 
 class Order(models.Model):
@@ -285,19 +324,39 @@ class Order(models.Model):
     )
     delivery_pickup_date = models.DateField(null=True, blank=True)
     sale_amount = models.DecimalField(max_digits=11, decimal_places=2)
+    discount_amount = models.DecimalField(max_digits=11, decimal_places=2, default=0)
     payment_method = models.CharField(max_length=10, choices=PaymentMethod.choices)
     order_status = models.CharField(
         max_length=30, choices=OrderStatus.choices, default=OrderStatus.PICKUP
     )
     books = models.ManyToManyField(Book, related_name="orders")
 
+    class Meta:
+        permissions = [
+            ("view_sales_reports", "Can view sales reports"),
+            ("view_employee_sales", "Can view employee sales"),
+        ]
+
     def __str__(self):
         return f"Order {self.order_id}: {self.order_status}"
 
     def save(self, *args, **kwargs):
-        # Auto-calculate sale_amount from book cost unless explicitly skipped (e.g., from a form that sets it manually)
-        if not getattr(self, "_skip_recalc", False) and self.pk and self.books.exists():
-            self.sale_amount = sum(book.cost for book in self.books.all())
+        from decimal import Decimal
+
+        # Auto-calculate sale_amount from sum of suggested_retail_price minus discount unless explicitly skipped
+        if not getattr(self, "_skip_recalc", False):
+            try:
+                if self.pk and self.books.exists():
+                    total = sum(
+                        (book.suggested_retail_price for book in self.books.all()), Decimal("0.00")
+                    )
+                    discount = getattr(self, "discount_amount", Decimal("0.00")) or Decimal("0.00")
+                    amount = total - discount
+                    if amount < 0:
+                        amount = Decimal("0.00")
+                    self.sale_amount = amount
+            except Exception as e:  # Log unexpected issues rather than swallowing
+                logger.exception("Auto-calc sale_amount failed: %s", e)
         super().save(*args, **kwargs)
 
     def completed_order(self):

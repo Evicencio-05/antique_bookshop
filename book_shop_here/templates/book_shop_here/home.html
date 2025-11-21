@@ -8,18 +8,24 @@
         </div>
 
         <form method="get" class="max-w-2xl mx-auto mb-6">
-            <div class="flex items-center">
-                <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Quick lookup across books, authors, customers, employees, orders, and roles' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
-                <button type="submit" class="ml-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
+            <div class="flex items-center gap-4">
+                <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Quick search' %}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-700" />
+                <button type="submit" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Search" %}</button>
+                <label class="inline-flex mx-2 items-center text-sm text-gray-700 select-none">
+                    <input type="checkbox" name="include_hidden" value="1" {% if include_hidden %}checked{% endif %} class="mr-2 size-5 p-3">
+                    <div class="flex-none min-w-20">
+                        {% trans "Show hidden" %}
+                    </div>
+                </label>
             </div>
         </form>
 
         {% if q %}
         <div class="mb-8">
-            <h2 class="text-xl font-semibold mb-3">{% trans "Lookup Results" %}</h2>
+            <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Lookup Results" %}</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {% if lookup_results.books %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Books" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for b in lookup_results.books %}
@@ -36,7 +42,7 @@
                 </div>
                 {% endif %}
                 {% if lookup_results.authors %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Authors" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for a in lookup_results.authors %}
@@ -53,7 +59,7 @@
                 </div>
                 {% endif %}
                 {% if lookup_results.customers %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Customers" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for c in lookup_results.customers %}
@@ -70,7 +76,7 @@
                 </div>
                 {% endif %}
                 {% if lookup_results.employees %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Employees" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for e in lookup_results.employees %}
@@ -87,7 +93,7 @@
                 </div>
                 {% endif %}
                 {% if lookup_results.orders %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Orders" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for o in lookup_results.orders %}
@@ -104,7 +110,7 @@
                 </div>
                 {% endif %}
                 {% if lookup_results.roles %}
-                <div>
+                <div class="p-4 border rounded">
                     <h3 class="font-semibold text-blue-600 mb-2">{% trans "Roles" %}</h3>
                     <ul class="list-disc pl-6 text-gray-700">
                         {% for g in lookup_results.roles %}
@@ -125,18 +131,64 @@
         {% endif %}
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <h2 class="text-xl font-semibold mb-3">{% trans "Recent Orders" %}</h2>
-                <ul class="list-disc pl-6 text-gray-700">
-                    {% for o in recent_orders %}
-                    <li>#{{ o.order_id }} — {{ o.customer_id }} — {{ o.order_status }}</li>
-                    {% empty %}
-                    <li class="text-gray-500">{% trans "No recent orders." %}</li>
-                    {% endfor %}
-                </ul>
+            <div class="p-4 border rounded border-gray-300 shadow-xl">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xl font-semibold border-b pb-2">{% trans "Recent Orders" %}</h2>
+                </div>
+                {% if recent_orders %}
+                <div class="overflow-auto">
+                <table class="w-full border border-gray-300 border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Order ID" %}</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Customer" %}</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Employee" %}</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Amount" %}</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Status" %}</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in recent_orders %}
+                        <tr>
+                            <td class="border border-gray-300 px-3 py-2">{{ o.order_id }}</td>
+                            <td class="border border-gray-300 px-3 py-2">{{ o.customer_id|default:"-" }}</td>
+                            <td class="border border-gray-300 px-3 py-2">{{ o.employee_id|default:"-" }}</td>
+                            <td class="border border-gray-300 px-3 py-2">{{ o.sale_amount }}</td>
+                            <td class="border border-gray-300 px-3 py-2">{{ o.order_status }}</td>
+                            <td class="border border-gray-300 px-3 py-2 space-x-2">
+                                {% if perms.book_shop_here.view_order %}
+                                <a href="{% url 'book_shop_here:order-detail' pk=o.order_id %}" class="text-blue-600 hover:underline">{% trans "View" %}</a>
+                                {% endif %}
+                                {% if perms.book_shop_here.change_order %}
+                                <a href="{% url 'book_shop_here:order-update' pk=o.order_id %}" class="text-blue-600 hover:underline">{% trans "Edit" %}</a>
+                                {% if o.order_status != 'shipped' and o.order_status != 'picked_up' %}
+                                <form action="{% url 'book_shop_here:order-close' pk=o.order_id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'book_shop_here:home' %}" />
+                                    <input type="hidden" name="status" value="shipped" />
+                                    <button type="submit" class="text-green-700 hover:underline">{% trans "Mark Shipped" %}</button>
+                                </form>
+                                <form action="{% url 'book_shop_here:order-close' pk=o.order_id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'book_shop_here:home' %}" />
+                                    <input type="hidden" name="status" value="picked_up" />
+                                    <button type="submit" class="text-green-700 hover:underline">{% trans "Mark Picked Up" %}</button>
+                                </form>
+                                {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+                {% else %}
+                    <p class="text-gray-500">{% trans "No recent orders." %}</p>
+                {% endif %}
             </div>
-            <div>
-                <h2 class="text-xl font-semibold mb-3">{% trans "Recently Updated" %}</h2>
+            <div class="p-4 border rounded border-gray-300 shadow-xl">
+                <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Recently Updated" %}</h2>
                 <ul class="list-disc pl-6 text-gray-700">
                     {% for b in recent_books %}<li>{% trans "Book" %}: {{ b.title }}</li>{% endfor %}
                     {% for a in recent_authors %}<li>{% trans "Author" %}: {{ a }}</li>{% endfor %}
@@ -145,10 +197,87 @@
                 </ul>
             </div>
         </div>
+
+{% if perms.book_shop_here.view_sales_reports or perms.book_shop_here.view_employee_sales and my_employee %}
+        <div class="mt-8 p-4 border rounded border-gray-300 shadow-xl">
+            <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Sales Overview" %}</h2>
+            <div class="mb-4">
+                <h3 class="font-semibold mb-2">{% trans "Recent Orders (14d)" %}</h3>
+                {% if home_orders_series.labels %}
+                    <div>
+                        <canvas id="homeOrdersSparkline" class="w-full h-24"></canvas>
+                    </div>
+                {% else %}
+                    <div class="h-24 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+                {% endif %}
+            </div>
+            <hr class="border-t border-gray-300 my-4">
+            <div class="mb-4">
+                <h3 class="font-semibold mb-2">{% trans "Orders by Status" %}</h3>
+                {% if home_orders_by_status %}
+                    <div>
+                        <canvas id="homeOrdersStatusChart" class="w-full h-48"></canvas>
+                    </div>
+                {% else %}
+                    <div class="h-48 flex items-center justify-center text-gray-500">{% trans "No records" %}</div>
+                {% endif %}
+            </div>
+            <h2 class="text-xl font-semibold mb-3 border-b pb-2">{% trans "Reports" %}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% if perms.book_shop_here.view_sales_reports %}
+                <a href="{% url 'book_shop_here:sales-dashboard' %}" class="block p-4 border rounded hover:shadow">
+                    <div class="text-lg font-semibold">{% trans "Sales Dashboard" %}</div>
+                    <div class="text-gray-600 text-sm">{% trans "Store-wide sales metrics and trends" %}</div>
+                </a>
+                {% endif %}
+                {% if perms.book_shop_here.view_employee_sales and my_employee %}
+                <a href="{% url 'book_shop_here:employee-sales' my_employee.employee_id %}" class="block p-4 border rounded hover:shadow">
+                    <div class="text-lg font-semibold">{% trans "My Sales" %}</div>
+                    <div class="text-gray-600 text-sm">{% trans "Your sales, books sold, frequent customers" %}</div>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
         {% if not user.is_authenticated %}
             <div class="text-center mt-8">
                 <a href="{% url 'login' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">{% trans "Log In" %}</a>
             </div>
         {% endif %}
     </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+    // Sparkline for recent orders
+    var spark = document.getElementById('homeOrdersSparkline');
+    if (spark) {
+        var sLabels = {{ home_orders_series.labels|default:'[]'|safe }};
+        var sData = {{ home_orders_series.counts|default:'[]'|safe }};
+        new Chart(spark.getContext('2d'), {
+        type: 'line',
+        data: { labels: sLabels, datasets: [{ data: sData, borderColor: (window.getChartColor ? window.getChartColor() : '#2563eb'), backgroundColor: 'rgba(0,0,0,0)', tension: 0.3, pointRadius: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+        });
+    }
+    // Bar chart for orders by status
+    var statusEl = document.getElementById('homeOrdersStatusChart');
+    if (statusEl) {
+        var labels = [
+        {% for s in home_orders_by_status %}'{{ s.order_status }}'{% if not forloop.last %},{% endif %}{% endfor %}
+        ];
+        var data = [
+        {% for s in home_orders_by_status %}{{ s.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}
+        ];
+        new Chart(statusEl.getContext('2d'), {
+        type: 'bar',
+        data: { labels: labels, datasets: [{ label: 'Orders', data: data, backgroundColor: (window.getChartColor ? window.getChartColor() : '#2563eb') }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+        });
+    }
+})();
+</script>
 {% endblock %}

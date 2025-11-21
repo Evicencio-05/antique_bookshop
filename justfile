@@ -24,6 +24,10 @@ uv-install-bash:
 sync:
     uv sync --all-extras
 
+# # Activate the virtualenv in the current shell (bash; Git Bash/macOS/Linux)
+# activate:
+#     if [ -f .venv/Scripts/activate ]; then source .venv/Scripts/activate; elif [ -f .venv/bin/activate ]; then source .venv/bin/activate; else echo "No virtualenv found. Run 'just sync' first."; exit 1; fi
+
 # Run arbitrary Django manage.py command: just manage migrate
 manage *args:
     uv run python manage.py {{args}}
@@ -44,6 +48,13 @@ createsuperuser:
 # Tests
 test:
     uv run python manage.py test book_shop_here.tests --pattern="test_*.py"
+
+test-ff:
+    uv run python manage.py test book_shop_here.tests --pattern="test_*.py" --failfast
+
+# Seed development data
+seed:
+    uv run python manage.py seed_dev_data
 
 test-file file:
     uv run python manage.py test {{file}} --pattern="test_*.py"
@@ -66,7 +77,7 @@ lint-fix:
 
 quick:
     uv run ruff format .
-    uv run ruff check .
+    uv run ruff check . --fix
     uv run mypy --install-types --non-interactive .
 
 format:
@@ -77,11 +88,14 @@ typecheck:
     uv run mypy --install-types --non-interactive .
 
 # Tailwind / Frontend helpers
-tailwind-build:
+build:
     npm run build
 
-tailwind-watch:
+watch:
     npm run watch
+
+watch-independent:
+    "assets\css\tailwind.css" -i "book_shop_here\static\book_shop_here\site.css" -o "dist/output.css" --watch
 
 dev:
     npm run dev

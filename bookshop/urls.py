@@ -21,6 +21,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("datawizard/", include("data_wizard.urls")),
     path("", include("book_shop_here.urls")),
     path("login/", LoginView.as_view(template_name="registration/login.html"), name="login"),
     path("logout/", LogoutView.as_view(next_page="book_shop_here:home"), name="logout"),

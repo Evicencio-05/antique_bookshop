@@ -10,7 +10,7 @@
     <li>{% trans "Multiple words are ANDed together." %}</li>
     <li>{% trans "Quoted phrases match exactly: e.g., \"The Owner\"." %}</li>
     <li>{% trans "Use prefixes to target fields (varies by page)." %}</li>
-    <li>{% trans "Some pages support labels for choices (e.g., Order Status, Book Rating)." %}</li>
+    <li>{% trans "Some pages support labels for choices (e.g., Order Status, Book Condition)." %}</li>
   </ul>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -24,11 +24,11 @@ perm:add_book</pre>
 
     <div>
       <h3 class="font-semibold text-blue-600">{% trans "Books" %}</h3>
-      <p class="text-gray-700 mb-1">{% trans "Prefixes: title:, author:, legacy:, publisher:, rating:" %}</p>
+      <p class="text-gray-700 mb-1">{% trans "Prefixes: title:, author:, legacy:, publisher:, condition:" %}</p>
       <pre class="bg-gray-100 p-3 rounded text-sm">title:gatsby
 author:"John Doe"
 legacy:ABC123
-rating:Excellent</pre>
+condition:Excellent</pre>
     </div>
 
     <div>

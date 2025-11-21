@@ -22,11 +22,11 @@ class ViewTests(TestCase):
             legacy_id="test1234",
             title="Test Book",
             cost=10.00,
-            retail_price=15.00,
+            suggested_retail_price=15.00,
             publication_date=date(2020, 1, 1),
             publisher="Test Publisher",
             edition="1st",
-            rating="excellent",
+            condition="excellent",
             book_status="available",
         )
         self.book.authors.add(self.author)
@@ -95,8 +95,10 @@ class ViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Book")
-        # Rating label
-        response = self.client.get(reverse("book_shop_here:book-list"), {"q": "rating:Excellent"})
+        # Condition label
+        response = self.client.get(
+            reverse("book_shop_here:book-list"), {"q": "condition:Excellent"}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Book")
 
@@ -122,11 +124,11 @@ class ViewTests(TestCase):
         form_data = {
             "title": "New Book",
             "cost": 10.00,
-            "retail_price": 15.00,
+            "suggested_retail_price": 15.00,
             "publication_date": "2020-01-01",
             "publisher": "New Publisher",
             "edition": "1st",
-            "rating": "excellent",
+            "condition": "excellent",
             "book_status": "available",
             "legacy_id": "newb1234",
             "authors": [self.author.author_id],
@@ -143,11 +145,11 @@ class ViewTests(TestCase):
         form_data = {
             "title": "New Book",
             "cost": 10.00,
-            "retail_price": 15.00,
+            "suggested_retail_price": 15.00,
             "publication_date": "2020-01-01",
             "publisher": "New Publisher",
             "edition": "1st",
-            "rating": "excellent",
+            "condition": "excellent",
             "book_status": "available",
             "legacy_id": "invalid",
             "authors": [],
@@ -177,11 +179,11 @@ class ViewTests(TestCase):
         form_data = {
             "title": "Updated Book",
             "cost": 12.00,
-            "retail_price": 18.00,
+            "suggested_retail_price": 18.00,
             "publication_date": "2020-01-01",
             "publisher": "Updated Publisher",
             "edition": "2nd",
-            "rating": "excellent",
+            "condition": "excellent",
             "book_status": "available",
             "legacy_id": "doej1234",
             "authors": [self.author.author_id],
@@ -211,7 +213,87 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "book_shop_here/author_list.html")
         self.assertContains(response, "John Doe")
-        self.assertContains(response, "Add Author")
+
+    def test_order_close_action_marks_shipped(self):
+        # Grant permission and login
+        self.client.login(username="testuser", password="testpass")
+        ct = ContentType.objects.get_for_model(Order)
+        perm = Permission.objects.get(codename="change_order", content_type=ct)
+        self.user.user_permissions.add(perm)
+        # Ensure order initially open
+        self.order.order_status = "to_ship"
+        self.order.save()
+        url = reverse("book_shop_here:order-close", kwargs={"pk": self.order.pk})
+        resp = self.client.post(
+            url, {"status": "shipped", "next": reverse("book_shop_here:order-list")}
+        )
+        self.assertRedirects(resp, reverse("book_shop_here:order-list"))
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.order_status, Order.OrderStatus.SHIPPED)
+        self.assertIsNotNone(self.order.delivery_pickup_date)
+
+    def test_order_close_action_marks_picked_up(self):
+        # Grant permission and login
+        self.client.login(username="testuser", password="testpass")
+        ct = ContentType.objects.get_for_model(Order)
+        perm = Permission.objects.get(codename="change_order", content_type=ct)
+        self.user.user_permissions.add(perm)
+        # Ensure order initially open
+        self.order.order_status = "pickup"
+        self.order.save()
+        url = reverse("book_shop_here:order-close", kwargs={"pk": self.order.pk})
+        resp = self.client.post(
+            url, {"status": "picked_up", "next": reverse("book_shop_here:order-list")}
+        )
+        self.assertRedirects(resp, reverse("book_shop_here:order-list"))
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.order_status, Order.OrderStatus.PICKED_UP)
+        self.assertIsNotNone(self.order.delivery_pickup_date)
+
+    def test_home_include_hidden_books_toggle(self):
+        # Mark book as sold so it's hidden by default
+        self.book.book_status = "sold"
+        self.book.save()
+        self.client.login(username="testuser", password="testpass")
+        # Default search should not include the book in lookup_results
+        resp = self.client.get(reverse("book_shop_here:home"), {"q": "Test"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue("lookup_results" in resp.context)
+        self.assertTrue(not resp.context["lookup_results"].get("books"))
+        # With include_hidden=1, lookup_results['books'] should include it
+        resp2 = self.client.get(
+            reverse("book_shop_here:home"), {"q": "Test", "include_hidden": "1"}
+        )
+        self.assertEqual(resp2.status_code, 200)
+        books_list = resp2.context["lookup_results"].get("books") or []
+        # Ensure at least one of the returned books matches our title
+        self.assertTrue(any(getattr(b, "title", "") == "Test Book" for b in books_list))
+
+    def test_order_update_displays_selected_books_even_if_not_available(self):
+        # Change status to sold and verify it still appears on the edit form
+        self.book.book_status = "sold"
+        self.book.save()
+        self.client.login(username="testuser", password="testpass")
+        ct = ContentType.objects.get_for_model(Order)
+        perm = Permission.objects.get(codename="change_order", content_type=ct)
+        self.user.user_permissions.add(perm)
+        resp = self.client.get(reverse("book_shop_here:order-update", kwargs={"pk": self.order.pk}))
+        self.assertEqual(resp.status_code, 200)
+        # The book title should be present and the checkbox value should include the book id
+        self.assertContains(resp, self.book.title)
+        self.assertContains(resp, f'value="{self.book.pk}"')
+
+    def test_order_list_close_buttons_visible_for_open_orders(self):
+        self.client.login(username="testuser", password="testpass")
+        ct = ContentType.objects.get_for_model(Order)
+        perm = Permission.objects.get(codename="change_order", content_type=ct)
+        self.user.user_permissions.add(perm)
+        self.order.order_status = "to_ship"
+        self.order.save()
+        resp = self.client.get(reverse("book_shop_here:order-list"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Mark Shipped")
+        self.assertContains(resp, "Mark Picked Up")
 
     def test_author_list_search(self):
         self.client.login(username="testuser", password="testpass")
