@@ -113,7 +113,7 @@ Visit http://127.0.0.1:8000/ and log in with your superuser once created.
 ├─ pyproject.toml                     # Project metadata & dependencies
 ├─ ruff.toml                          # Ruff linter/formatter configuration
 ├─ package.json                       # Tailwind & dev scripts
-├─ assets/                            # Tailwind input assets
+├─ static/                            # Tailwind input static
 ├─ bookshop/                          # Django project (settings, urls, wsgi, asgi)
 ├─ book_shop_here/                    # Django app (models, views, templates, static)
 │  ├─ templates/book_shop_here/
@@ -244,7 +244,7 @@ This project uses a `justfile` with bash (Git Bash on Windows is recommended). P
 - Migrations or DB issues
   - For local SQLite: delete `db.sqlite3` (if acceptable) and rerun `just migrate`.
   - For Postgres: verify `DATABASE_URL` is correct and the DB is reachable.
-- Use the following command to install Just via bash. (No nvm download)  
+- Use the following command to install Just via bash. (No nvm download)
   ```curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/bin```
 
 ---

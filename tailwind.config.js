@@ -3,7 +3,7 @@ module.exports = {
   content: [
     "./book_shop_here/templates/**/*.html",
     "./templates/**/*.html",
-    "./assets/**/*.{js,ts}"
+    "./static/**/*.{js,ts}"
   ],
   // Safelist small set of utilities used by form select chevron wrappers so
   // they are not purged. This prevents oversized inline SVG chevrons and keeps

@@ -91,7 +91,7 @@ watch:
     npm run watch
 
 watch-independent:
-    "assets\css\tailwind.css" -i "book_shop_here\static\book_shop_here\site.css" -o "dist/output.css" --watch
+    "static\css\tailwind.css" -i "book_shop_here\static\book_shop_here\site.css" -o "dist/output.css" --watch
 
 dev:
     npm run dev

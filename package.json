@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "tailwindcss -i ./assets/css/tailwind.css -o ./book_shop_here/static/book_shop_here/site.css --minify",
-    "watch": "tailwindcss -i ./assets/css/tailwind.css -o ./book_shop_here/static/book_shop_here/site.css --watch",
+    "build": "tailwindcss -i ./static/css/tailwind.css -o ./book_shop_here/static/book_shop_here/site.css --minify",
+    "watch": "tailwindcss -i ./static/css/tailwind.css -o ./book_shop_here/static/book_shop_here/site.css --watch",
     "django": "python manage.py runserver",
     "dev": "concurrently -n TAILWIND,DJANGO -c \"cyan.bold,green.bold\" \"npm:watch\" \"npm:django\"",
     "prepare": "husky"
