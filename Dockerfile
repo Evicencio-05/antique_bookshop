@@ -1,6 +1,5 @@
 # Builder stage
-FROM ghcr.io/astral-sh/uv:0.1.0 as uv_installer
-FROM python:3.10-slim as builder
+FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim AS builder
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONWRITEBYTECODE=1 \
@@ -13,14 +12,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     npm \
     git \
-    && rm -tf /var/lib/apt/lists/*
-
-COPY --from=uv_installer /usr/local/bin/uv /usr/local/bin/uv
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock* ./
-RUN uv sync --all-extras
+COPY README.md ./
+
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen
 
 COPY package.json package-lock.json* ./
 RUN npm ci
@@ -30,7 +29,7 @@ COPY . .
 RUN npm run build
 
 # Runner Stage
-FROM python:3.10-slim as runtime
+FROM python:3.10-slim AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -47,8 +46,8 @@ RUN useradd -m -u 1000 appuser
 
 WORKDIR /app
 
-COPY --from=builder --chown=appuser:appuser /.venv /.venv
-COPY --from=builder --chown=appuser:appuser /node_modules /node_modules
+COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
+COPY --from=builder --chown=appuser:appuser /app/node_modules /app/node_modules
 
 ENV PATH="/app/.venv/bin:${PATH}"
 

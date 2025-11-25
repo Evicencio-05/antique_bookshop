@@ -15,13 +15,7 @@ A Django-based web inventory management system for a bookstore to centralize and
   - [Run](#run)
 - [Project Structure](#project-structure)
 - [Configuration](#configuration)
-- [Common Tasks](#common-tasks)
-- [Development](#development)
-  - [Linting & Formatting (Ruff)](#linting--formatting-ruff)
-  - [Type Checking (mypy)](#type-checking-mypy)
-  - [Testing](#testing)
-  - [Frontend (Tailwind CSS)](#frontend-tailwind-css)
-- [Git Hooks](#git-hooks)
+- [Common Tasks](#common-tasks#git-hooks)
 - [Continuous Integration](#continuous-integration)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
@@ -52,10 +46,13 @@ This repo follows a modern Python project layout with a single source of truth f
 Install `uv`:
 
 - Bash (Git Bash/macOS/Linux):
+
   ```
   curl -LsSf https://astral.sh/uv/install.sh | sh
   ```
+
 - PowerShell (alternative; only if you must use PowerShell):
+
   ```
   iwr https://astral.sh/uv/install.ps1 -UseBasicParsing | iex
   ```
@@ -63,10 +60,13 @@ Install `uv`:
 Install Node (optional, for Tailwind):
 
 - macOS/Linux (nvm):
+
   ```
   nvm install --lts && nvm use --lts
   ```
+
 - Windows (nvm-windows; works from Git Bash too):
+
   ```
   nvm install lts
   nvm use lts
@@ -77,11 +77,14 @@ Install Node (optional, for Tailwind):
 Clone and enter the project directory, then create your environment file and install dependencies:
 
 - Bash (recommended):
+
   ```
   cp .env.template .env
   uv sync --all-extras
   ```
+
 - PowerShell (alternative):
+
   ```
   just env-copy
   just sync
@@ -92,38 +95,16 @@ Clone and enter the project directory, then create your environment file and ins
 Apply migrations and start the server:
 
 - Either shell:
+
   ```
   just migrate
   just run
   ```
 
-Visit http://127.0.0.1:8000/ and log in with your superuser once created.
+Visit <http://127.0.0.1:8000/> and log in with your superuser once created.
 
 ---
 
-## Project Structure
-
-```
-.
-├─ .github/workflows/django.yml       # CI: uv + Ruff + mypy + tests
-├─ .husky/pre-commit                  # Husky hook (runs Python pre-commit)
-├─ .pre-commit-config.yaml            # Python pre-commit hooks (Ruff etc.)
-├─ .env.template                      # Example env file
-├─ justfile                           # Common developer commands
-├─ pyproject.toml                     # Project metadata & dependencies
-├─ ruff.toml                          # Ruff linter/formatter configuration
-├─ package.json                       # Tailwind & dev scripts
-├─ assets/                            # Tailwind input assets
-├─ bookshop/                          # Django project (settings, urls, wsgi, asgi)
-├─ book_shop_here/                    # Django app (models, views, templates, static)
-│  ├─ templates/book_shop_here/
-│  ├─ static/book_shop_here/
-│  └─ migrations/
-├─ manage.py
-└─ ...
-```
-
----
 
 ## Configuration
 
@@ -174,37 +155,6 @@ This project uses a `justfile` with bash (Git Bash on Windows is recommended). P
 - Hooks
   - `just pre-commit-install` — enable Python pre-commit hooks
   - `just husky-install` — install Node hooks (Husky)
-
----
-
-## Development
-
-### Linting & Formatting (Ruff)
-
-- Config: `ruff.toml` (targets `py310`, line-length 100)
-- Rules enabled: `E`, `F`, `I`, `DJ`, `B`, `C4`, `UP`, `SIM`, `S`
-- Run:
-  - `just lint`
-  - `just format`
-
-### Type Checking (mypy)
-
-- Config: `pyproject.toml` ([tool.mypy], [tool.django-stubs])
-- Django plugin enabled with `bookshop.settings`
-- Run:
-  - `just typecheck`
-
-### Testing
-
-- Run unit tests:
-  - `just test`
-
-### Frontend (Tailwind CSS)
-
-- Dev watch:
-  - `just tailwind-watch`
-- Production build:
-  - `just tailwind-build`
 
 ---
 

@@ -9,14 +9,13 @@ description = "Django Antique Bookshop application"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-  { name = "Your Name", email = "you@example.com" }
+  { name = "Ethan Vicencio", email = "evicencio5405@gmail.com" }
 ]
 license = { text = "Proprietary" }
 
-# Dependencies migrated from requirements.txt
-# Make changes here going forward; CI is configured to install from this file.
 dependencies = [
   "Django>=5.2.6",
+  "gunicorn>=21.0.0",
   "django-extensions>=4.1.0",
   "django-environ>=0.12.0",
   "psycopg2-binary>=2.9.10",
@@ -29,7 +28,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Development tools
 dev = [
   "ruff>=0.6.0",
   "pre-commit>=3.7.0",
@@ -45,19 +43,18 @@ plugins = ["mypy_django_plugin.main"]
 warn_unused_ignores = true
 warn_redundant_casts = true
 strict_optional = true
-# Be pragmatic initially; we can tighten later.
-ignore_missing_imports = true
 exclude = [
   "book_shop_here/migrations/.*",
 ]
+
+[[tool.mypy.overrides]]
+module = "data_wizard.*"
+ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "bookshop.settings"
 
 [tool.hatch.build.targets.wheel]
-# Explicitly include the Django project and app packages in the wheel.
-# This resolves Hatch's default file-selection error since the project name
-# doesn't match a package directory.
 only-include = [
   "bookshop",
   "book_shop_here",

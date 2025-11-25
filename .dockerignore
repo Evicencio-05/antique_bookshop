@@ -38,5 +38,4 @@ staticfiles/
 media/
 *.log
 
-# Documentation
-*.md
+Dockerfile

@@ -124,49 +124,73 @@ ci:
     uv run mypy --install-types --non-interactive .
     uv run python manage.py test book_shop_here.tests --pattern="test_*.py"
 
-# Generate a Django SECRET_KEY (bash)
-# Uses Python's secrets module to avoid quoting issues and Django import dependency.
+# Generate a Django SECRET_KEY
 secret-key:
-    k="$$(if command -v uv >/dev/null 2>&1; then uv run python -c 'import secrets; print(secrets.token_urlsafe(50))'; else python -c 'import secrets; print(secrets.token_urlsafe(50))'; fi)"; \
-    echo "$$k"
+    @python -c 'import secrets; print(secrets.token_urlsafe(50))'
 
-# Generate and set SECRET_KEY in .env (creates .env from template if missing)
+# Generate and set SECRET_KEY in .env
 secret-key-set:
-    if [ ! -f .env ]; then \
-        if [ -f .env.template ]; then cp .env.template .env; else : > .env; fi; \
-    fi; \
-    k="$$(if command -v uv >/dev/null 2>&1; then uv run python -c 'import secrets; print(secrets.token_urlsafe(50))'; else python -c 'import secrets; print(secrets.token_urlsafe(50))'; fi)"; \
-    tmp="$$(mktemp)"; \
-    awk -v k="$$k" 'BEGIN{updated=0} /^[[:space:]]*SECRET_KEY[[:space:]]*=/ {print "SECRET_KEY="k; updated=1; next} {print} END{ if(!updated) print "SECRET_KEY="k }' .env > "$$tmp" && mv "$$tmp" .env; \
-    echo "Updated SECRET_KEY in .env"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # Create .env from template if it doesn't exist
+    if [ ! -f .env ]; then
+        cp .env.template .env 2>/dev/null || touch .env
+    fi
+    # Generate new key
+    NEW_KEY=$(python -c 'import secrets; print(secrets.token_urlsafe(50))')
+    # Update or append SECRET_KEY
+    if grep -q "^SECRET_KEY=" .env; then
+        # Key exists, replace it (works on macOS and Linux)
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s|^SECRET_KEY=.*|SECRET_KEY=$NEW_KEY|" .env
+        else
+            sed -i "s|^SECRET_KEY=.*|SECRET_KEY=$NEW_KEY|" .env
+        fi
+    else
+        # Key doesn't exist, append it
+        echo "SECRET_KEY=$NEW_KEY" >> .env
+    fi
+    echo "SECRET_KEY updated in .env"
 
-# Check local env for CI-required secrets and fail fast if missing
+# Check if required secrets exist in .env
 ci-secrets:
-    if [ ! -f .env ]; then echo "Missing .env. Run 'just env-copy' or 'just secret-key-set'." >&2; exit 1; fi; \
-    if grep -Eq '^[[:space:]]*SECRET_KEY[[:space:]]*=[[:space:]]*[^[:space:]]+' .env; then \
-        echo "OK: SECRET_KEY present in .env"; \
-    else \
-        echo "SECRET_KEY missing or empty in .env. Run 'just secret-key-set'." >&2; exit 1; \
-    fi; \
-    if grep -Eq '^[[:space:]]*DATABASE_URL[[:space:]]*=' .env; then \
-        echo "Info: DATABASE_URL is set in .env"; \
-    else \
-        echo "Info: DATABASE_URL not set; SQLite default will be used unless overridden."; \
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # Check if .env exists
+    if [ ! -f .env ]; then
+        echo "Missing .env file. Run 'just env-copy' or 'just secret-key-set'"
+        exit 1
+    fi
+    # Check SECRET_KEY
+    if grep -q "^SECRET_KEY=.\+" .env; then
+        echo "SECRET_KEY is set"
+    else
+        echo "SECRET_KEY is missing or empty. Run 'just secret-key-set'"
+        exit 1
+    fi
+    # Check DATABASE_URL (optional, just info)
+    if grep -q "^DATABASE_URL=" .env; then
+        echo "DATABASE_URL is set"
+    else
+        echo "ℹ DATABASE_URL not set (will use SQLite default)"
     fi
 
-# Strict variant: fail if any required secret is missing
-ci-secrets-strict:
-    if [ ! -f .env ]; then echo "Missing .env. Run 'just env-copy' or 'just secret-key-set'." >&2; exit 1; fi; \
-    ok=1; \
-    grep -Eq '^[[:space:]]*SECRET_KEY[[:space:]]*=[[:space:]]*[^[:space:]]+' .env || { echo "SECRET_KEY missing or empty in .env." >&2; ok=0; }; \
-    grep -Eq '^[[:space:]]*DATABASE_URL[[:space:]]*=[[:space:]]*[^[:space:]]+' .env || { echo "DATABASE_URL missing in .env (set it or use SQLite default explicitly)." >&2; ok=0; }; \
-    [ "$$ok" -eq 1 ] && echo "OK: Required settings present." || { echo "One or more required settings are missing." >&2; exit 1; }
-
-# Report variant: print which variables are set (no values), never fail
-ci-secrets-report:
-    if [ -f .env ]; then echo "Env file: FOUND (.env)"; else echo "Env file: MISSING (.env)"; fi; \
-    content="$$( [ -f .env ] && cat .env || echo "" )"; \
-    if echo "$$content" | grep -Eq '^[[:space:]]*SECRET_KEY[[:space:]]*='; then s="SET"; else s="MISSING"; fi; \
-    if echo "$$content" | grep -Eq '^[[:space:]]*DATABASE_URL[[:space:]]*='; then d="SET"; else d="MISSING (SQLite default)"; fi; \
-    echo "SECRET_KEY: $$s"; \
-    echo "DATABASE_URL: $$d"
+# Show status of environment variables (never fails)
+secrets-status:
+    #!/usr/bin/env bash
+    echo "=== Environment Status ==="
+    if [ -f .env ]; then
+        echo ".env file exists"
+    else
+        echo ".env file missing"
+    fi
+    if [ -f .env ] && grep -q "^SECRET_KEY=.\+" .env; then
+        echo "SECRET_KEY is set"
+    else
+        echo "SECRET_KEY is missing or empty"
+    fi
+    if [ -f .env ] && grep -q "^DATABASE_URL=.\+" .env; then
+        echo "DATABASE_URL is set"
+    else
+        echo "ℹ DATABASE_URL not set (using SQLite)"
+    fi
