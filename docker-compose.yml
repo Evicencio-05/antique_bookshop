@@ -24,25 +24,26 @@ services:
     build:
       context: .
       dockerfile: dockerfile
-      command: >
-        sh -c "python manage.py migrate --noinput &&
-                python manage.py runserver --noinput &&
-                gunicorn bookshop.wsgi:application --bind 0.0.0.0:8000 --workers 4 --reload"
-      ports:
-        - "8000:8000"
-      environment:
-        DEBUG: ${DEBUG}
-        SECRET_KEY: ${SECRET_KEY}
-        ALLOWED_HOSTS: "localhost,127.0.0.1,app"
-        DATABASE_URL: ${DATABASE_URL}
-      volumes:
-        - .:/app
-        - staticfiles:/app/staticfiles
-        - media:/app/media
-      depends_on:
-        db:
-          condition: service_healthy
-      restart: unless-stopped
+    container_name: bookshop_app
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+              python manage.py runserver --noinput &&
+              gunicorn bookshop.wsgi:application --bind 0.0.0.0:8000 --workers 4 --reload"
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: ${DEBUG}
+      SECRET_KEY: ${SECRET_KEY}
+      ALLOWED_HOSTS: "localhost,127.0.0.1,app"
+      DATABASE_URL: ${DATABASE_URL}
+    volumes:
+      - .:/app
+      - staticfiles:/app/staticfiles
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   nginx:
     image: nginx:alpine
