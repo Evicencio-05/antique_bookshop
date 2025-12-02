@@ -127,7 +127,7 @@ class BookImportSerializer(BaseImportSerializer):
             "publisher",
             "edition",
         ]
-        
+
     def validate_publication_date(self, value):
         "Ensure proper date format and null handling"
         if value is not None or value != "":
@@ -143,7 +143,7 @@ class BookImportSerializer(BaseImportSerializer):
                     ) from None
             return pub_date
         return value
-            
+
     def validate_title(self, value):
         """Ensure title is not empty"""
         if not value or (isinstance(value, str) and not value.strip()):
@@ -276,9 +276,15 @@ class CustomerImportSerializer(BaseImportSerializer):
             "state",
             "zip_code",
         ]
-        nullable_fields = ["last_name", "first_name", "phone_number", "mailing_address","city",
+        nullable_fields = [
+            "last_name",
+            "first_name",
+            "phone_number",
+            "mailing_address",
+            "city",
             "state",
-            "zip_code",]
+            "zip_code",
+        ]
 
     def validate(self, attrs):
         """Ensure at least first or last name is provided"""

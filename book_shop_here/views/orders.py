@@ -164,10 +164,8 @@ class OrderCloseView(LoginRequiredMixin, PermissionRequiredMixin, View):
     raise_exception = True
 
     def post(self, request, *args, **kwargs):
-        from datetime import date
 
         order = Order.objects.get(pk=kwargs["pk"])
-        status = request.POST.get("status") or "shipped"
         order.completed_order()
         messages.success(request, "Order closed.")
         next_url = request.POST.get("next") or reverse_lazy("book_shop_here:order-list")

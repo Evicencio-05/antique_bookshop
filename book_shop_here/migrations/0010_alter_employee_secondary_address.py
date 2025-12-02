@@ -4,15 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('book_shop_here', '0009_customer_secondary_mailing_address_and_more'),
+        ("book_shop_here", "0009_customer_secondary_mailing_address_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='employee',
-            name='secondary_address',
-            field=models.CharField(blank=True, default='N/A', max_length=200, null=True, verbose_name='Employee secondary address'),
+            model_name="employee",
+            name="secondary_address",
+            field=models.CharField(
+                blank=True,
+                default="N/A",
+                max_length=200,
+                null=True,
+                verbose_name="Employee secondary address",
+            ),
         ),
     ]

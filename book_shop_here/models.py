@@ -269,7 +269,11 @@ class Customer(models.Model):
         max_length=25, blank=True, null=True, editable=True, verbose_name=_("Customer phone number")
     )
     mailing_address = models.CharField(
-        max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer mailing address")
+        max_length=50,
+        blank=True,
+        null=True,
+        editable=True,
+        verbose_name=_("Customer mailing address"),
     )
     secondary_mailing_address = models.CharField(
         max_length=200,
@@ -278,9 +282,15 @@ class Customer(models.Model):
         default="N/A",
         verbose_name=_("Customer secondary address"),
     )
-    city = models.CharField(max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer city"))
-    zip_code = models.CharField(max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer zip code"))
-    state = models.CharField(max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer state"))
+    city = models.CharField(
+        max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer city")
+    )
+    zip_code = models.CharField(
+        max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer zip code")
+    )
+    state = models.CharField(
+        max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer state")
+    )
 
     # class Meta:
     #     constraints = [

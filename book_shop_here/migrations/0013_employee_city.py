@@ -4,16 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('book_shop_here', '0012_remove_customer_name_required_customer_city_and_more'),
+        ("book_shop_here", "0012_remove_customer_name_required_customer_city_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='employee',
-            name='city',
-            field=models.CharField(default='No City', max_length=50, verbose_name='Employee city'),
+            model_name="employee",
+            name="city",
+            field=models.CharField(default="No City", max_length=50, verbose_name="Employee city"),
             preserve_default=False,
         ),
     ]
