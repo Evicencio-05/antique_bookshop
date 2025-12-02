@@ -168,12 +168,7 @@ class OrderCloseView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
         order = Order.objects.get(pk=kwargs["pk"])
         status = request.POST.get("status") or "shipped"
-        if status not in (Order.OrderStatus.SHIPPED, Order.OrderStatus.PICKED_UP):
-            status = Order.OrderStatus.SHIPPED
-        order.order_status = status
-        if not order.delivery_pickup_date:
-            order.delivery_pickup_date = date.today()
-        order.save()
+        order.completed_order()
         messages.success(request, "Order closed.")
         next_url = request.POST.get("next") or reverse_lazy("book_shop_here:order-list")
         return redirect(next_url)
