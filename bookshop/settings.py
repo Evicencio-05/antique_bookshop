@@ -21,6 +21,10 @@ environ.Env.read_env()
 # Set the project base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Ensure a logs directory exists for file-based logging
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
 # Initiate django-environ
 env = environ.Env()
 
@@ -132,7 +136,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+# URL prefix for static files
 STATIC_URL = "static/"
+
+# Filesystem path where collectstatic will collect static files for production
+# In Docker, this is mapped to /app/staticfiles via docker-compose.
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Additional directories with static assets during development
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "book_shop_here/static"),
 ]
@@ -172,7 +183,7 @@ LOGGING = {
         },
         "file": {
             "class": "logging.FileHandler",
-            "filename": "data_wizard.log",
+            "filename": str(BASE_DIR / "logs" / "data_wizard.log"),
         },
     },
     "loggers": {
