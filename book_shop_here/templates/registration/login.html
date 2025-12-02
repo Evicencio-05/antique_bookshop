@@ -3,34 +3,35 @@
 {% load i18n %}
 
 {% block title %}{% trans "Log In - Book Shop Here" %}{% endblock %}
-
-{% block content %}
+    {% if user.is_authenticated %}
+    {% block content %}
     <div class="bg-white p-6 rounded shadow max-w-md mx-auto mt-8">
         <h2 class="text-2xl font-semibold mb-4">{% trans "Log In" %}</h2>
-        {% if form.errors %}
-        <div class="bg-red-100 border-red-500 text-red-700 px-4 py-3 rounded mb-4" role="alert">
-            {% trans "Invalid username or password." %}
+            {% if form.errors %}
+            <div class="bg-red-100 border-red-500 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+                {% trans "Invalid username or password." %}
+            </div>
+            {% endif %}
+            <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="{{ form.username.id_for_label }}" class="block text-gray-700">{% trans "Username" %}</label>
+                <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}"
+                    class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required>
+                </div>
+                <div class="mb-4">
+                    <label for="{{ form.password.id_for_label }}" class="block text-gray-700">{% trans "Password" %}</label>
+                <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}"
+                    class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required>
+            </div>
+            <input type="hidden" name="next" value="{% url 'book_shop_here:home' %}">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                {% trans "Log In" %}
+            </button>
+            <a href="{% url 'book_shop_here:home' %}" class="ml-4 text-blue-600 hover:underline">{% trans "Cancel" %}</a>
+            </form>
         </div>
-        {% endif %}
-        <form method="post" action="{% url 'login' %}">
-        {% csrf_token %}
-        <div class="mb-4">
-            <label for="{{ form.username.id_for_label }}" class="block text-gray-700">{% trans "Username" %}</label>
-            <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}"
-                class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required>
-        </div>
-        <div class="mb-4">
-            <label for="{{ form.password.id_for_label }}" class="block text-gray-700">{% trans "Password" %}</label>
-            <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}"
-                class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required>
-        </div>
-        <input type="hidden" name="next" value="{% url 'book_shop_here:home' %}">
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            {% trans "Log In" %}
-        </button>
-        <a href="{% url 'book_shop_here:home' %}" class="ml-4 text-blue-600 hover:underline">{% trans "Cancel" %}</a>
-        </form>
-    </div>
+    {% endif %}
 {% endblock %}
