@@ -228,13 +228,15 @@ class EmployeeForm(forms.ModelForm):
             "phone_number",
             "address",
             "secondary_address",
-            "birth_date",
-            "hire_date",
-            "group",
             "city",
             "zip_code",
             "state",
+            "birth_date",
+            "hire_date",
+            "group",
             "email",
+            "password1",
+            "password2",
         ]
         widgets = {
             "birth_date": forms.DateInput(attrs={"type": "date"}),
@@ -268,12 +270,18 @@ class EmployeeForm(forms.ModelForm):
 
         if is_creation:
             # Creation: Use model's classmethod for consistency
-            # Extract kwargs from cleaned_data (plus instance fields)
-            kwargs = self.cleaned_data.copy()
+            # Extract kwargs from cleaned_data (group may be an int; convert), plus instance fields
+            kwargs = {}
+            for field in self.Meta.fields:
+                kwargs[field] = self.cleaned_data.get(field)
             kwargs["first_name"] = employee.first_name
             kwargs["last_name"] = employee.last_name
             kwargs["email"] = employee.email
-            kwargs["group"] = employee.group
+            # group might be pk; convert to instance per create_with_user’s expectations
+            group_val = kwargs.get("group")
+            if isinstance(group_val, int):
+                group_val = Group.objects.get(pk=group_val)
+            kwargs["group"] = group_val
             employee = Employee.create_with_user(password=password1, **kwargs)
         else:
             # Update: Save employee (which auto-syncs via model save),

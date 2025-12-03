@@ -292,13 +292,13 @@ class Customer(models.Model):
         max_length=50, blank=True, null=True, editable=True, verbose_name=_("Customer state")
     )
 
-    # class Meta:
-    #     constraints = [
-    #         models.CheckConstraint(
-    #             check=models.Q(first_name__isnull=False) | models.Q(last_name__isnull=False),
-    #             name="name_required",
-    #         )
-    #     ]
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(first_name__isnull=False) | models.Q(last_name__isnull=False),
+                name="name_required",
+            )
+        ]
 
     def __str__(self):
         parts = []

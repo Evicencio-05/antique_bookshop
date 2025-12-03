@@ -164,7 +164,6 @@ class OrderCloseView(LoginRequiredMixin, PermissionRequiredMixin, View):
     raise_exception = True
 
     def post(self, request, *args, **kwargs):
-
         order = Order.objects.get(pk=kwargs["pk"])
         order.completed_order()
         messages.success(request, "Order closed.")

@@ -198,7 +198,7 @@ class BookImportSerializer(BaseImportSerializer):
     def validate_book_status(self, value):
         """Validate book status"""
         if not value:
-            return Book.BookStatus.AVAILABLE
+            return Book.BookStatus.PROCESSING
 
         # Handle both display names and values
         status_map = {choice[1].lower(): choice[0] for choice in Book.BookStatus.choices}
@@ -301,6 +301,7 @@ class CustomerImportSerializer(BaseImportSerializer):
 
 class EmployeeImportSerializer(BaseImportSerializer):
     group_name = serializers.CharField(write_only=True, required=True)
+    city = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = Employee
@@ -318,7 +319,7 @@ class EmployeeImportSerializer(BaseImportSerializer):
             "email",
             "group_name",
         ]
-        nullable_fields = ["secondary_address", "email"]
+        nullable_fields = ["secondary_address", "email", "city"]
 
     def validate_first_name(self, value):
         """Ensure first_name is not empty"""

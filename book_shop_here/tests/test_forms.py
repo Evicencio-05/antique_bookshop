@@ -216,11 +216,12 @@ class EmployeeFormTests(TestCase):
             "phone_number": "1234567890",
             "address": "123 Main St",
             "secondary_address": "Suite 200",
+            "city": "Anytown",
+            "zip_code": "12345",
+            "state": "CA",
             "birth_date": date(1990, 1, 1),
             "hire_date": date.today(),
             "group": self.group.id,
-            "zip_code": "12345",
-            "state": "CA",
             "email": "john.doe@example.com",
             "password1": "testpass123",
             "password2": "testpass123",
@@ -263,11 +264,12 @@ class EmployeeFormTests(TestCase):
             "last_name": "Doe",
             "phone_number": "1234567890",
             "address": "123 Main St",
+            "city": "Anytown",
+            "zip_code": "12345",
+            "state": "CA",
             "birth_date": date(1990, 1, 1),
             "hire_date": date.today(),
             "group": self.group.id,
-            "zip_code": "12345",
-            "state": "CA",
             "email": "jane.doe@example.com",
             "password1": "",
             "password2": "",
@@ -292,6 +294,8 @@ class EmployeeFormTests(TestCase):
         data["first_name"] = "Jane"
         data["password1"] = "newpass123"
         data["password2"] = "newpass123"
+        if "city" not in data:
+            data["city"] = "Anytown"
         form = EmployeeForm(data=data, instance=employee)
         self.assertTrue(form.is_valid())
         updated_employee = form.save()
