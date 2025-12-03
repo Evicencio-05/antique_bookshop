@@ -78,14 +78,14 @@ lint-fix:
 quick:
     uv run ruff format .
     uv run ruff check . --fix
-    uv run mypy --install-types --non-interactive .
+    uv run mypy .
 
 format:
     uv run ruff format .
 
 # Static type checking
 typecheck:
-    uv run mypy --install-types --non-interactive .
+    uv run mypy .
 
 # Tailwind / Frontend helpers
 build:
@@ -121,7 +121,7 @@ ci:
     uv sync --all-extras
     uv run ruff --version
     uv run ruff check .
-    uv run mypy --install-types --non-interactive .
+    uv run mypy .
     uv run python manage.py test book_shop_here.tests --pattern="test_*.py"
 
 # Generate a Django SECRET_KEY

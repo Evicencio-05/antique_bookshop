@@ -7,7 +7,7 @@ import json
 import logging
 import xml.etree.ElementTree as ET  # noqa: S314
 from io import BytesIO, StringIO
-from typing import Any, TypedDict
+from typing import Any, TypedDict, cast
 
 import pandas as pd
 from django.contrib.auth.decorators import login_required
@@ -120,7 +120,9 @@ class UnifiedImportHandler:
             data_by_type: dict[str, list[dict[str, Any]]] = {}
 
             for sheet_name, df in sheets_data.items():
-                detected_type = self._detect_sheet_type(df, sheet_name)
+                # Sheet names from pandas can be strings or integers; normalize to string for
+                # detection and logging.
+                detected_type = self._detect_sheet_type(df, str(sheet_name))
 
                 sheet_info = {
                     "name": sheet_name,
@@ -132,7 +134,11 @@ class UnifiedImportHandler:
                 sheets_info.append(sheet_info)
 
                 if detected_type:
-                    records: list[dict[str, Any]] = df.to_dict("records")
+                    # Columns were normalized to strings; pandas stubs use Hashable keys,
+                    # so we cast here to help mypy.
+                    records: list[dict[str, Any]] = cast(
+                        list[dict[str, Any]], df.to_dict("records")
+                    )
                     data_by_type.setdefault(detected_type, []).extend(records)
 
             import_data: dict[str, Any] = {
