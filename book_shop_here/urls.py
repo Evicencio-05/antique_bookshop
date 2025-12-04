@@ -12,6 +12,7 @@ from .views import orders as views_orders
 from .views import reports as views_reports
 from .views import setup as views_setup
 from .views import setup_simple as views_setup_simple
+from .views import test as views_test
 
 app_name = "book_shop_here"
 
@@ -85,4 +86,5 @@ urlpatterns = [
     # Temporary setup endpoints - remove after initial deployment
     path("setup/superuser/", views_setup.create_initial_superuser, name="create-superuser"),
     path("setup/", views_setup_simple.create_super_user_get, name="setup-simple"),
+    path("test/", views_test.simple_test, name="test"),
 ]
