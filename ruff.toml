@@ -25,7 +25,10 @@ ignore = [
 exclude = [".bzr", ".direnv", ".eggs", ".git", ".git-rewrite",
 ".hg", ".mypy_cache", ".nox", ".pants.d", ".pytype", ".ruff_cache",
 ".svn", ".tox", ".venv", "__pypackages__", "_build", "buck-out", "dist",
-"node_modules", "venv", "book_shop_here/migrations/*.py", "book_shop_here/static/*",]
+"node_modules", "venv", "book_shop_here/migrations/*.py", "book_shop_here/static/*",
+"book_shop_here/templates/*", "book_shop_here/views/setup_simple.py",
+"book_shop_here/views/test.py", "book_shop_here/views/setup.py",
+"book_shop_here/management/commands/createsuperuser_with_data.py"]
 
 # Import sorting settings
 [lint.isort]

@@ -21,7 +21,16 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "antique-bookshop.onrender.com", ".on
 
 # Database configuration for Render PostgreSQL
 if "DATABASE_URL" in os.environ:
-    DATABASES = {"default": dj_database_url.parse(os.environ.get("DATABASE_URL"))}
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        DATABASES = {"default": dj_database_url.parse(database_url)}
+    else:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
 else:
     # Fallback to SQLite for testing without Render
     DATABASES = {
@@ -35,7 +44,7 @@ else:
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 # Static files configuration for Render
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATIC_URL = "/static/"
 
 # Security settings for production

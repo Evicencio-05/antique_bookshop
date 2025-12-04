@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 
+
 def simple_test(request):
     """
     Simple test endpoint to verify the application is working
@@ -10,7 +11,8 @@ def simple_test(request):
     <head>
         <title>Application Test</title>
         <style>
-            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+            body { font-family: Arial, sans-serif; max-width: 800px;
+                margin: 0 auto; padding: 20px; }
             .success { color: green; }
         </style>
     </head>

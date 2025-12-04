@@ -1,6 +1,5 @@
 from django.contrib.auth import login
 from django.contrib.auth.models import User
-from django.core.management import call_command
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -19,12 +18,9 @@ def create_initial_superuser(request):
             username="admin", email="admin@example.com", password="admin123"
         )
 
-        # Try to run migrations if needed
-        try:
-            call_command("makemigrations", verbosity=0, interactive=False)
-            call_command("migrate", verbosity=0, interactive=False)
-        except:
-            pass  # Migrations might already be applied
+        # Log in the user
+        user = User.objects.get(username="admin")
+        login(request, user)
 
         # Log in the user
         user = User.objects.get(username="admin")

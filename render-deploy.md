@@ -45,21 +45,25 @@ git push origin Create-web-page
 ### 5. Set Environment Variables
 In your web service settings, add these environment variables:
 
-1. **DJANGO_SETTINGS_MODULE**: `bookshop.render_settings`
+1. **DJANGO_SETTINGS_MODULE**: `bookshop.settings`
 2. **SECRET_KEY**: Generate a secure key at https://djecrety.com/
 3. **DATABASE_URL**: Paste the PostgreSQL connection URL from step 4
 4. **DEBUG**: `false`
 5. **ALLOWED_HOSTS**: `localhost,127.0.0.1,.onrender.com`
+6. **DJANGO_SUPERUSER_USERNAME**: Your desired admin username (e.g., `admin`)
+7. **DJANGO_SUPERUSER_EMAIL**: Your admin email (e.g., `admin@example.com`)
+8. **DJANGO_SUPERUSER_PASSWORD**: A strong password for the admin account
 
-### 6. Initial Database Setup
-After your first deploy runs successfully, you'll need to create a superuser:
+**Important**: The superuser will be created automatically during the build process using the credentials you provide.
 
-1. Go to your web service in Render
-2. Click "Shell" (or "SSH")
-3. Run:
-   ```
-   python manage.py createsuperuser --settings=bookshop.render_settings
-   ```
+### 6. Deploy Your Application
+Once all environment variables are set, Render will automatically:
+- Run database migrations
+- Collect static files
+- Create your superuser account
+- Start the application
+
+You can monitor the build progress in the Render dashboard logs.
 
 ### 7. Access Your Application
 Your deployed application will be available at:

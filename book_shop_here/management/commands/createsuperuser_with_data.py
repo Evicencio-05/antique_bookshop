@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
@@ -11,9 +13,14 @@ class Command(BaseCommand):
         parser.add_argument("--password", type=str, help="Superuser password")
 
     def handle(self, *args, **options):
-        username = options.get("username", "admin")
-        email = options.get("email", "admin@example.com")
-        password = options.get("password", "admin123")
+        # Try command args first, then environment variables, then defaults
+        username = options.get("username") or os.environ.get("DJANGO_SUPERUSER_USERNAME") or "admin"
+        email = (
+            options.get("email") or os.environ.get("DJANGO_SUPERUSER_EMAIL") or "admin@example.com"
+        )
+        password = (
+            options.get("password") or os.environ.get("DJANGO_SUPERUSER_PASSWORD") or "admin123"
+        )
 
         if User.objects.filter(username=username).exists():
             self.stdout.write(self.style.WARNING("User with this username already exists"))
