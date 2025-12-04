@@ -1,0 +1,25 @@
+services:
+  # Django web service
+  - type: web
+    name: antique-bookshop
+    env: python
+    plan: free
+    buildCommand: "uv sync && python manage.py collectstatic --noinput"
+    startCommand: "uv run gunicorn bookshop.wsgi:application --bind 0.0.0.0:$PORT"
+    healthCheckPath: /
+    autoDeploy: true
+
+    # Environment variables
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: bookshop.settings
+      - key: DEBUG
+        value: false
+      - key: PYTHON_VERSION
+        value: 3.10.12
+
+  # PostgreSQL database
+  - type: pserv
+    name: vintage-books-db
+    plan: free
+    env: postgres
