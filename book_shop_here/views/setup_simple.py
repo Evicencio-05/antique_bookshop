@@ -11,14 +11,14 @@ def create_super_user_get(request):
     import traceback
     
     try:
-    """
-    Creates an initial superuser when accessed via GET.
-    This should be removed after initial setup.
-    """
-    if not User.objects.filter(username="admin").exists():
-        # Create superuser with initial credentials
-        User.objects.create_superuser(
-            username="admin", email="admin@example.com", password="admin123"
+        """
+        Creates an initial superuser when accessed via GET.
+        This should be removed after initial setup.
+        """
+        if not User.objects.filter(username="admin").exists():
+            # Create superuser with initial credentials
+            User.objects.create_superuser(
+                username="admin", email="admin@example.com", password="admin123"
         )
 
         # Try to run migrations if needed
@@ -101,4 +101,5 @@ def create_super_user_get(request):
             <pre>{error_details}</pre>
         </body>
         </html>
-        ""
+        """
+        )
