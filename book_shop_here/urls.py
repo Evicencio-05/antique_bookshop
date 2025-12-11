@@ -10,10 +10,6 @@ from .views import employees as views_employees
 from .views import groups as views_groups
 from .views import orders as views_orders
 from .views import reports as views_reports
-from .views import setup as views_setup
-from .views import setup_fixed as views_setup_fixed
-from .views import setup_simple as views_setup_simple
-from .views import test as views_test
 
 app_name = "book_shop_here"
 
@@ -83,9 +79,4 @@ urlpatterns = [
     # Unified import endpoints (XLSX, CSV, XML) - handles all file formats
     path("import/upload/", unified_import_upload, name="import-upload"),
     path("import/process/", unified_import_process, name="import-process"),
-    # Temporary setup endpoints - remove after initial deployment
-    path("setup/superuser/", views_setup.create_initial_superuser, name="create-superuser"),
-    path("setup/", views_setup_simple.create_super_user_get, name="setup-simple"),
-    path("test/", views_test.simple_test, name="test"),
-    path("setup-fixed/", views_setup_fixed.create_super_user_fixed, name="setup-fixed"),
 ]
