@@ -1,9 +1,10 @@
+import traceback
+
 from django.contrib.auth.models import User
-from django.http import HttpResponse
 from django.core.management import call_command
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-import traceback
 
 
 @csrf_exempt
@@ -16,8 +17,8 @@ def create_super_user_fixed(request):
     try:
         # First, run migrations to create database tables
         try:
-            call_command('makemigrations', verbosity=1, interactive=False)
-            call_command('migrate', verbosity=1, interactive=False)
+            call_command("makemigrations", verbosity=1, interactive=False)
+            call_command("migrate", verbosity=1, interactive=False)
         except Exception as migration_error:
             return HttpResponse(f"""
             <!DOCTYPE html>
@@ -39,16 +40,14 @@ def create_super_user_fixed(request):
             </body>
             </html>
             """)
-        
+
         # After migrations, check if superuser exists
-        if not User.objects.filter(username='admin').exists():
+        if not User.objects.filter(username="admin").exists():
             # Create superuser with initial credentials
             User.objects.create_superuser(
-                username='admin',
-                email='admin@example.com',
-                password='admin123'
+                username="admin", email="admin@example.com", password="admin123"
             )
-            
+
             return HttpResponse("""
             <!DOCTYPE html>
             <html>
@@ -72,7 +71,7 @@ def create_super_user_fixed(request):
             </body>
             </html>
             """)
-        
+
         # If superuser already exists
         return HttpResponse("""
         <!DOCTYPE html>
@@ -95,7 +94,7 @@ def create_super_user_fixed(request):
         </body>
         </html>
         """)
-    
+
     except Exception as e:
         error_details = traceback.format_exc()
         return HttpResponse(f"""

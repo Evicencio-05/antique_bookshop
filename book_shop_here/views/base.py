@@ -12,10 +12,6 @@ from ..utils.search import build_advanced_search
 logger = logging.getLogger(__name__)
 
 
-class DocsView(TemplateView):
-    template_name = "book_shop_here/docs.html"
-
-
 class HomeView(TemplateView):
     template_name = "book_shop_here/home.html"
 

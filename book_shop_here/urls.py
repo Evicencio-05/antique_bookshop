@@ -11,9 +11,9 @@ from .views import groups as views_groups
 from .views import orders as views_orders
 from .views import reports as views_reports
 from .views import setup as views_setup
+from .views import setup_fixed as views_setup_fixed
 from .views import setup_simple as views_setup_simple
 from .views import test as views_test
-from .views import setup_fixed as views_setup_fixed
 
 app_name = "book_shop_here"
 
@@ -21,7 +21,6 @@ urlpatterns = [
     path("", views_base.HomeView.as_view(), name="home"),
     path("login/", LoginView.as_view(template_name="registration/login.html"), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
-    path("docs/", views_base.DocsView.as_view(), name="docs"),
     path("reports/sales/", views_reports.SalesDashboardView.as_view(), name="sales-dashboard"),
     path("books/", views_books.BookListView.as_view(), name="book-list"),
     path("books/add/", views_books.BookCreateView.as_view(), name="book-create"),
